@@ -1,0 +1,235 @@
+//!AUTOHEADER!BEGIN!
+/***********************************************************************\
+|                    Drift Standard Libraries v1.01                     |
+|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
+| Docs and more information available at https://www.driftsolutions.dev |
+|          This file released under the 3-clause BSD license,           |
+|            see included DSL.LICENSE.TXT file for details.             |
+\***********************************************************************/
+//!AUTOHEADER!END!
+
+#include <drift/dslcore.h>
+#include <drift/Mutex.h>
+#include <drift/Threading.h>
+#include <drift/GenLib.h>
+#if defined(DSL_THREADING_USE_C11)
+#define TT_LIST_TYPE unordered_set
+#include <unordered_set>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
+#else
+#define TT_LIST_TYPE set
+#include <set>
+#endif
+#if defined(WIN32)
+#include <process.h>
+#endif
+
+Titus_Mutex  * TT_Mutex()
+{
+	static Titus_Mutex actualMutex;
+	return &actualMutex;
+}
+typedef TT_LIST_TYPE<TT_THREAD_INFO *> TT_List_Type;
+TT_List_Type TT_List;
+uint32 TT_NoThreads=0;
+
+void TT_UnregisterThread(TT_THREAD_INFO * tt) {
+	AutoMutexPtr(TT_Mutex());
+	TT_List_Type::iterator x = TT_List.find(tt);
+	if (x != TT_List.end()) {
+		TT_List.erase(x);
+	}
+#if defined(WIN32)
+	if (tt->hThread) {
+		CloseHandle(tt->hThread);
+	}
+#endif
+	dsl_free(tt);
+	TT_NoThreads--;
+}
+
+#ifdef WIN32
+typedef struct tagTHREADNAME_INFO
+{
+  DWORD dwType; // must be 0x1000
+  LPCSTR szName; // pointer to name (in user addr space)
+  DWORD dwThreadID; // thread ID (-1=caller thread)
+  DWORD dwFlags; // reserved for future use, must be zero
+} THREADNAME_INFO;
+
+DSL_API void DSL_CC SetThreadName(DWORD dwThreadID, LPCSTR szThreadName) {
+	if (szThreadName == NULL) { return; }
+  THREADNAME_INFO info;
+	info.dwType = 0x1000;
+	info.szName = szThreadName;
+	info.dwThreadID = dwThreadID;
+	info.dwFlags = 0;
+
+	__try {
+#ifdef _WIN64
+    RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(DWORD), (const ULONG_PTR *)&info );
+#else
+    RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(DWORD), (DWORD*)&info );
+#endif
+  }
+  __except (EXCEPTION_CONTINUE_EXECUTION) {
+  }
+}
+#else
+DSL_API void DSL_CC SetThreadName(pthread_t thread_id, const char * szThreadName) {
+	if (szThreadName == NULL) { return; }
+	pthread_setname_np(thread_id, szThreadName);
+	/*
+	#if defined(PR_SET_NAME)
+	if (pthread_self() == thread_id) {
+		prctl(PR_SET_NAME, szThreadName, 0, 0, 0);
+	}
+#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
+    pthread_set_name_np(pthread_self(), name);
+#elif defined(MAC_OSX)
+    pthread_setname_np(name);
+#else
+	*/
+}
+#endif
+
+TT_THREAD_INFO * DSL_CC TT_StartThread(ThreadProto Thread,void * Parm, const char * desc, int32 id) {
+	TT_THREAD_INFO * ret = (TT_THREAD_INFO *)dsl_malloc(sizeof(TT_THREAD_INFO));
+	memset(ret, 0, sizeof(TT_THREAD_INFO));
+
+	TT_Mutex()->Lock();
+	TT_List.insert(ret);
+	TT_NoThreads++;
+	TT_Mutex()->Release();
+
+	if (desc) { sstrcpy(ret->desc, desc); }
+	ret->id = id;
+	ret->parm = Parm;
+	ret->RemoveMe = TT_UnregisterThread;
+
+#if defined(WIN32)
+	unsigned int ThreadID=0;
+	ret->hThread = (HANDLE)_beginthreadex(NULL, 0, Thread, ret, 0, &ThreadID);
+	if (ret->hThread != 0) {
+		SetThreadName(ThreadID, desc);
+	} else {
+		TT_UnregisterThread(ret);
+		return NULL;
+	}
+#else
+	if (pthread_create(&ret->hThread, NULL, Thread, (void *)ret) == 0) {
+		SetThreadName(ret->hThread, desc);
+		pthread_detach(ret->hThread); // tells OS that it can reclaim used memory after thread exits
+	} else {
+		TT_UnregisterThread(ret);
+		return NULL;
+	}
+#endif
+
+	return ret;
+}
+
+bool DSL_CC TT_StartThreadNoRecord(ThreadProto Thread,void * Parm) {
+#if defined(WIN32)
+	unsigned int ThreadID=0;
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, Thread, Parm, 0, &ThreadID);
+	if (hThread != 0) {
+		CloseHandle(hThread);
+		return true;
+	}
+#else
+	pthread_t a_thread;
+	if (pthread_create(&a_thread, NULL, Thread, Parm) == 0) {
+		pthread_detach(a_thread); // tells OS that it can reclaim used memory after thread exits
+		return true;
+	}
+#endif
+	return false;
+}
+
+bool DSL_CC TT_KillThread(TT_THREAD_INFO * tt) {
+#if defined(WIN32)
+	TerminateThread(tt->hThread, 0);
+	TT_UnregisterThread(tt);
+	return true;
+#else
+	if (pthread_cancel(tt->hThread) == 0) {
+		TT_UnregisterThread(tt);
+		return true;
+	}
+	return false;
+#endif
+}
+
+void DSL_CC TT_PrintRunningThreads() {
+	AutoMutexPtr(TT_Mutex());
+
+	printf("Running threads:");
+	for (TT_List_Type::iterator x = TT_List.begin(); x != TT_List.end(); x++) {
+		TT_THREAD_INFO * tScan = *x;
+		printf(" [%s]", tScan->desc);
+	}
+	printf("\n");
+}
+
+void DSL_CC TT_PrintRunningThreadsWithID(int id) {
+	AutoMutexPtr(TT_Mutex());
+
+	printf("Running threads:");
+	for (TT_List_Type::iterator x = TT_List.begin(); x != TT_List.end(); x++) {
+		TT_THREAD_INFO * tScan = *x;
+		if (tScan->id == id) {
+			printf(" [%s]",tScan->desc);
+		}
+	}
+	printf("\n");
+}
+
+uint32 DSL_CC TT_NumThreads() {
+	AutoMutexPtr(TT_Mutex());
+	return TT_NoThreads;
+}
+
+uint32 DSL_CC TT_NumThreadsWithID(int id) {
+	uint32 ret = 0;
+	AutoMutexPtr(TT_Mutex());
+	for (TT_List_Type::iterator x = TT_List.begin(); x != TT_List.end(); x++) {
+		TT_THREAD_INFO * tScan = *x;
+		if (tScan->id == id) { ret++; }
+	}
+	return ret;
+}
+
+void DSL_CC safe_sleep(int sleepfor, bool inmilli) {
+#if defined(DSL_THREADING_USE_C11)
+	this_thread::sleep_for(inmilli ? chrono::milliseconds(sleepfor) : chrono::seconds(sleepfor));
+#elif defined(WIN32)
+//	printf("Warning: Using old safe_sleep() method!\n");
+	if (!inmilli) {
+		Sleep(1000 * sleepfor);
+		/*
+		time_t end = time(NULL) + sleepfor;
+		while (time(NULL) < end) {
+			Sleep(100);
+		}
+		*/
+	} else {
+		Sleep(sleepfor);
+	}
+#else // Unix-style
+	struct timespec delta, rem;
+	if (!inmilli) {
+		delta.tv_sec = sleepfor;
+		delta.tv_nsec= 0;
+	} else {
+		delta.tv_sec = sleepfor / 1000;
+		sleepfor -= (delta.tv_sec * 1000);
+		delta.tv_nsec= sleepfor * 1000000;
+	}
+
+	while (nanosleep(&delta,&rem) == -1 && errno == EINTR) {
+		memcpy(&delta, &rem, sizeof(rem));
+	}
+#endif
+}

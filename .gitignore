@@ -1,0 +1,6 @@
+*.bak
+build/
+build64/
+incomplete_or_didnt_work/
+old/
+doc/
