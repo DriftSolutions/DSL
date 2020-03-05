@@ -12,31 +12,31 @@
 #include <drift/rwops.h>
 #include <drift/GenLib.h>
 
-int64 file_read(void * buf, int64 size, TITUS_FILE * fp) {
+int64 file_read(void * buf, int64 size, DSL_FILE * fp) {
 	return fread(buf,1,size,fp->fp);
 }
 
-int64 file_write(void * buf, int64 size, TITUS_FILE * fp) {
+int64 file_write(void * buf, int64 size, DSL_FILE * fp) {
 	return fwrite(buf,1,size,fp->fp);
 }
 
-bool file_seek(TITUS_FILE * fp, int64 pos, int whence) {
+bool file_seek(DSL_FILE * fp, int64 pos, int whence) {
 	return (fseek64(fp->fp, pos, whence) == 0);
 }
 
-int64 file_tell(TITUS_FILE * fp) {
+int64 file_tell(DSL_FILE * fp) {
 	return ftell64(fp->fp);
 }
 
-bool file_flush(TITUS_FILE * fp) {
+bool file_flush(DSL_FILE * fp) {
 	return (fflush(fp->fp) == 0);
 }
 
-bool file_eof(TITUS_FILE * fp) {
+bool file_eof(DSL_FILE * fp) {
 	return (feof(fp->fp) != 0);
 }
 
-void file_close(TITUS_FILE * fp) {
+void file_close(DSL_FILE * fp) {
 	FILE * o_fp = fp->fp;
 	bool do_close = true;
 	if (fp->p_extra) {
@@ -48,12 +48,12 @@ void file_close(TITUS_FILE * fp) {
 	if (do_close) { fclose(o_fp); }
 }
 
-TITUS_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
+DSL_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
 	FILE * fp = fopen(fn,mode);
 	if (!fp) { return NULL; }
 
-	TITUS_FILE * ret = new TITUS_FILE;
-	memset(ret,0,sizeof(TITUS_FILE));
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret,0,sizeof(DSL_FILE));
 
 	ret->fp = fp;
 	ret->read = file_read;
@@ -67,9 +67,9 @@ TITUS_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
 	return ret;
 };
 
-TITUS_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
-	TITUS_FILE * ret = new TITUS_FILE;
-	memset(ret,0,sizeof(TITUS_FILE));
+DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret,0,sizeof(DSL_FILE));
 
 	ret->fp = fp;
 	ret->read = file_read;
@@ -95,7 +95,7 @@ struct TP_MEMHANDLE {
 	int64 size;
 };
 
-int64 mem_read(void * buf, int64 size, TITUS_FILE * fp) {
+int64 mem_read(void * buf, int64 size, DSL_FILE * fp) {
 	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
 	if (size + mem->offset > mem->size) {
 		size = mem->size - mem->offset;
@@ -108,7 +108,7 @@ int64 mem_read(void * buf, int64 size, TITUS_FILE * fp) {
 	return size;
 }
 
-int64 mem_write(void * buf, int64 size, TITUS_FILE * fp) {
+int64 mem_write(void * buf, int64 size, DSL_FILE * fp) {
 	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
 
 	if (size + mem->offset > mem->size) {
@@ -121,7 +121,7 @@ int64 mem_write(void * buf, int64 size, TITUS_FILE * fp) {
 	return size;
 }
 
-bool mem_seek(TITUS_FILE * fp, int64 pos, int mode) {
+bool mem_seek(DSL_FILE * fp, int64 pos, int mode) {
 	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
 	switch(mode) {
 		case SEEK_SET:
@@ -146,7 +146,7 @@ bool mem_seek(TITUS_FILE * fp, int64 pos, int mode) {
 	return true;
 }
 
-void mem_close(TITUS_FILE * fp) {
+void mem_close(DSL_FILE * fp) {
 	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
 	if (mem->bDelete) {
 		delete mem->mem;
@@ -155,23 +155,23 @@ void mem_close(TITUS_FILE * fp) {
 	delete fp;
 }
 
-int64 mem_tell(TITUS_FILE * fp) {
+int64 mem_tell(DSL_FILE * fp) {
 	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
 	return mem->offset;
 }
 
-bool mem_eof(TITUS_FILE * fp) {
+bool mem_eof(DSL_FILE * fp) {
 	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
 	return (mem->offset >= mem->size);
 }
 
-bool mem_flush(TITUS_FILE * fp) {
+bool mem_flush(DSL_FILE * fp) {
 	return true;
 }
 
-TITUS_FILE * DSL_CC RW_OpenMemory(int64 size) {
-	TITUS_FILE * ret = new TITUS_FILE;
-	memset(ret,0,sizeof(TITUS_FILE));
+DSL_FILE * DSL_CC RW_OpenMemory(int64 size) {
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret,0,sizeof(DSL_FILE));
 	TP_MEMHANDLE * mem = new TP_MEMHANDLE;
 	memset(mem,0,sizeof(TP_MEMHANDLE));
 
@@ -192,9 +192,9 @@ TITUS_FILE * DSL_CC RW_OpenMemory(int64 size) {
 	return ret;
 }
 
-TITUS_FILE * DSL_CC RW_ConvertMemory(char * buf, int64 size) {
-	TITUS_FILE * ret = new TITUS_FILE;
-	memset(ret,0,sizeof(TITUS_FILE));
+DSL_FILE * DSL_CC RW_ConvertMemory(char * buf, int64 size) {
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret,0,sizeof(DSL_FILE));
 	TP_MEMHANDLE * mem = new TP_MEMHANDLE;
 	memset(mem,0,sizeof(TP_MEMHANDLE));
 

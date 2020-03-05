@@ -8,8 +8,8 @@
 \***********************************************************************/
 //!AUTOHEADER!END!
 
-#ifndef _INCLUDE_THREADING_H_
-#define _INCLUDE_THREADING_H_
+#ifndef _DSL_THREADING_H_
+#define _DSL_THREADING_H_
 
 #if defined(__cplusplus) && ((defined(_MSC_VER) && _MSC_VER >= 1800 && __cplusplus >= 199711L) || __cplusplus >= 201103L)
 #define DSL_THREADING_USE_C11
@@ -21,55 +21,55 @@
 #define THREADIDTYPE pthread_t
 #endif
 
-struct TT_THREAD_INFO {
+struct DSL_THREAD_INFO {
 #ifdef _WIN32
 	HANDLE hThread;
 #else
 	pthread_t hThread;
 #endif
 
-	int32 id;//user-specified ID, if TT_StartThread() is used with no ID, it defaults to -1
+	int32 id;//user-specified ID, if DSL_StartThread() is used with no ID, it defaults to -1
 	void * parm;//user-specified parameter
 
 	char desc[256];
 
-	void (*RemoveMe)(TT_THREAD_INFO * tt);
+	void (*RemoveMe)(DSL_THREAD_INFO * tt);
 };
 
 #if !defined(NO_CPLUSPLUS)
-DSL_API TT_THREAD_INFO * DSL_CC TT_StartThread(ThreadProto Thread, void * Parm, const char * desc = NULL, int32 id = -1);
+DSL_API DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread, void * Parm, const char * desc = NULL, int32 id = -1);
 #else
-DSL_API TT_THREAD_INFO * DSL_CC TT_StartThread(ThreadProto Thread, void * Parm, const char * desc, int32 id);
+DSL_API DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread, void * Parm, const char * desc, int32 id);
 #endif
-DSL_API bool DSL_CC TT_StartThreadNoRecord(ThreadProto Thread, void * Parm);
+DSL_API bool DSL_CC DSL_StartThreadNoRecord(ThreadProto Thread, void * Parm);
 
-DSL_API uint32 DSL_CC TT_NumThreads(); // number of active threads (does not count threads started with TT_StartThreadNoRecord)
-DSL_API uint32 DSL_CC TT_NumThreadsWithID(int id); // number of active threads with matching id #
-DSL_API void DSL_CC TT_PrintRunningThreads();
-DSL_API void DSL_CC TT_PrintRunningThreadsWithID(int id);
-DSL_API bool DSL_CC TT_KillThread(TT_THREAD_INFO * tt);
+DSL_API uint32 DSL_CC DSL_NumThreads(); // number of active threads (does not count threads started with DSL_StartThreadNoRecord)
+DSL_API uint32 DSL_CC DSL_NumThreadsWithID(int id); // number of active threads with matching id #
+DSL_API void DSL_CC DSL_PrintRunningThreads();
+DSL_API void DSL_CC DSL_PrintRunningThreadsWithID(int id);
+DSL_API bool DSL_CC DSL_KillThread(DSL_THREAD_INFO * tt);
 
-#define TT_DEFINE_THREAD(x) THREADTYPE x(void * lpData)
+#define DSL_DEFINE_THREAD(x) THREADTYPE x(void * lpData)
 
 #if defined(WIN32)
 //new-style
-#define TT_THREAD_START TT_THREAD_INFO * tt = (TT_THREAD_INFO *)lpData;
-#define TT_THREAD_END tt->RemoveMe(tt); return 0;
+#define DSL_THREAD_START DSL_THREAD_INFO * tt = (DSL_THREAD_INFO *)lpData;
+#define DSL_THREAD_END tt->RemoveMe(tt); return 0;
 
 //old-style
 #if !defined(DSL_NO_OLD_THREAD_API)
-#define TT_THREADEND return 0;
+#define DSL_THREADEND return 0;
 #endif
 
-DSL_API void DSL_CC SetThreadName(DWORD dwThreadID, LPCSTR szThreadName);
+DSL_API void DSL_CC DSL_SetThreadName(DWORD dwThreadID, LPCSTR szThreadName);
 #else
 //new-style
-#define TT_THREAD_START TT_THREAD_INFO * tt = (TT_THREAD_INFO *)lpData;
-#define TT_THREAD_END tt->RemoveMe(tt); return NULL;
+#define DSL_THREAD_START DSL_THREAD_INFO * tt = (DSL_THREAD_INFO *)lpData;
+#define DSL_THREAD_END tt->RemoveMe(tt); return NULL;
 
 //old-style
 #if !defined(DSL_NO_OLD_THREAD_API)
-#define TT_THREADEND return NULL;
+#define DSL_THREADEND return NULL;
 #endif
 
 #define GetCurrentThreadId pthread_self
@@ -80,5 +80,7 @@ DSL_API void DSL_CC safe_sleep(int sleepfor, bool inmilli = false);
 #else
 DSL_API void DSL_CC safe_sleep(int sleepfor, bool inmilli);
 #endif
+#define safe_sleep_ms(sleepfor) safe_sleep(sleepfor, true)
+#define safe_sleep_s(sleepfor) safe_sleep(sleepfor, false)
 
-#endif // _INCLUDE_MUTEX_H_
+#endif // _DSL_MUTEX_H_

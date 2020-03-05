@@ -13,32 +13,32 @@
 #include <drift/Threading.h>
 #include <drift/GenLib.h>
 #if defined(DSL_THREADING_USE_C11)
-#define TT_LIST_TYPE unordered_set
+#define DSL_LIST_TYPE unordered_set
 #include <unordered_set>
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 #else
-#define TT_LIST_TYPE set
+#define DSL_LIST_TYPE set
 #include <set>
 #endif
 #if defined(WIN32)
 #include <process.h>
 #endif
 
-Titus_Mutex  * TT_Mutex()
+DSL_Mutex  * DSL_Thread_Mutex()
 {
-	static Titus_Mutex actualMutex;
+	static DSL_Mutex actualMutex;
 	return &actualMutex;
 }
-typedef TT_LIST_TYPE<TT_THREAD_INFO *> TT_List_Type;
-TT_List_Type TT_List;
-uint32 TT_NoThreads=0;
+typedef DSL_LIST_TYPE<DSL_THREAD_INFO *> DSL_List_Type;
+DSL_List_Type DSL_List;
+uint32 DSL_NoThreads=0;
 
-void TT_UnregisterThread(TT_THREAD_INFO * tt) {
-	AutoMutexPtr(TT_Mutex());
-	TT_List_Type::iterator x = TT_List.find(tt);
-	if (x != TT_List.end()) {
-		TT_List.erase(x);
+void DSL_UnregisterThread(DSL_THREAD_INFO * tt) {
+	AutoMutexPtr(DSL_Thread_Mutex());
+	DSL_List_Type::iterator x = DSL_List.find(tt);
+	if (x != DSL_List.end()) {
+		DSL_List.erase(x);
 	}
 #if defined(WIN32)
 	if (tt->hThread) {
@@ -46,7 +46,7 @@ void TT_UnregisterThread(TT_THREAD_INFO * tt) {
 	}
 #endif
 	dsl_free(tt);
-	TT_NoThreads--;
+	DSL_NoThreads--;
 }
 
 #ifdef WIN32
@@ -58,7 +58,7 @@ typedef struct tagTHREADNAME_INFO
   DWORD dwFlags; // reserved for future use, must be zero
 } THREADNAME_INFO;
 
-DSL_API void DSL_CC SetThreadName(DWORD dwThreadID, LPCSTR szThreadName) {
+DSL_API void DSL_CC DSL_SetThreadName(DWORD dwThreadID, LPCSTR szThreadName) {
 	if (szThreadName == NULL) { return; }
   THREADNAME_INFO info;
 	info.dwType = 0x1000;
@@ -77,7 +77,7 @@ DSL_API void DSL_CC SetThreadName(DWORD dwThreadID, LPCSTR szThreadName) {
   }
 }
 #else
-DSL_API void DSL_CC SetThreadName(pthread_t thread_id, const char * szThreadName) {
+DSL_API void DSL_CC DSL_SetThreadName(pthread_t thread_id, const char * szThreadName) {
 	if (szThreadName == NULL) { return; }
 	pthread_setname_np(thread_id, szThreadName);
 	/*
@@ -94,35 +94,35 @@ DSL_API void DSL_CC SetThreadName(pthread_t thread_id, const char * szThreadName
 }
 #endif
 
-TT_THREAD_INFO * DSL_CC TT_StartThread(ThreadProto Thread,void * Parm, const char * desc, int32 id) {
-	TT_THREAD_INFO * ret = (TT_THREAD_INFO *)dsl_malloc(sizeof(TT_THREAD_INFO));
-	memset(ret, 0, sizeof(TT_THREAD_INFO));
+DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread,void * Parm, const char * desc, int32 id) {
+	DSL_THREAD_INFO * ret = (DSL_THREAD_INFO *)dsl_malloc(sizeof(DSL_THREAD_INFO));
+	memset(ret, 0, sizeof(DSL_THREAD_INFO));
 
-	TT_Mutex()->Lock();
-	TT_List.insert(ret);
-	TT_NoThreads++;
-	TT_Mutex()->Release();
+	DSL_Thread_Mutex()->Lock();
+	DSL_List.insert(ret);
+	DSL_NoThreads++;
+	DSL_Thread_Mutex()->Release();
 
 	if (desc) { sstrcpy(ret->desc, desc); }
 	ret->id = id;
 	ret->parm = Parm;
-	ret->RemoveMe = TT_UnregisterThread;
+	ret->RemoveMe = DSL_UnregisterThread;
 
 #if defined(WIN32)
 	unsigned int ThreadID=0;
 	ret->hThread = (HANDLE)_beginthreadex(NULL, 0, Thread, ret, 0, &ThreadID);
 	if (ret->hThread != 0) {
-		SetThreadName(ThreadID, desc);
+		DSL_SetThreadName(ThreadID, desc);
 	} else {
-		TT_UnregisterThread(ret);
+		DSL_UnregisterThread(ret);
 		return NULL;
 	}
 #else
 	if (pthread_create(&ret->hThread, NULL, Thread, (void *)ret) == 0) {
-		SetThreadName(ret->hThread, desc);
+		DSL_SetThreadName(ret->hThread, desc);
 		pthread_detach(ret->hThread); // tells OS that it can reclaim used memory after thread exits
 	} else {
-		TT_UnregisterThread(ret);
+		DSL_UnregisterThread(ret);
 		return NULL;
 	}
 #endif
@@ -130,7 +130,7 @@ TT_THREAD_INFO * DSL_CC TT_StartThread(ThreadProto Thread,void * Parm, const cha
 	return ret;
 }
 
-bool DSL_CC TT_StartThreadNoRecord(ThreadProto Thread,void * Parm) {
+bool DSL_CC DSL_StartThreadNoRecord(ThreadProto Thread,void * Parm) {
 #if defined(WIN32)
 	unsigned int ThreadID=0;
 	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, Thread, Parm, 0, &ThreadID);
@@ -148,37 +148,37 @@ bool DSL_CC TT_StartThreadNoRecord(ThreadProto Thread,void * Parm) {
 	return false;
 }
 
-bool DSL_CC TT_KillThread(TT_THREAD_INFO * tt) {
+bool DSL_CC DSL_KillThread(DSL_THREAD_INFO * tt) {
 #if defined(WIN32)
 	TerminateThread(tt->hThread, 0);
-	TT_UnregisterThread(tt);
+	DSL_UnregisterThread(tt);
 	return true;
 #else
 	if (pthread_cancel(tt->hThread) == 0) {
-		TT_UnregisterThread(tt);
+		DSL_UnregisterThread(tt);
 		return true;
 	}
 	return false;
 #endif
 }
 
-void DSL_CC TT_PrintRunningThreads() {
-	AutoMutexPtr(TT_Mutex());
+void DSL_CC DSL_PrintRunningThreads() {
+	AutoMutexPtr(DSL_Thread_Mutex());
 
 	printf("Running threads:");
-	for (TT_List_Type::iterator x = TT_List.begin(); x != TT_List.end(); x++) {
-		TT_THREAD_INFO * tScan = *x;
+	for (DSL_List_Type::iterator x = DSL_List.begin(); x != DSL_List.end(); x++) {
+		DSL_THREAD_INFO * tScan = *x;
 		printf(" [%s]", tScan->desc);
 	}
 	printf("\n");
 }
 
-void DSL_CC TT_PrintRunningThreadsWithID(int id) {
-	AutoMutexPtr(TT_Mutex());
+void DSL_CC DSL_PrintRunningThreadsWithID(int id) {
+	AutoMutexPtr(DSL_Thread_Mutex());
 
 	printf("Running threads:");
-	for (TT_List_Type::iterator x = TT_List.begin(); x != TT_List.end(); x++) {
-		TT_THREAD_INFO * tScan = *x;
+	for (DSL_List_Type::iterator x = DSL_List.begin(); x != DSL_List.end(); x++) {
+		DSL_THREAD_INFO * tScan = *x;
 		if (tScan->id == id) {
 			printf(" [%s]",tScan->desc);
 		}
@@ -186,16 +186,16 @@ void DSL_CC TT_PrintRunningThreadsWithID(int id) {
 	printf("\n");
 }
 
-uint32 DSL_CC TT_NumThreads() {
-	AutoMutexPtr(TT_Mutex());
-	return TT_NoThreads;
+uint32 DSL_CC DSL_NumThreads() {
+	AutoMutexPtr(DSL_Thread_Mutex());
+	return DSL_NoThreads;
 }
 
-uint32 DSL_CC TT_NumThreadsWithID(int id) {
+uint32 DSL_CC DSL_NumThreadsWithID(int id) {
 	uint32 ret = 0;
-	AutoMutexPtr(TT_Mutex());
-	for (TT_List_Type::iterator x = TT_List.begin(); x != TT_List.end(); x++) {
-		TT_THREAD_INFO * tScan = *x;
+	AutoMutexPtr(DSL_Thread_Mutex());
+	for (DSL_List_Type::iterator x = DSL_List.begin(); x != DSL_List.end(); x++) {
+		DSL_THREAD_INFO * tScan = *x;
 		if (tScan->id == id) { ret++; }
 	}
 	return ret;
@@ -205,15 +205,8 @@ void DSL_CC safe_sleep(int sleepfor, bool inmilli) {
 #if defined(DSL_THREADING_USE_C11)
 	this_thread::sleep_for(inmilli ? chrono::milliseconds(sleepfor) : chrono::seconds(sleepfor));
 #elif defined(WIN32)
-//	printf("Warning: Using old safe_sleep() method!\n");
 	if (!inmilli) {
 		Sleep(1000 * sleepfor);
-		/*
-		time_t end = time(NULL) + sleepfor;
-		while (time(NULL) < end) {
-			Sleep(100);
-		}
-		*/
 	} else {
 		Sleep(sleepfor);
 	}

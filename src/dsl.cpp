@@ -17,9 +17,9 @@
 #include <tchar.h>
 #endif
 
-Titus_Mutex * dslMutex()
+DSL_Mutex * dslMutex()
 {
-  static Titus_Mutex actualMutex;
+  static DSL_Mutex actualMutex;
   return &actualMutex;
 }
 

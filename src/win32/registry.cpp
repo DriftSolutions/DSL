@@ -14,7 +14,7 @@
 
 //typedef bool (*EV_Callback)(char * name, char * value);
 
-bool Titus_Registry::EnumValuesCallbackA(HKEY hKey, const char * SubKey, EV_CallbackA callback) {
+bool DSL_Registry::EnumValuesCallbackA(HKEY hKey, const char * SubKey, EV_CallbackA callback) {
 	HKEY ko;
 	if (RegOpenKeyExA(hKey,SubKey,0,KEY_READ|KEY_QUERY_VALUE,&ko) != NO_ERROR) {
 		return false;
@@ -71,7 +71,7 @@ bool Titus_Registry::EnumValuesCallbackA(HKEY hKey, const char * SubKey, EV_Call
 	return true;
 };
 
-bool Titus_Registry::DeleteValueA(HKEY hKey, const char * SubKey, const char * value) {
+bool DSL_Registry::DeleteValueA(HKEY hKey, const char * SubKey, const char * value) {
 	HKEY ko;
 	if (RegOpenKeyExA(hKey,SubKey,0,KEY_READ|KEY_WRITE,&ko) != NO_ERROR) {
 		return false;
@@ -85,7 +85,7 @@ bool Titus_Registry::DeleteValueA(HKEY hKey, const char * SubKey, const char * v
 	}
 }
 
-bool Titus_Registry::SetValueA(HKEY hKey, const char * SubKey, const char * valname, TR_VALUE * value) {
+bool DSL_Registry::SetValueA(HKEY hKey, const char * SubKey, const char * valname, TR_VALUE * value) {
 	HKEY ko;
 	if (RegCreateKeyExA(hKey,SubKey,0,NULL,REG_OPTION_NON_VOLATILE, KEY_READ|KEY_WRITE, NULL, &ko, NULL) != NO_ERROR) {
 		return false;
@@ -114,7 +114,7 @@ bool Titus_Registry::SetValueA(HKEY hKey, const char * SubKey, const char * valn
 	}
 }
 
-bool Titus_Registry::GetValueA(HKEY hKey, const char * SubKey, const char * valname, TR_VALUE * value) {
+bool DSL_Registry::GetValueA(HKEY hKey, const char * SubKey, const char * valname, TR_VALUE * value) {
 	HKEY ko;
 	if (RegOpenKeyExA(hKey,SubKey,0,KEY_READ,&ko) != NO_ERROR) {
 		return false;
@@ -157,7 +157,7 @@ bool Titus_Registry::GetValueA(HKEY hKey, const char * SubKey, const char * valn
 	}
 }
 
-void Titus_Registry::FreeValue(TR_VALUE * val) {
+void DSL_Registry::FreeValue(TR_VALUE * val) {
 	if (val->type == TR_STRING || val->type == TR_BINARY) {
 		if (val->valStr) {
 			dsl_free(val->valStr);
@@ -165,8 +165,5 @@ void Titus_Registry::FreeValue(TR_VALUE * val) {
 		}
 	}
 }
-
-Titus_Registry * NewTitusRegistry() { return new Titus_Registry; }
-void FreeTitusRegistry(Titus_Registry * reg) { delete reg; }
 
 #endif // defined(_WIN32)

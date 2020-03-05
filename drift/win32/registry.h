@@ -33,7 +33,7 @@ struct TR_VALUE {
 typedef bool (*EV_CallbackA)(const char * name, TR_VALUE * value);
 typedef bool (*EV_CallbackW)(const wchar_t * name, TR_VALUE * value);
 
-class DSL_API_CLASS Titus_Registry {
+class DSL_API_CLASS DSL_Registry {
 public:
 
 	bool EnumValuesCallbackW(HKEY hKey, const wchar_t * SubKey, EV_CallbackW callback);

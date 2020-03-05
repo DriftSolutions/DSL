@@ -13,21 +13,21 @@
 #include <drift/sockets3.h>
 #include <drift/openssl.h>
 
-Titus_Mutex  * sslSockMutex()
+DSL_Mutex  * sslSockMutex()
 {
-	static Titus_Mutex actualMutex;
+	static DSL_Mutex actualMutex;
 	return &actualMutex;
 }
 //#define OVERPROTECTIVE_OPENSSL
 
 extern DSL_Library_Registerer dsl_openssl_autoreg;
-Titus_Sockets3_OpenSSL::Titus_Sockets3_OpenSSL() {
+DSL_Sockets3_OpenSSL::DSL_Sockets3_OpenSSL() {
 	dsl_openssl_autoreg.EnsureLinked();
 	ctx = NULL;
-	avail_flags |= TS3_FLAG_SSL;
+	avail_flags |= DS3_FLAG_SSL;
 }
 
-Titus_Sockets3_OpenSSL::~Titus_Sockets3_OpenSSL() {
+DSL_Sockets3_OpenSSL::~DSL_Sockets3_OpenSSL() {
 	LockMutexPtr(sslSockMutex());
 	if (ctx) {
 		SSL_CTX_free(ctx);
@@ -36,12 +36,12 @@ Titus_Sockets3_OpenSSL::~Titus_Sockets3_OpenSSL() {
 	RelMutexPtr(sslSockMutex());
 }
 
-TITUS_SOCKET * Titus_Sockets3_OpenSSL::pAllocSocket() {
-	return new TITUS_SOCKET_OPENSSL();
+DSL_SOCKET * DSL_Sockets3_OpenSSL::pAllocSocket() {
+	return new DSL_SOCKET_OPENSSL();
 }
 
-int Titus_Sockets3_OpenSSL::pRecv(TITUS_SOCKET * pSock, char * buf, uint32 bufsize) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+int DSL_Sockets3_OpenSSL::pRecv(DSL_SOCKET * pSock, char * buf, uint32 bufsize) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 	if (sock->ssl) {
 #if defined(OVERPROTECTIVE_OPENSSL)
@@ -56,11 +56,11 @@ int Titus_Sockets3_OpenSSL::pRecv(TITUS_SOCKET * pSock, char * buf, uint32 bufsi
 		}
 		return n;
 	}
-	return Titus_Sockets3_Base::pRecv(sock, buf, bufsize);
+	return DSL_Sockets3_Base::pRecv(sock, buf, bufsize);
 }
 
-int Titus_Sockets3_OpenSSL::pPeek(TITUS_SOCKET * pSock, char * buf, uint32 bufsize) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+int DSL_Sockets3_OpenSSL::pPeek(DSL_SOCKET * pSock, char * buf, uint32 bufsize) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 	if (sock->ssl) {
 #if defined(OVERPROTECTIVE_OPENSSL)
@@ -76,12 +76,12 @@ int Titus_Sockets3_OpenSSL::pPeek(TITUS_SOCKET * pSock, char * buf, uint32 bufsi
 		ERR_print_errors_fp(stderr);
 		return -1;
 	}
-	return Titus_Sockets3_Base::pPeek(sock, buf, bufsize);
+	return DSL_Sockets3_Base::pPeek(sock, buf, bufsize);
 }
 
 
-int Titus_Sockets3_OpenSSL::pSend(TITUS_SOCKET * pSock, const char * data, uint32 datalen) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+int DSL_Sockets3_OpenSSL::pSend(DSL_SOCKET * pSock, const char * data, uint32 datalen) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 	if (sock->ssl) {
 #if defined(OVERPROTECTIVE_OPENSSL)
@@ -110,26 +110,26 @@ int Titus_Sockets3_OpenSSL::pSend(TITUS_SOCKET * pSock, const char * data, uint3
 		return n;
 	}
 
-	return Titus_Sockets3_Base::pSend(sock, data, datalen);
+	return DSL_Sockets3_Base::pSend(sock, data, datalen);
 }
 
-bool Titus_Sockets3_OpenSSL::EnableSSL(const char * cert, TS3_SSL_METHOD method) {
+bool DSL_Sockets3_OpenSSL::EnableSSL(const char * cert, DS3_SSL_METHOD method) {
 	AutoMutexPtr(sslSockMutex());
 	const SSL_METHOD * meth = NULL;
 	switch (method) {
 #ifndef OPENSSL_NO_SSL3_METHOD
-		case TS3_SSL_METHOD_SSL3:
+		case DS3_SSL_METHOD_SSL3:
 			meth = SSLv3_method();
 			break;
 #endif
 
 #if defined(DTLS1_VERSION) && !defined(NO_DTLS1) && !defined(OPENSSL_NO_DTLS1_METHOD)
-		case TS3_SSL_METHOD_DTLS1:
+		case DS3_SSL_METHOD_DTLS1:
 			meth = DTLSv1_method();
 			break;
 #endif
 
-		case TS3_SSL_METHOD_TLS:
+		case DS3_SSL_METHOD_TLS:
 #if OPENSSL_VERSION_NUMBER > 0x10100000
 			meth = TLS_method();
 #elif OPENSSL_VERSION_NUMBER > 0x10000080
@@ -141,17 +141,17 @@ bool Titus_Sockets3_OpenSSL::EnableSSL(const char * cert, TS3_SSL_METHOD method)
 
 #if OPENSSL_VERSION_NUMBER > 0x10000080
 #ifndef OPENSSL_NO_TLS1_METHOD
-		case TS3_SSL_METHOD_TLS1_0:
+		case DS3_SSL_METHOD_TLS1_0:
 			meth = TLSv1_method();
 			break;
 #endif
 #ifndef OPENSSL_NO_TLS1_1_METHOD
-		case TS3_SSL_METHOD_TLS1_1:
+		case DS3_SSL_METHOD_TLS1_1:
 			meth = TLSv1_1_method();
 			break;
 #endif
 #ifndef OPENSSL_NO_TLS1_2_METHOD
-		case TS3_SSL_METHOD_TLS1_2:
+		case DS3_SSL_METHOD_TLS1_2:
 			meth = TLSv1_2_method();
 			break;
 #endif
@@ -159,7 +159,7 @@ bool Titus_Sockets3_OpenSSL::EnableSSL(const char * cert, TS3_SSL_METHOD method)
 
 		default:
 			if (!this->silent) {
-				printf("Titus_Sockets3: Unknown TLS method, using default...\n");
+				printf("DSL_Sockets3: Unknown TLS method, using default...\n");
 			}
 #if OPENSSL_VERSION_NUMBER > 0x10100000
 			meth = TLS_method();
@@ -205,12 +205,12 @@ bool Titus_Sockets3_OpenSSL::EnableSSL(const char * cert, TS3_SSL_METHOD method)
 		return false;
 	}
 
-	enabled_flags |= TS3_FLAG_SSL;
+	enabled_flags |= DS3_FLAG_SSL;
 	return true;
 }
 
-bool Titus_Sockets3_OpenSSL::SwitchToSSL_Server(TITUS_SOCKET * pSock) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+bool DSL_Sockets3_OpenSSL::SwitchToSSL_Server(DSL_SOCKET * pSock) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 #if defined(OVERPROTECTIVE_OPENSSL)
 	AutoMutex(sslSockMutex);
@@ -245,7 +245,7 @@ bool Titus_Sockets3_OpenSSL::SwitchToSSL_Server(TITUS_SOCKET * pSock) {
 				int max_bits = 0;
 				int bits = SSL_get_cipher_bits(sock->ssl, &max_bits);
 				if (!silent) { printf("Using %d of %d maximum possible bits for security\n", bits, max_bits); }
-				sock->flags |= TS3_FLAG_SSL;
+				sock->flags |= DS3_FLAG_SSL;
 				return true;
 				break;
 			}
@@ -266,8 +266,8 @@ bool Titus_Sockets3_OpenSSL::SwitchToSSL_Server(TITUS_SOCKET * pSock) {
 
 	return false;
 }
-bool Titus_Sockets3_OpenSSL::SwitchToSSL_Client(TITUS_SOCKET * pSock) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+bool DSL_Sockets3_OpenSSL::SwitchToSSL_Client(DSL_SOCKET * pSock) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 #if defined(OVERPROTECTIVE_OPENSSL)
 	AutoMutex(sslSockMutex);
@@ -305,7 +305,7 @@ bool Titus_Sockets3_OpenSSL::SwitchToSSL_Client(TITUS_SOCKET * pSock) {
 				int max_bits = 0;
 				int bits = SSL_get_cipher_bits(sock->ssl, &max_bits);
 				if (!silent) { printf("Using %d of %d maximum possible bits for security\n", bits, max_bits); }
-				sock->flags |= TS3_FLAG_SSL;
+				sock->flags |= DS3_FLAG_SSL;
 				return true;
 				break;
 			}
@@ -326,8 +326,8 @@ bool Titus_Sockets3_OpenSSL::SwitchToSSL_Client(TITUS_SOCKET * pSock) {
 	return false;
 }
 
-int Titus_Sockets3_OpenSSL::pSelect_Read(TITUS_SOCKET * pSock, timeval * timeo) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+int DSL_Sockets3_OpenSSL::pSelect_Read(DSL_SOCKET * pSock, timeval * timeo) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 	if (sock->ssl) {
 #if defined(OVERPROTECTIVE_OPENSSL)
@@ -339,7 +339,7 @@ int Titus_Sockets3_OpenSSL::pSelect_Read(TITUS_SOCKET * pSock, timeval * timeo) 
 		}
 	}
 
-	int ret = Titus_Sockets3_Base::pSelect_Read(sock, timeo);
+	int ret = DSL_Sockets3_Base::pSelect_Read(sock, timeo);
 
 	if (sock->ssl && ret == 1) {
 		char buf[16];
@@ -351,8 +351,8 @@ int Titus_Sockets3_OpenSSL::pSelect_Read(TITUS_SOCKET * pSock, timeval * timeo) 
 	return ret;
 }
 
-void Titus_Sockets3_OpenSSL::pCloseSSL(TITUS_SOCKET * pSock) {
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+void DSL_Sockets3_OpenSSL::pCloseSSL(DSL_SOCKET * pSock) {
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 	if (sock->ssl) {
 #if defined(OVERPROTECTIVE_OPENSSL)
@@ -368,8 +368,8 @@ void Titus_Sockets3_OpenSSL::pCloseSSL(TITUS_SOCKET * pSock) {
 	}
 }
 
-X509 * Titus_Sockets3_OpenSSL::GetSSL_Cert(TITUS_SOCKET * pSock) { /// Don't forget to free with X509_free
-	TITUS_SOCKET_OPENSSL * sock = static_cast<TITUS_SOCKET_OPENSSL *>(pSock);
+X509 * DSL_Sockets3_OpenSSL::GetSSL_Cert(DSL_SOCKET * pSock) { /// Don't forget to free with X509_free
+	DSL_SOCKET_OPENSSL * sock = static_cast<DSL_SOCKET_OPENSSL *>(pSock);
 
 	X509 * ret = NULL;
 #if defined(OVERPROTECTIVE_OPENSSL)
@@ -381,7 +381,7 @@ X509 * Titus_Sockets3_OpenSSL::GetSSL_Cert(TITUS_SOCKET * pSock) { /// Don't for
 	return ret;
 }
 
-SSL_CTX * Titus_Sockets3_OpenSSL::GetSSL_CTX() {
+SSL_CTX * DSL_Sockets3_OpenSSL::GetSSL_CTX() {
 	return ctx;
 }
 

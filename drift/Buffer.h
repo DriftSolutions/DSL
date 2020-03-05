@@ -8,13 +8,13 @@
 \***********************************************************************/
 //!AUTOHEADER!END!
 
-#ifndef __TITUS_BUFFER_H__
-#define __TITUS_BUFFER_H__
+#ifndef __DSL_BUFFER_H__
+#define __DSL_BUFFER_H__
 
 #include <drift/Mutex.h>
 
 struct DSL_BUFFER {
-	Titus_Mutex * hMutex;
+	DSL_Mutex * hMutex;
 	union {
 		char * data;
 		uint8 * udata;
@@ -37,14 +37,14 @@ DSL_API bool DSL_CC buffer_append(DSL_BUFFER * buf, const char * ptr, int64 len)
 //#define buffer_append_uint8(x,y) buffer_append(x, &y, 1)
 template <typename T> bool buffer_append_int(DSL_BUFFER * buf, T y) { return buffer_append(buf, (char *)&y, sizeof(y)); }
 
-class DSL_API_CLASS Titus_Buffer {
+class DSL_API_CLASS DSL_Buffer {
 private:
-	Titus_Mutex hMutex;
+	DSL_Mutex hMutex;
 	char * data;
 	uint32 len;
 public:
-	Titus_Buffer();
-	~Titus_Buffer();
+	DSL_Buffer();
+	~DSL_Buffer();
 
 	void Clear();
 	void RemoveFromEnd(uint32 len);
@@ -72,4 +72,4 @@ public:
 	void Append_uint64(uint64 val);
 };
 
-#endif // __TITUS_BUFFER_H__
+#endif // __DSL_BUFFER_H__

@@ -26,30 +26,30 @@
 	#define DSL_OPENSSL_API_CLASS
 #endif
 
-class DSL_OPENSSL_API_CLASS TITUS_SOCKET_OPENSSL : public TITUS_SOCKET {
+class DSL_OPENSSL_API_CLASS DSL_SOCKET_OPENSSL : public DSL_SOCKET {
 public:
 	SSL * ssl = NULL;
 };
 
-class DSL_OPENSSL_API_CLASS Titus_Sockets3_OpenSSL: public Titus_Sockets3_SSL {
+class DSL_OPENSSL_API_CLASS DSL_Sockets3_OpenSSL: public DSL_Sockets3_SSL {
 	protected:
-		virtual TITUS_SOCKET * pAllocSocket();
-		virtual int pRecv(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int pPeek(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int pSend(TITUS_SOCKET * sock, const char * buf, uint32 bufsize);
-		virtual int pSelect_Read(TITUS_SOCKET * sock, timeval * timeo);
-		virtual void pCloseSSL(TITUS_SOCKET * sock);
+		virtual DSL_SOCKET * pAllocSocket();
+		virtual int pRecv(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int pPeek(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int pSend(DSL_SOCKET * sock, const char * buf, uint32 bufsize);
+		virtual int pSelect_Read(DSL_SOCKET * sock, timeval * timeo);
+		virtual void pCloseSSL(DSL_SOCKET * sock);
 	private:
 		SSL_CTX * ctx = NULL;
 	public:
-		Titus_Sockets3_OpenSSL();
-		virtual ~Titus_Sockets3_OpenSSL();
+		DSL_Sockets3_OpenSSL();
+		virtual ~DSL_Sockets3_OpenSSL();
 
-		virtual bool EnableSSL(const char * cert_fn, TS3_SSL_METHOD method);
-		virtual bool SwitchToSSL_Server(TITUS_SOCKET * sock);
-		virtual bool SwitchToSSL_Client(TITUS_SOCKET * sock);
+		virtual bool EnableSSL(const char * cert_fn, DS3_SSL_METHOD method);
+		virtual bool SwitchToSSL_Server(DSL_SOCKET * sock);
+		virtual bool SwitchToSSL_Client(DSL_SOCKET * sock);
 
-		virtual X509 * GetSSL_Cert(TITUS_SOCKET * sock);
+		virtual X509 * GetSSL_Cert(DSL_SOCKET * sock);
 		virtual SSL_CTX * GetSSL_CTX();
 };
 

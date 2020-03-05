@@ -137,6 +137,11 @@ public:
 };
 #endif
 
+
+#if !defined(DSL_NO_COMPAT) && !defined(DSL_EXPORTS)
+#include <drift/compat.h>
+#endif
+
 #ifdef DSL_EXPORTS
 #define malloc #error
 #define realloc #error

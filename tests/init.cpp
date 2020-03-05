@@ -19,19 +19,19 @@ int main(int argc, char * argv[]) {
 	printf("Version string: %s\n", dsl_get_version_string());
 	printf("OS version string: %s\n", GetOSVersion());
 
-	Titus_Sockets3_OpenSSL * socks = new Titus_Sockets3_OpenSSL();
-	Titus_Sockets3_GnuTLS * socks2 = new Titus_Sockets3_GnuTLS();
+	DSL_Sockets3_OpenSSL * socks = new DSL_Sockets3_OpenSSL();
+	DSL_Sockets3_GnuTLS * socks2 = new DSL_Sockets3_GnuTLS();
 
 	printf("PhysFS test\n");
 	PHYSFS_init(argv[0]);
-	TITUS_FILE * fp = RW_OpenPhysFS("test.file", "rb", true);
+	DSL_FILE * fp = RW_OpenPhysFS("test.file", "rb", true);
 	if (fp) {
 		fp->close(fp);
 	}
 	PHYSFS_deinit();
 
 	printf("libcurl test\n");
-	TitusDownloadCurl dl("http://www.shoutirc.com/getip.php");
+	DSL_Download_Curl dl("http://www.shoutirc.com/getip.php");
 	if (!dl.Download(stdout)) {
 		printf("Download error: %s", dl.GetErrorString());
 	}

@@ -28,7 +28,7 @@ DSL_API bool DSL_CC hmac_finish(HASH_HMAC_CTX *ctx, uint8 * out, size_t outlen);
 DSL_API bool DSL_CC hmacdata(const char * name, const uint8 *key, size_t keylen, const uint8 *data, size_t datalen, char * out, size_t outlen);
 DSL_API bool DSL_CC hmacfile(const char * name, const uint8 *key, size_t keylen, const char * fn, char * out, size_t outlen);
 DSL_API bool DSL_CC hmacfile_fp(const char * name, const uint8 *key, size_t keylen, FILE * fp, char * out, size_t outlen);
-DSL_API bool DSL_CC hmacfile_rw(const char * name, const uint8 *key, size_t keylen, TITUS_FILE * fp, char * out, size_t outlen);
+DSL_API bool DSL_CC hmacfile_rw(const char * name, const uint8 *key, size_t keylen, DSL_FILE * fp, char * out, size_t outlen);
 
 struct HMAC_PROVIDER {
 	const char * const name;

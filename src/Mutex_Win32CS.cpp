@@ -16,7 +16,7 @@
 #include <drift/Threading.h>
 #include <assert.h>
 
-Titus_Mutex_Win32CS::Titus_Mutex_Win32CS(int timeout) {
+DSL_Mutex_Win32CS::DSL_Mutex_Win32CS(int timeout) {
 	refcnt = 0;
 	LockingThreadID = 0;
 	lock_timeout = timeout;
@@ -24,12 +24,12 @@ Titus_Mutex_Win32CS::Titus_Mutex_Win32CS(int timeout) {
 	InitializeCriticalSection(&cs);
 }
 
-Titus_Mutex_Win32CS::~Titus_Mutex_Win32CS() {
+DSL_Mutex_Win32CS::~DSL_Mutex_Win32CS() {
 	assert(refcnt <= 0);
 	DeleteCriticalSection(&cs);
 }
 
-bool Titus_Mutex_Win32CS::Lock() {
+bool DSL_Mutex_Win32CS::Lock() {
 	if (lock_timeout >= 0) {
 		return Lock(lock_timeout);
 	}
@@ -41,7 +41,7 @@ bool Titus_Mutex_Win32CS::Lock() {
 	return true;
 }
 
-bool Titus_Mutex_Win32CS::Lock(int timeout) {
+bool DSL_Mutex_Win32CS::Lock(int timeout) {
 	int left = timeout;
 	BOOL amIn = TryEnterCriticalSection(&cs);
 	while (!amIn) {
@@ -62,7 +62,7 @@ bool Titus_Mutex_Win32CS::Lock(int timeout) {
 	return true;
 }
 
-void Titus_Mutex_Win32CS::Release() {
+void DSL_Mutex_Win32CS::Release() {
 	assert(refcnt > 0);
 	refcnt--;
 	if (refcnt <= 0) {
@@ -71,16 +71,16 @@ void Titus_Mutex_Win32CS::Release() {
 	LeaveCriticalSection(&cs);
 }
 
-THREADIDTYPE Titus_Mutex_Win32CS::LockingThread() {
+THREADIDTYPE DSL_Mutex_Win32CS::LockingThread() {
 	return LockingThreadID;
 }
 
-bool Titus_Mutex_Win32CS::IsLockMine() {
+bool DSL_Mutex_Win32CS::IsLockMine() {
 	if (refcnt > 0 && GetCurrentThreadId() == LockingThreadID) { return true; }
 	return false;
 }
 
-bool Titus_Mutex_Win32CS::IsLocked() {
+bool DSL_Mutex_Win32CS::IsLocked() {
 	if (refcnt > 0) { return true; }
 	return false;
 }

@@ -14,7 +14,7 @@ DSL_API int DSL_CC md5(unsigned char * data, unsigned int datalen, char * outbuf
 #define md5c(x,y,z) md5((unsigned char *)x,y,z)
 DSL_API int DSL_CC md5file(const char * fn, char * outbuf);
 DSL_API int DSL_CC md5file_fp(FILE * fp, char * outbuf);
-DSL_API int DSL_CC md5file_rw(TITUS_FILE * fp, char * outbuf);
+DSL_API int DSL_CC md5file_rw(DSL_FILE * fp, char * outbuf);
 
 //if you want to do it manually
 #define md5_starts md5_init // compatibility with older code

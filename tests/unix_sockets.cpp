@@ -12,11 +12,11 @@
 
 #define TEST_SOCK_NAME "test.sock"
 
-Titus_Sockets3 * socks = NULL;
+DSL_Sockets3 * socks = NULL;
 
-TT_DEFINE_THREAD(ConnectTest) {
-	TT_THREAD_START
-	T_SOCKET * sock = socks->Create(AF_UNIX, SOCK_STREAM, 0);
+DSL_DEFINE_THREAD(ConnectTest) {
+	DSL_THREAD_START
+	D_SOCKET * sock = socks->Create(AF_UNIX, SOCK_STREAM, 0);
 	if (sock != NULL) {
 		if (socks->Connect(sock, TEST_SOCK_NAME, 0)) {
 			printf("Connected...\n");
@@ -27,7 +27,7 @@ TT_DEFINE_THREAD(ConnectTest) {
 		}
 		socks->Close(sock);
 	}
-	TT_THREAD_END
+	DSL_THREAD_END
 }
 
 int main(int argc, char * argv[]) {
@@ -36,9 +36,9 @@ int main(int argc, char * argv[]) {
 		return 1;
 	}
 
-	socks = new Titus_Sockets3();
+	socks = new DSL_Sockets3();
 
-	T_SOCKET * sock = socks->Create(AF_UNIX, SOCK_STREAM, 0);
+	D_SOCKET * sock = socks->Create(AF_UNIX, SOCK_STREAM, 0);
 	if (sock == NULL) {
 		printf("Error connecting: %s\n", socks->GetLastErrorString());
 		delete socks;
@@ -60,10 +60,10 @@ int main(int argc, char * argv[]) {
 		return 1;
 	}
 
-	TT_StartThread(ConnectTest, NULL);
+	DSL_StartThread(ConnectTest, NULL);
 
 	int ret = 1;
-	T_SOCKET * s = socks->Accept(sock);
+	D_SOCKET * s = socks->Accept(sock);
 	if (s != NULL) {
 		printf("Accepted connection from %s to %s ...\n", s->local_ip, s->remote_ip);
 		char buf[32];
@@ -84,7 +84,7 @@ int main(int argc, char * argv[]) {
 
 	socks->Close(sock);
 
-	while (TT_NumThreads()) {
+	while (DSL_NumThreads()) {
 		safe_sleep(100, true);
 	}
 

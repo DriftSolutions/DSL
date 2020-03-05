@@ -14,7 +14,7 @@
 
 //typedef bool (*EV_Callback)(char * name, char * value);
 
-bool Titus_Registry::EnumValuesCallbackW(HKEY hKey, const wchar_t * SubKey, EV_CallbackW callback) {
+bool DSL_Registry::EnumValuesCallbackW(HKEY hKey, const wchar_t * SubKey, EV_CallbackW callback) {
 	HKEY ko;
 	if (RegOpenKeyExW(hKey,SubKey,0,KEY_READ|KEY_QUERY_VALUE,&ko) != NO_ERROR) {
 		return false;
@@ -71,7 +71,7 @@ bool Titus_Registry::EnumValuesCallbackW(HKEY hKey, const wchar_t * SubKey, EV_C
 	return true;
 };
 
-bool Titus_Registry::DeleteValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * value) {
+bool DSL_Registry::DeleteValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * value) {
 	HKEY ko;
 	if (RegOpenKeyExW(hKey,SubKey,0,KEY_READ|KEY_WRITE,&ko) != NO_ERROR) {
 		return false;
@@ -85,7 +85,7 @@ bool Titus_Registry::DeleteValueW(HKEY hKey, const wchar_t * SubKey, const wchar
 	}
 }
 
-bool Titus_Registry::SetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * valname, TR_VALUE * value) {
+bool DSL_Registry::SetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * valname, TR_VALUE * value) {
 	HKEY ko;
 	if (RegCreateKeyExW(hKey,SubKey,0,NULL,REG_OPTION_NON_VOLATILE, KEY_READ|KEY_WRITE, NULL, &ko, NULL) != NO_ERROR) {
 		return false;
@@ -114,7 +114,7 @@ bool Titus_Registry::SetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t 
 	}
 }
 
-bool Titus_Registry::GetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * valname, TR_VALUE * value) {
+bool DSL_Registry::GetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * valname, TR_VALUE * value) {
 	HKEY ko;
 	if (RegOpenKeyExW(hKey,SubKey,0,KEY_READ,&ko) != NO_ERROR) {
 		return false;

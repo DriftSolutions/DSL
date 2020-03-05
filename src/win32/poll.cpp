@@ -26,8 +26,8 @@ inet_pton_type real_inet_pton = NULL;
 inet_ntop_type real_inet_ntop = NULL;
 bool dsl_socket_shims_has_init = false;
 
-Titus_Mutex * getSocketShimsMutex() {
-	static Titus_Mutex SocketShimsMutex;
+DSL_Mutex * getSocketShimsMutex() {
+	static DSL_Mutex SocketShimsMutex;
 	return &SocketShimsMutex;
 }
 

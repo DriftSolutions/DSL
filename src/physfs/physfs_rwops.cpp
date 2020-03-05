@@ -23,15 +23,15 @@ DSL_LIBRARY_FUNCTIONS dsl_physfs_funcs = {
 };
 DSL_Library_Registerer dsl_physfs_autoreg(dsl_physfs_funcs);
 
-int64 physfs_read(void * buf, int64 size, TITUS_FILE * fp) {
+int64 physfs_read(void * buf, int64 size, DSL_FILE * fp) {
 	return PHYSFS_readBytes((PHYSFS_file *)fp->handle, buf, size);
 }
 
-int64 physfs_write(void * buf, int64 size, TITUS_FILE * fp) {
+int64 physfs_write(void * buf, int64 size, DSL_FILE * fp) {
 	return PHYSFS_writeBytes((PHYSFS_file *)fp->handle, buf, size);
 }
 
-bool physfs_seek(TITUS_FILE * fp, int64 pos, int mode) {
+bool physfs_seek(DSL_FILE * fp, int64 pos, int mode) {
 	switch(mode) {
 		case SEEK_SET:
 			return (PHYSFS_seek((PHYSFS_file *)fp->handle,pos) != 0) ? true : false;
@@ -51,19 +51,19 @@ bool physfs_seek(TITUS_FILE * fp, int64 pos, int mode) {
 }
 
 
-int64 physfs_tell(TITUS_FILE * fp) {
+int64 physfs_tell(DSL_FILE * fp) {
 	return PHYSFS_tell((PHYSFS_file *)fp->handle);
 }
 
-bool physfs_flush(TITUS_FILE * fp) {
+bool physfs_flush(DSL_FILE * fp) {
 	return (PHYSFS_flush((PHYSFS_file *)fp->handle) != 0);
 }
 
-bool physfs_eof(TITUS_FILE * fp) {
+bool physfs_eof(DSL_FILE * fp) {
 	return (PHYSFS_eof((PHYSFS_file *)fp->handle) != 0);
 }
 
-void physfs_close(TITUS_FILE * fp) {
+void physfs_close(DSL_FILE * fp) {
 	PHYSFS_file * o_fp = (PHYSFS_file *)fp->handle;
 	if (fp->p_extra) {
 		TP_RWOPT * opt = (TP_RWOPT *)fp->p_extra;
@@ -78,7 +78,7 @@ void physfs_close(TITUS_FILE * fp) {
 	PHYSFS_close(o_fp);
 }
 
-TITUS_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose) {
+DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose) {
 	PHYSFS_file * fp = NULL;
 	if (strstr(mode, "a")) {
 		fp = PHYSFS_openAppend(fn);
@@ -89,8 +89,8 @@ TITUS_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose) 
 	}
 	if (!fp) { return NULL; }
 
-	TITUS_FILE * ret = new TITUS_FILE;
-	memset(ret,0,sizeof(TITUS_FILE));
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret,0,sizeof(DSL_FILE));
 
 	ret->handle = fp;
 	ret->read = physfs_read;
@@ -109,9 +109,9 @@ TITUS_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose) 
 	return ret;
 };
 
-TITUS_FILE * DSL_CC RW_ConvertPhysFS(PHYSFS_file * fp, bool autoclose) {
-	TITUS_FILE * ret = new TITUS_FILE;
-	memset(ret,0,sizeof(TITUS_FILE));
+DSL_FILE * DSL_CC RW_ConvertPhysFS(PHYSFS_file * fp, bool autoclose) {
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret,0,sizeof(DSL_FILE));
 
 	ret->handle = fp;
 	ret->read = physfs_read;

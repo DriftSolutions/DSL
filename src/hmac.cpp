@@ -14,7 +14,7 @@
 #include <drift/hash.h>
 #include <drift/hmac.h>
 
-extern Titus_Mutex * dslMutex();
+extern DSL_Mutex * dslMutex();
 vector<const HMAC_PROVIDER *> hmac_providers;
 void DSL_CC dsl_add_hmac_provider(const HMAC_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
@@ -83,7 +83,7 @@ DSL_API bool DSL_CC hmacdata(const char * name, const uint8 *key, size_t keylen,
 }
 
 DSL_API bool DSL_CC hmacfile(const char * name, const uint8 *key, size_t keylen, const char * fn, char * out, size_t outlen) {
-	TITUS_FILE * fp = RW_OpenFile(fn, "rb");
+	DSL_FILE * fp = RW_OpenFile(fn, "rb");
 	if (fp) {
 		bool ret = hmacfile_rw(name, key, keylen, fp, out, outlen);
 		fp->close(fp);
@@ -95,7 +95,7 @@ DSL_API bool DSL_CC hmacfile(const char * name, const uint8 *key, size_t keylen,
 DSL_API bool DSL_CC hmacfile_fp(const char * name, const uint8 *key, size_t keylen, FILE * fpp, char * out, size_t outlen) {
 	if (fpp == NULL) { return false; }
 
-	TITUS_FILE * fp = RW_ConvertFile(fpp, false);
+	DSL_FILE * fp = RW_ConvertFile(fpp, false);
 	if (fp) {
 		bool ret = hmacfile_rw(name, key, keylen, fp, out, outlen);
 		fp->close(fp);
@@ -104,7 +104,7 @@ DSL_API bool DSL_CC hmacfile_fp(const char * name, const uint8 *key, size_t keyl
 	return false;
 }
 
-DSL_API bool DSL_CC hmacfile_rw(const char * name, const uint8 *key, size_t keylen, TITUS_FILE * fp, char * out, size_t outlen) {
+DSL_API bool DSL_CC hmacfile_rw(const char * name, const uint8 *key, size_t keylen, DSL_FILE * fp, char * out, size_t outlen) {
 	HASH_HMAC_CTX * ctx = hmac_init(name, key, keylen);
 	if (ctx == NULL) {
 		return false;

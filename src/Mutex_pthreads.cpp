@@ -16,7 +16,7 @@
 #include <drift/Threading.h>
 #include <assert.h>
 
-Titus_Mutex_pthreads::Titus_Mutex_pthreads(int timeout) {
+DSL_Mutex_pthreads::DSL_Mutex_pthreads(int timeout) {
 	refcnt = 0;
 	lock_timeout = timeout;
 	memset(&hMutex, 0, sizeof(hMutex));
@@ -30,11 +30,11 @@ Titus_Mutex_pthreads::Titus_Mutex_pthreads(int timeout) {
 	pthread_mutexattr_destroy(&pma);
 }
 
-Titus_Mutex_pthreads::~Titus_Mutex_pthreads() {
+DSL_Mutex_pthreads::~DSL_Mutex_pthreads() {
 	pthread_mutex_destroy(&hMutex);
 }
 
-bool Titus_Mutex_pthreads::Lock() {
+bool DSL_Mutex_pthreads::Lock() {
 	if (lock_timeout >= 0) {
 		return Lock(lock_timeout);
 	}
@@ -50,7 +50,7 @@ bool Titus_Mutex_pthreads::Lock() {
 	return true;
 }
 
-bool Titus_Mutex_pthreads::Lock(int timeo) {
+bool DSL_Mutex_pthreads::Lock(int timeo) {
 	int64 timeout = timeo;
 	struct timespec abs_time;
 	memset(&abs_time, 0, sizeof(abs_time));
@@ -96,7 +96,7 @@ bool Titus_Mutex_pthreads::Lock(int timeo) {
 	return true;
 }
 
-void Titus_Mutex_pthreads::Release() {
+void DSL_Mutex_pthreads::Release() {
 	refcnt--;
 	if (refcnt <= 0) {
 		LockingThreadID = 0;
@@ -108,16 +108,16 @@ void Titus_Mutex_pthreads::Release() {
 	}
 }
 
-THREADIDTYPE Titus_Mutex_pthreads::LockingThread() {
+THREADIDTYPE DSL_Mutex_pthreads::LockingThread() {
 	return LockingThreadID;
 }
 
-bool Titus_Mutex_pthreads::IsLockMine() {
+bool DSL_Mutex_pthreads::IsLockMine() {
 	if (refcnt > 0 && pthread_equal(pthread_self(), LockingThreadID)) { return true; }
 	return false;
 }
 
-bool Titus_Mutex_pthreads::IsLocked() {
+bool DSL_Mutex_pthreads::IsLocked() {
 	if (refcnt > 0) { return true; }
 	return false;
 }

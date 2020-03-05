@@ -11,14 +11,14 @@
 #ifndef __RWOPS_H__
 #define __RWOPS_H__
 
-struct TITUS_FILE {
-	bool (*seek)(TITUS_FILE * fp, int64 pos, int mode);//SEEK_SET/SEEK_CUR/SEEK_END
-	int64 (*read)(void * buf, int64 size, TITUS_FILE * fp);
-	int64 (*write)(void * buf, int64 size, TITUS_FILE * fp);
-	int64 (*tell)(TITUS_FILE * fp);
-	bool (*flush)(TITUS_FILE * fp);
-	bool (*eof)(TITUS_FILE * fp);
-	void (*close)(TITUS_FILE * fp);
+struct DSL_FILE {
+	bool (*seek)(DSL_FILE * fp, int64 pos, int mode);//SEEK_SET/SEEK_CUR/SEEK_END
+	int64 (*read)(void * buf, int64 size, DSL_FILE * fp);
+	int64 (*write)(void * buf, int64 size, DSL_FILE * fp);
+	int64 (*tell)(DSL_FILE * fp);
+	bool (*flush)(DSL_FILE * fp);
+	bool (*eof)(DSL_FILE * fp);
+	void (*close)(DSL_FILE * fp);
 
 	// for use by rwops provider, do not touch in user-land
 	union {
@@ -28,10 +28,10 @@ struct TITUS_FILE {
 	void * p_extra;
 };
 
-DSL_API TITUS_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode);
-DSL_API TITUS_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose);
-DSL_API TITUS_FILE * DSL_CC RW_OpenMemory(int64 size);
-DSL_API TITUS_FILE * DSL_CC RW_ConvertMemory(char * buf, int64 size);
+DSL_API DSL_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode);
+DSL_API DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose);
+DSL_API DSL_FILE * DSL_CC RW_OpenMemory(int64 size);
+DSL_API DSL_FILE * DSL_CC RW_ConvertMemory(char * buf, int64 size);
 
 #ifdef ENABLE_PHYSFS
 #include <physfs.h>
@@ -49,8 +49,8 @@ DSL_API TITUS_FILE * DSL_CC RW_ConvertMemory(char * buf, int64 size);
 	#define DSL_PHYSFS_API_CLASS
 #endif
 
-DSL_PHYSFS_API TITUS_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose);
-DSL_PHYSFS_API TITUS_FILE * DSL_CC RW_ConvertPhysFS(PHYSFS_file * fp, bool autoclose);
+DSL_PHYSFS_API DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose);
+DSL_PHYSFS_API DSL_FILE * DSL_CC RW_ConvertPhysFS(PHYSFS_file * fp, bool autoclose);
 #endif
 
 /* Used internally - not for public use */

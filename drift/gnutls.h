@@ -26,30 +26,30 @@
 	#define DSL_GNUTLS_API_CLASS
 #endif
 
-class DSL_GNUTLS_API_CLASS TITUS_SOCKET_GNUTLS: public TITUS_SOCKET {
+class DSL_GNUTLS_API_CLASS DSL_SOCKET_GNUTLS: public DSL_SOCKET {
 public:
 	gnutls_session_t gtls = NULL;
 	bool ssl_is_client = false;
 };
 
-class DSL_GNUTLS_API_CLASS Titus_Sockets3_GnuTLS: public Titus_Sockets3_SSL {
+class DSL_GNUTLS_API_CLASS DSL_Sockets3_GnuTLS: public DSL_Sockets3_SSL {
 	protected:
-		virtual TITUS_SOCKET * pAllocSocket();
-		virtual int pRecv(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int pPeek(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int pSend(TITUS_SOCKET * sock, const char * buf, uint32 bufsize);
-		virtual int pSelect_Read(TITUS_SOCKET * sock, timeval * timeo);
-		virtual void pCloseSSL(TITUS_SOCKET * sock);
+		virtual DSL_SOCKET * pAllocSocket();
+		virtual int pRecv(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int pPeek(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int pSend(DSL_SOCKET * sock, const char * buf, uint32 bufsize);
+		virtual int pSelect_Read(DSL_SOCKET * sock, timeval * timeo);
+		virtual void pCloseSSL(DSL_SOCKET * sock);
 	private:
 		gnutls_session_t ctx = NULL;
 		gnutls_certificate_credentials_t gnutls_cred;
 	public:
-		Titus_Sockets3_GnuTLS();
-		virtual ~Titus_Sockets3_GnuTLS();
+		DSL_Sockets3_GnuTLS();
+		virtual ~DSL_Sockets3_GnuTLS();
 
-		virtual bool EnableSSL(const char * cert_fn, TS3_SSL_METHOD method);
-		virtual bool SwitchToSSL_Server(TITUS_SOCKET * sock);
-		virtual bool SwitchToSSL_Client(TITUS_SOCKET * sock);
+		virtual bool EnableSSL(const char * cert_fn, DS3_SSL_METHOD method);
+		virtual bool SwitchToSSL_Server(DSL_SOCKET * sock);
+		virtual bool SwitchToSSL_Client(DSL_SOCKET * sock);
 
 		virtual gnutls_session_t GetSSL_CTX();
 };

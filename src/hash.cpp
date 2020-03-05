@@ -86,7 +86,7 @@ const HASH_PROVIDER dsl_native_hashers = {
 
 vector<const HASH_PROVIDER *> hash_providers { &dsl_native_hashers };
 
-extern Titus_Mutex * dslMutex();
+extern DSL_Mutex * dslMutex();
 void DSL_CC dsl_add_hash_provider(const HASH_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
 	//hash_providers.push_back(p);
@@ -169,7 +169,7 @@ DSL_API bool DSL_CC hashdata(const char * name, const uint8 *data, size_t datale
 }
 
 DSL_API bool DSL_CC hashfile(const char * name, const char * fn, char * out, size_t outlen, bool raw_output) {
-	TITUS_FILE * fp = RW_OpenFile(fn, "rb");
+	DSL_FILE * fp = RW_OpenFile(fn, "rb");
 	if (fp) {
 		bool ret = hashfile_rw(name, fp, out, outlen, raw_output);
 		fp->close(fp);
@@ -181,7 +181,7 @@ DSL_API bool DSL_CC hashfile(const char * name, const char * fn, char * out, siz
 DSL_API bool DSL_CC hashfile_fp(const char * name, FILE * fpp, char * out, size_t outlen, bool raw_output) {
 	if (fpp == NULL) { return false; }
 
-	TITUS_FILE * fp = RW_ConvertFile(fpp, false);
+	DSL_FILE * fp = RW_ConvertFile(fpp, false);
 	if (fp) {
 		bool ret = hashfile_rw(name, fp, out, outlen, raw_output);
 		fp->close(fp);
@@ -190,7 +190,7 @@ DSL_API bool DSL_CC hashfile_fp(const char * name, FILE * fpp, char * out, size_
 	return false;
 }
 
-DSL_API bool DSL_CC hashfile_rw(const char * name, TITUS_FILE * fp, char * out, size_t outlen, bool raw_output) {
+DSL_API bool DSL_CC hashfile_rw(const char * name, DSL_FILE * fp, char * out, size_t outlen, bool raw_output) {
 	HASH_CTX * ctx = hash_init(name);
 	if (ctx == NULL) {
 		return false;

@@ -16,18 +16,18 @@
 #include <drift/Threading.h>
 #include <assert.h>
 
-Titus_Mutex_Win32Mutex::Titus_Mutex_Win32Mutex(int timeout, const char * name) {
+DSL_Mutex_Win32Mutex::DSL_Mutex_Win32Mutex(int timeout, const char * name) {
 	refcnt = 0;
 	LockingThreadID = 0;
 	lock_timeout = timeout;
 	hMutex = CreateMutexA(NULL, FALSE, name);
 }
 
-Titus_Mutex_Win32Mutex::~Titus_Mutex_Win32Mutex() {
+DSL_Mutex_Win32Mutex::~DSL_Mutex_Win32Mutex() {
 	CloseHandle(hMutex);
 }
 
-bool Titus_Mutex_Win32Mutex::Lock() {
+bool DSL_Mutex_Win32Mutex::Lock() {
 	if (lock_timeout >= 0) {
 		return Lock(lock_timeout);
 	}
@@ -43,7 +43,7 @@ bool Titus_Mutex_Win32Mutex::Lock() {
 	return true;
 }
 
-bool Titus_Mutex_Win32Mutex::Lock(int timeout) {
+bool DSL_Mutex_Win32Mutex::Lock(int timeout) {
 	DWORD ret = WaitForSingleObject(hMutex, timeout);
 	if (ret == WAIT_TIMEOUT) {
 		if (timeout > 1000) {
@@ -62,7 +62,7 @@ bool Titus_Mutex_Win32Mutex::Lock(int timeout) {
 	return true;
 }
 
-void Titus_Mutex_Win32Mutex::Release() {
+void DSL_Mutex_Win32Mutex::Release() {
 	refcnt--;
 	if (refcnt <= 0) {
 		LockingThreadID = 0;
@@ -73,16 +73,16 @@ void Titus_Mutex_Win32Mutex::Release() {
 	}
 }
 
-THREADIDTYPE Titus_Mutex_Win32Mutex::LockingThread() {
+THREADIDTYPE DSL_Mutex_Win32Mutex::LockingThread() {
 	return LockingThreadID;
 }
 
-bool Titus_Mutex_Win32Mutex::IsLockMine() {
+bool DSL_Mutex_Win32Mutex::IsLockMine() {
 	if (refcnt > 0 && GetCurrentThreadId() == LockingThreadID) { return true; }
 	return false;
 }
 
-bool Titus_Mutex_Win32Mutex::IsLocked() {
+bool DSL_Mutex_Win32Mutex::IsLocked() {
 	if (refcnt > 0) { return true; }
 	return false;
 }

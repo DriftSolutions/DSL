@@ -134,7 +134,7 @@ unsigned long dsl_openssl_idcb(void) {
 #endif
 
 bool openssl_did_locking = false;
-Titus_Mutex ** sslMutex;
+DSL_Mutex ** sslMutex;
 void dsl_openssl_lockcb(int mode, int type, const char *file, int line) {
 	if (mode & CRYPTO_LOCK) {
 		sslMutex[type]->Lock();
@@ -144,9 +144,9 @@ void dsl_openssl_lockcb(int mode, int type, const char *file, int line) {
 }
 void setup_openssl_locking() {
 	int num = CRYPTO_num_locks();
-	sslMutex = (Titus_Mutex **)dsl_malloc(sizeof(Titus_Mutex *)*num);
+	sslMutex = (DSL_Mutex **)dsl_malloc(sizeof(DSL_Mutex *)*num);
 	for (int i = 0; i < num; i++) {
-		sslMutex[i] = new Titus_Mutex;
+		sslMutex[i] = new DSL_Mutex;
 	}
 	CRYPTO_set_locking_callback(dsl_openssl_lockcb);
 	openssl_did_locking = true;

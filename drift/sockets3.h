@@ -8,13 +8,6 @@
 \***********************************************************************/
 //!AUTOHEADER!END!
 
- /****************************************************\
-| Titus Sockets Class 1.1 | Revision Date: 10/06/2005  |
-|      Copyright 2005 Drift Solutions / Indy Sams.     |
-|      www.driftsolutions.com / www.titus-dev.com      |
-|  File released under the Drift Public License (DPL)  |
- \****************************************************/
-
 #ifndef __DSL_SOCKETS3_H__
 #define __DSL_SOCKETS3_H__
 
@@ -23,16 +16,16 @@
 
 #define MAX_SOCKETS 1024
 #define ADDRLEN 128
-#define TS3_MAX_HOSTLEN 40
-#define TS3_MAX_SERVLEN 8
+#define DS3_MAX_HOSTLEN 40
+#define DS3_MAX_SERVLEN 8
 
-class TITUS_SOCKET {
+class DSL_SOCKET {
 public:
 	SOCKET sock = 0;
 	uint8 flags = 0;
 
-	char remote_ip[TS3_MAX_HOSTLEN] = { 0 };
-	char local_ip[TS3_MAX_HOSTLEN] = { 0 };
+	char remote_ip[DS3_MAX_HOSTLEN] = { 0 };
+	char local_ip[DS3_MAX_HOSTLEN] = { 0 };
 	int remote_port = 0;
 	int local_port = 0;
 	int family = 0;
@@ -46,144 +39,144 @@ public:
 	//this is a user pointer, you can do whatever you want with it
 	void * userPtr = NULL;
 };
-typedef TITUS_SOCKET T_SOCKET;
+typedef DSL_SOCKET D_SOCKET;
 
-struct TITUS_SOCKET_LIST {
+struct DSL_SOCKET_LIST {
 	uint32 num;
-	T_SOCKET * socks[256];
+	D_SOCKET * socks[256];
 };
 
-DSL_API void DSL_CC TFD_ZERO(TITUS_SOCKET_LIST * x);
-DSL_API void DSL_CC TFD_SET(TITUS_SOCKET_LIST * x, TITUS_SOCKET * sock);
-//DSL_API void DSL_CC TFD_UNSET(TITUS_SOCKET_LIST * x, TITUS_SOCKET * sock);
-DSL_API bool DSL_CC TFD_ISSET(TITUS_SOCKET_LIST * list, TITUS_SOCKET * sock);
+DSL_API void DSL_CC DFD_ZERO(DSL_SOCKET_LIST * x);
+DSL_API void DSL_CC DFD_SET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock);
+//DSL_API void DSL_CC TFD_UNSET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock);
+DSL_API bool DSL_CC DFD_ISSET(DSL_SOCKET_LIST * list, DSL_SOCKET * sock);
 
-enum TS3_SSL_METHOD {
-	TS3_SSL_METHOD_TLS		= 0,	// Attempt highest TLS version, falling back to lower versions to 1.0
+enum DS3_SSL_METHOD {
+	DS3_SSL_METHOD_TLS		= 0,	// Attempt highest TLS version, falling back to lower versions to 1.0
 
-	TS3_SSL_METHOD_TLS1_2	= 1,
-	TS3_SSL_METHOD_TLS1_1	= 2,
-	TS3_SSL_METHOD_TLS1_0	= 3,	// this is the minimum you should use
+	DS3_SSL_METHOD_TLS1_2	= 1,
+	DS3_SSL_METHOD_TLS1_1	= 2,
+	DS3_SSL_METHOD_TLS1_0	= 3,	// this is the minimum you should use
 
-	TS3_SSL_METHOD_SSL3		= 4,	// SSL v3 Only - DO NOT USE UNLESS YOU HAVE TO!!!
+	DS3_SSL_METHOD_SSL3		= 4,	// SSL v3 Only - DO NOT USE UNLESS YOU HAVE TO!!!
 #if !defined(NO_DTLS1)
-	TS3_SSL_METHOD_DTLS1	= 5,	// Datagram TLS, consider this untested
+	DS3_SSL_METHOD_DTLS1	= 5,	// Datagram TLS, consider this untested
 #endif
-	TS3_SSL_METHOD_DEFAULT	= TS3_SSL_METHOD_TLS,
+	DS3_SSL_METHOD_DEFAULT	= DS3_SSL_METHOD_TLS,
 };
 
-class DSL_API_CLASS Titus_Sockets3_Base {
+class DSL_API_CLASS DSL_Sockets3_Base {
 	protected:
 		char bError[512];
 		int bErrNo;
 		bool silent;
-		void pUpdateError(TITUS_SOCKET * sock);
-		void pUpdateError(TITUS_SOCKET * sock, int serrno, const char * errstr);
+		void pUpdateError(DSL_SOCKET * sock);
+		void pUpdateError(DSL_SOCKET * sock, int serrno, const char * errstr);
 
 		unsigned int avail_flags = 0;
 		unsigned int enabled_flags = 0;
 
-		virtual TITUS_SOCKET * pAllocSocket();
-		virtual int pRecv(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int pPeek(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int pSend(TITUS_SOCKET * sock, const char * buf, uint32 bufsize);
-		virtual int pSelect_Read(TITUS_SOCKET * sock, timeval * timeo);
+		virtual DSL_SOCKET * pAllocSocket();
+		virtual int pRecv(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int pPeek(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int pSend(DSL_SOCKET * sock, const char * buf, uint32 bufsize);
+		virtual int pSelect_Read(DSL_SOCKET * sock, timeval * timeo);
 
 	private:
-		Titus_Mutex hMutex;
-		typedef std::set<TITUS_SOCKET *> knownSocketList;
+		DSL_Mutex hMutex;
+		typedef std::set<DSL_SOCKET *> knownSocketList;
 		knownSocketList sockets;
-		bool pUpdateAddrInfo(TITUS_SOCKET * sock);
-		addrinfo * pResolve(TITUS_SOCKET * sock, const char * host, int port);
+		bool pUpdateAddrInfo(DSL_SOCKET * sock);
+		addrinfo * pResolve(DSL_SOCKET * sock, const char * host, int port);
 		void pFreeAddrInfo(addrinfo * ai);
 
 	public:
-		Titus_Sockets3_Base();
-		virtual ~Titus_Sockets3_Base();
+		DSL_Sockets3_Base();
+		virtual ~DSL_Sockets3_Base();
 
 		virtual bool IsSupported(unsigned int flag);//this lets you know if a feature is supported
 		virtual bool IsEnabled(unsigned int flag);// this lets you know if a feature is supported and activated (ie. EnableSSL() has been called)
 		virtual void Silent(bool bSilent);
 
-		virtual int GetLastError(T_SOCKET * sock=NULL);
-		virtual const char * GetLastErrorString(T_SOCKET * sock=NULL);
+		virtual int GetLastError(D_SOCKET * sock=NULL);
+		virtual const char * GetLastErrorString(D_SOCKET * sock=NULL);
 
 		//for IPv4: PF_INET
 		//for IPv6: PF_INET6
-		virtual TITUS_SOCKET * Create(int family = PF_INET, int type = SOCK_STREAM, int proto = IPPROTO_TCP, uint32 flags=0);
-		virtual int Close(TITUS_SOCKET * sock);
-		virtual bool IsKnownSocket(TITUS_SOCKET * sock);
+		virtual DSL_SOCKET * Create(int family = PF_INET, int type = SOCK_STREAM, int proto = IPPROTO_TCP, uint32 flags=0);
+		virtual int Close(DSL_SOCKET * sock);
+		virtual bool IsKnownSocket(DSL_SOCKET * sock);
 
 		virtual int GetFamilyHint(const char * host, int port);
-		virtual bool Connect(TITUS_SOCKET * sock, const char * host, int port);
-		virtual bool Connect(TITUS_SOCKET * sock, sockaddr * addr, size_t addrlen);
-		virtual bool ConnectWithTimeout(TITUS_SOCKET * sock, const char * host, int port, uint32 timeout); // connect with timeout in milliseconds
+		virtual bool Connect(DSL_SOCKET * sock, const char * host, int port);
+		virtual bool Connect(DSL_SOCKET * sock, sockaddr * addr, size_t addrlen);
+		virtual bool ConnectWithTimeout(DSL_SOCKET * sock, const char * host, int port, uint32 timeout); // connect with timeout in milliseconds
 
-		virtual int Send(TITUS_SOCKET * sock, const char * data, int datalen = -1, bool doloop = true);
-		virtual int Recv(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
-		virtual int RecvLine(TITUS_SOCKET * sock, char * buf, int bufsize);
-		virtual int Peek(TITUS_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int Send(DSL_SOCKET * sock, const char * data, int datalen = -1, bool doloop = true);
+		virtual int Recv(DSL_SOCKET * sock, char * buf, uint32 bufsize);
+		virtual int RecvLine(DSL_SOCKET * sock, char * buf, int bufsize);
+		virtual int Peek(DSL_SOCKET * sock, char * buf, uint32 bufsize);
 
-		virtual int Select_Read(TITUS_SOCKET * sock, timeval * timeo);
-		virtual int Select_Read(TITUS_SOCKET * sock, uint32 millisec);
-		virtual int Select_Write(TITUS_SOCKET * sock, timeval * timeo);
-		virtual int Select_Write(TITUS_SOCKET * sock, uint32 millisec);
+		virtual int Select_Read(DSL_SOCKET * sock, timeval * timeo);
+		virtual int Select_Read(DSL_SOCKET * sock, uint32 millisec);
+		virtual int Select_Write(DSL_SOCKET * sock, timeval * timeo);
+		virtual int Select_Write(DSL_SOCKET * sock, uint32 millisec);
 
-		virtual int Select_Read_List(TITUS_SOCKET_LIST * list, timeval * timeo);
-		virtual int Select_Read_List(TITUS_SOCKET_LIST * list, uint32 millisec);
-		virtual int Select_List(TITUS_SOCKET_LIST * list_r, TITUS_SOCKET_LIST * list_w, timeval * timeo);
-		virtual int Select_List(TITUS_SOCKET_LIST * list_r, TITUS_SOCKET_LIST * list_w, uint32 millisec);
+		virtual int Select_Read_List(DSL_SOCKET_LIST * list, timeval * timeo);
+		virtual int Select_Read_List(DSL_SOCKET_LIST * list, uint32 millisec);
+		virtual int Select_List(DSL_SOCKET_LIST * list_r, DSL_SOCKET_LIST * list_w, timeval * timeo);
+		virtual int Select_List(DSL_SOCKET_LIST * list_r, DSL_SOCKET_LIST * list_w, uint32 millisec);
 
-		virtual TITUS_SOCKET * Accept(TITUS_SOCKET * s, sockaddr *addr, socklen_t *addrlen, uint32 flags=0);
-		virtual TITUS_SOCKET * Accept(TITUS_SOCKET * s, uint32 flags=0);
+		virtual DSL_SOCKET * Accept(DSL_SOCKET * s, sockaddr *addr, socklen_t *addrlen, uint32 flags=0);
+		virtual DSL_SOCKET * Accept(DSL_SOCKET * s, uint32 flags=0);
 		// Bind() is only for IPv4/6
-		virtual bool Bind(TITUS_SOCKET * sock, int port);
-		virtual bool Listen(TITUS_SOCKET * s, int backlog=5);
+		virtual bool Bind(DSL_SOCKET * sock, int port);
+		virtual bool Listen(DSL_SOCKET * s, int backlog=5);
 
-		virtual int RecvFrom(TITUS_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize);
-		virtual int PeekFrom(TITUS_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize);
-		virtual int RecvLineFrom(TITUS_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize);
-		virtual int SendTo(TITUS_SOCKET * sock, const char * host, int port, const char * buf, int datalen=-1);
-		virtual bool BindToAddr(TITUS_SOCKET * sock, const char * host, int port);
+		virtual int RecvFrom(DSL_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize);
+		virtual int PeekFrom(DSL_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize);
+		virtual int RecvLineFrom(DSL_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize);
+		virtual int SendTo(DSL_SOCKET * sock, const char * host, int port, const char * buf, int datalen=-1);
+		virtual bool BindToAddr(DSL_SOCKET * sock, const char * host, int port);
 
-		virtual int SetRecvTimeout(TITUS_SOCKET * sock, uint32 millisec);
-		virtual int SetSendTimeout(TITUS_SOCKET * sock, uint32 millisec);
+		virtual int SetRecvTimeout(DSL_SOCKET * sock, uint32 millisec);
+		virtual int SetSendTimeout(DSL_SOCKET * sock, uint32 millisec);
 
-		virtual bool IsNonBlocking(TITUS_SOCKET * sock);
-		virtual void SetNonBlocking(TITUS_SOCKET * sock, bool non_blocking=true);
-		virtual int SetReuseAddr(TITUS_SOCKET * sock, bool reuse_addr=true);
-		virtual int SetLinger(TITUS_SOCKET * sock, bool linger, unsigned short timeo=30);
-		virtual int SetNoDelay(TITUS_SOCKET * sock, bool no_delay=true);
-		virtual int SetKeepAlive(TITUS_SOCKET * sock, bool ka=true);
-		virtual int SetBroadcast(TITUS_SOCKET * sock, bool broadcast=true);
-		virtual bool DisableUDPConnReset(TITUS_SOCKET * sock, bool noconnreset);
+		virtual bool IsNonBlocking(DSL_SOCKET * sock);
+		virtual void SetNonBlocking(DSL_SOCKET * sock, bool non_blocking=true);
+		virtual int SetReuseAddr(DSL_SOCKET * sock, bool reuse_addr=true);
+		virtual int SetLinger(DSL_SOCKET * sock, bool linger, unsigned short timeo=30);
+		virtual int SetNoDelay(DSL_SOCKET * sock, bool no_delay=true);
+		virtual int SetKeepAlive(DSL_SOCKET * sock, bool ka=true);
+		virtual int SetBroadcast(DSL_SOCKET * sock, bool broadcast=true);
+		virtual bool DisableUDPConnReset(DSL_SOCKET * sock, bool noconnreset);
 
 		virtual std::string GetHostIP(const char * host, int type=SOCK_STREAM, int proto=IPPROTO_TCP);
 };
 
-class DSL_API_CLASS Titus_Sockets3_SSL: public Titus_Sockets3_Base {
-	friend class Titus_Sockets3_Base;
+class DSL_API_CLASS DSL_Sockets3_SSL: public DSL_Sockets3_Base {
+	friend class DSL_Sockets3_Base;
 	protected:
-		virtual TITUS_SOCKET * pAllocSocket() = 0;
-		virtual int pRecv(TITUS_SOCKET * sock, char * buf, uint32 bufsize) = 0;
-		virtual int pPeek(TITUS_SOCKET * sock, char * buf, uint32 bufsize) = 0;
-		virtual int pSend(TITUS_SOCKET * sock, const char * buf, uint32 bufsize) = 0;
-		virtual void pCloseSSL(TITUS_SOCKET * sock) = 0;
-		virtual int pSelect_Read(TITUS_SOCKET * sock, timeval * timeo) { return Titus_Sockets3_Base::pSelect_Read(sock, timeo); }
+		virtual DSL_SOCKET * pAllocSocket() = 0;
+		virtual int pRecv(DSL_SOCKET * sock, char * buf, uint32 bufsize) = 0;
+		virtual int pPeek(DSL_SOCKET * sock, char * buf, uint32 bufsize) = 0;
+		virtual int pSend(DSL_SOCKET * sock, const char * buf, uint32 bufsize) = 0;
+		virtual void pCloseSSL(DSL_SOCKET * sock) = 0;
+		virtual int pSelect_Read(DSL_SOCKET * sock, timeval * timeo) { return DSL_Sockets3_Base::pSelect_Read(sock, timeo); }
 	public:
-		virtual ~Titus_Sockets3_SSL() {}
+		virtual ~DSL_Sockets3_SSL() {}
 
-		virtual bool EnableSSL(const char * cert_fn, TS3_SSL_METHOD method) = 0;
-		virtual bool SwitchToSSL_Server(TITUS_SOCKET * sock) = 0;
-		virtual bool SwitchToSSL_Client(TITUS_SOCKET * sock) = 0;
+		virtual bool EnableSSL(const char * cert_fn, DS3_SSL_METHOD method) = 0;
+		virtual bool SwitchToSSL_Server(DSL_SOCKET * sock) = 0;
+		virtual bool SwitchToSSL_Client(DSL_SOCKET * sock) = 0;
 };
 
 #if defined(ENABLE_OPENSSL)
-#define Titus_Sockets3 Titus_Sockets3_OpenSSL
+#define DSL_Sockets3 DSL_Sockets3_OpenSSL
 #elif defined(ENABLE_GNUTLS)
-#define Titus_Sockets3 Titus_Sockets3_GnuTLS
+#define DSL_Sockets3 DSL_Sockets3_GnuTLS
 #else
-#define Titus_Sockets3 Titus_Sockets3_Base
+#define DSL_Sockets3 DSL_Sockets3_Base
 #endif
 
 #define RL3_ERROR			-4
@@ -191,9 +184,9 @@ class DSL_API_CLASS Titus_Sockets3_SSL: public Titus_Sockets3_Base {
 #define RL3_LINETOOLONG 	-2
 #define RL3_NOLINE			-1
 
-#define TS3_FLAG_SSL		0x00000001
-#define TS3_FLAG_ZIP		0x00000002
+#define DS3_FLAG_SSL		0x00000001
+#define DS3_FLAG_ZIP		0x00000002
 
-#define Titus_Sockets Titus_Sockets3
+#define DSL_Sockets DSL_Sockets3
 
-#endif // __TITUS_SOCKETS3_H__
+#endif // __DSL_SOCKETS3_H__

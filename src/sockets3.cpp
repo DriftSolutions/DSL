@@ -13,24 +13,24 @@
 #include <drift/Threading.h>
 #include <drift/GenLib.h>
 
-Titus_Mutex  * resMutex()
+DSL_Mutex  * resMutex()
 {
-  static Titus_Mutex actualMutex;
+  static DSL_Mutex actualMutex;
   return &actualMutex;
 }
 
 /*
-struct TITUS_SOCKET_IO {
-	void (*read)(TITUS_SOCKET * sock, char * buf, uint32 bufSize);
-	void (*peek)(TITUS_SOCKET * sock, char * buf, uint32 bufSize);
-	void (*write)(TITUS_SOCKET * sock, char * buf, uint32 bufSize);
-	void (*close)(TITUS_SOCKET * sock);
+struct DSL_SOCKET_IO {
+	void (*read)(DSL_SOCKET * sock, char * buf, uint32 bufSize);
+	void (*peek)(DSL_SOCKET * sock, char * buf, uint32 bufSize);
+	void (*write)(DSL_SOCKET * sock, char * buf, uint32 bufSize);
+	void (*close)(DSL_SOCKET * sock);
 };
 */
 
-void DSL_CC TFD_ZERO(TITUS_SOCKET_LIST * x) { x->num = 0; }
-void DSL_CC TFD_SET(TITUS_SOCKET_LIST * x, TITUS_SOCKET * sock) { x->socks[x->num++] = sock; }
-bool DSL_CC TFD_ISSET(TITUS_SOCKET_LIST * x, TITUS_SOCKET * sock) {
+void DSL_CC DFD_ZERO(DSL_SOCKET_LIST * x) { x->num = 0; }
+void DSL_CC DFD_SET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock) { x->socks[x->num++] = sock; }
+bool DSL_CC DFD_ISSET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock) {
 	for (uint32 i=0; i < x->num; i++) {
 		if (x->socks[i] == sock) {
 			return true;
@@ -39,15 +39,15 @@ bool DSL_CC TFD_ISSET(TITUS_SOCKET_LIST * x, TITUS_SOCKET * sock) {
 	return false;
 }
 
-void Titus_Sockets3_Base::Silent(bool bSilent) {
+void DSL_Sockets3_Base::Silent(bool bSilent) {
 	silent = bSilent;
 }
 
-Titus_Sockets3_Base::Titus_Sockets3_Base() {
+DSL_Sockets3_Base::DSL_Sockets3_Base() {
 	dsl_init();
 #ifdef ENABLE_ZLIB
-	avail_flags |= TS3_FLAG_ZIP;
-	enabled_flags |= TS3_FLAG_ZIP;
+	avail_flags |= DS3_FLAG_ZIP;
+	enabled_flags |= DS3_FLAG_ZIP;
 #endif
 	memset(bError,0,sizeof(bError));
 	bErrNo = 0;
@@ -59,10 +59,10 @@ Titus_Sockets3_Base::Titus_Sockets3_Base() {
 	//hMutex.Release();
 }
 
-Titus_Sockets3_Base::~Titus_Sockets3_Base() {
+DSL_Sockets3_Base::~DSL_Sockets3_Base() {
 	hMutex.Lock();
 	for (knownSocketList::const_iterator i = sockets.begin(); i != sockets.end(); i++) {
-		if (!silent) { printf("WARNING: TITUS_SOCKET 0x%p (%s:%d) was not closed before Titus_Sockets3 was deleted!\n", *i, (*i)->remote_ip, (*i)->remote_port); }
+		if (!silent) { printf("WARNING: DSL_SOCKET 0x%p (%s:%d) was not closed before DSL_Sockets3 was deleted!\n", *i, (*i)->remote_ip, (*i)->remote_port); }
 		//Close(sockets[i]);
 	}
 	hMutex.Release();
@@ -74,7 +74,7 @@ Titus_Sockets3_Base::~Titus_Sockets3_Base() {
 #define WspiapiFreeAddrInfo freeaddrinfo
 #endif
 
-addrinfo * Titus_Sockets3_Base::pResolve(TITUS_SOCKET * sock, const char * host, int port) {
+addrinfo * DSL_Sockets3_Base::pResolve(DSL_SOCKET * sock, const char * host, int port) {
 	char buf[64]={0};
 #if defined(itoa)
 	itoa(port, buf, 10);
@@ -99,11 +99,11 @@ addrinfo * Titus_Sockets3_Base::pResolve(TITUS_SOCKET * sock, const char * host,
 	return ret;
 }
 
-void Titus_Sockets3_Base::pFreeAddrInfo(addrinfo * ai) {
+void DSL_Sockets3_Base::pFreeAddrInfo(addrinfo * ai) {
 	WspiapiFreeAddrInfo(ai);//freeaddrinfo(
 }
 
-bool Titus_Sockets3_Base::pUpdateAddrInfo(TITUS_SOCKET * sock) {
+bool DSL_Sockets3_Base::pUpdateAddrInfo(DSL_SOCKET * sock) {
 	sockaddr_storage addr;
 	socklen_t addrLen = sizeof(addr);
 
@@ -114,7 +114,7 @@ bool Titus_Sockets3_Base::pUpdateAddrInfo(TITUS_SOCKET * sock) {
 
 	bool ret = true;
 
-	char port[TS3_MAX_SERVLEN]={0};
+	char port[DS3_MAX_SERVLEN]={0};
 	if (getpeername(sock->sock, (sockaddr *)&addr, &addrLen) == 0) {
 		if (getnameinfo((sockaddr *)&addr, addrLen, sock->remote_ip, sizeof(sock->remote_ip), port, sizeof(port), NI_NUMERICHOST|NI_NUMERICSERV) == 0) {
 			sock->remote_port = atoi(port);
@@ -135,7 +135,7 @@ bool Titus_Sockets3_Base::pUpdateAddrInfo(TITUS_SOCKET * sock) {
 	return ret;
 }
 
-bool Titus_Sockets3_Base::IsKnownSocket(TITUS_SOCKET * sock) {
+bool DSL_Sockets3_Base::IsKnownSocket(DSL_SOCKET * sock) {
 	AutoMutex(hMutex);
 	if (sock != NULL) {
 		knownSocketList::const_iterator i = sockets.find(sock);
@@ -146,12 +146,12 @@ bool Titus_Sockets3_Base::IsKnownSocket(TITUS_SOCKET * sock) {
 	return false;
 }
 
-TITUS_SOCKET * Titus_Sockets3_Base::pAllocSocket() {
-	return new TITUS_SOCKET();
+DSL_SOCKET * DSL_Sockets3_Base::pAllocSocket() {
+	return new DSL_SOCKET();
 }
 
-TITUS_SOCKET * Titus_Sockets3_Base::Create(int family, int type, int proto, uint32 flags) {
-	TITUS_SOCKET * ret = pAllocSocket();
+DSL_SOCKET * DSL_Sockets3_Base::Create(int family, int type, int proto, uint32 flags) {
+	DSL_SOCKET * ret = pAllocSocket();
 
 	ret->family = family;
 	ret->type = type;
@@ -167,9 +167,9 @@ TITUS_SOCKET * Titus_Sockets3_Base::Create(int family, int type, int proto, uint
 		return NULL;
 	}
 
-	if (flags & TS3_FLAG_ZIP) {
+	if (flags & DS3_FLAG_ZIP) {
 #ifdef ENABLE_ZLIB
-		ret->flags |= TS3_FLAG_ZIP;
+		ret->flags |= DS3_FLAG_ZIP;
 #else
 		strcpy(bError,"DSL has not been compiled with zlib support");
 		bErrNo = 0x54530000;
@@ -184,29 +184,29 @@ TITUS_SOCKET * Titus_Sockets3_Base::Create(int family, int type, int proto, uint
 	return ret;
 }
 
-bool Titus_Sockets3_Base::IsEnabled(unsigned int flag) {
+bool DSL_Sockets3_Base::IsEnabled(unsigned int flag) {
 	if ((enabled_flags & flag) == flag) {
 		return true;
 	}
 	return false;
 }
 
-bool Titus_Sockets3_Base::IsSupported(unsigned int flag) {
+bool DSL_Sockets3_Base::IsSupported(unsigned int flag) {
 	if ((avail_flags & flag) == flag) {
 		return true;
 	}
 	return false;
 }
 
-TITUS_SOCKET * Titus_Sockets3_Base::Accept(TITUS_SOCKET * s, uint32 flags) {
+DSL_SOCKET * DSL_Sockets3_Base::Accept(DSL_SOCKET * s, uint32 flags) {
 	sockaddr_storage addr;
 	memset(&addr, 0, sizeof(addr));
 	socklen_t addrlen = sizeof(addr);
 	return Accept(s, (sockaddr *)&addr, &addrlen, flags);
 }
 
-TITUS_SOCKET * Titus_Sockets3_Base::Accept(TITUS_SOCKET * s, sockaddr *addr, socklen_t *addrlen, uint32 flags) {
-	TITUS_SOCKET * ret = pAllocSocket();
+DSL_SOCKET * DSL_Sockets3_Base::Accept(DSL_SOCKET * s, sockaddr *addr, socklen_t *addrlen, uint32 flags) {
+	DSL_SOCKET * ret = pAllocSocket();
 	memset(addr, 0, *addrlen);
 	ret->sock = accept(s->sock,addr,addrlen);
 #ifdef WIN32
@@ -225,12 +225,12 @@ TITUS_SOCKET * Titus_Sockets3_Base::Accept(TITUS_SOCKET * s, sockaddr *addr, soc
 
 	pUpdateAddrInfo(ret);
 
-	if (flags & TS3_FLAG_SSL) {
-		Titus_Sockets3_SSL * ssl = dynamic_cast<Titus_Sockets3_SSL *>(this);
+	if (flags & DS3_FLAG_SSL) {
+		DSL_Sockets3_SSL * ssl = dynamic_cast<DSL_Sockets3_SSL *>(this);
 		if (ssl) {
-			if (IsEnabled(TS3_FLAG_SSL)) {
+			if (IsEnabled(DS3_FLAG_SSL)) {
 				if (ssl->SwitchToSSL_Server(ret)) {
-					ret->flags |= TS3_FLAG_SSL;
+					ret->flags |= DS3_FLAG_SSL;
 				} else {
 					Close(ret);
 					return NULL;
@@ -249,9 +249,9 @@ TITUS_SOCKET * Titus_Sockets3_Base::Accept(TITUS_SOCKET * s, sockaddr *addr, soc
 		}
 	}
 
-	if (flags & TS3_FLAG_ZIP) {
+	if (flags & DS3_FLAG_ZIP) {
 #ifdef ENABLE_ZLIB
-		ret->flags |= TS3_FLAG_ZIP;
+		ret->flags |= DS3_FLAG_ZIP;
 #else
 		this->Close(ret);
 		strcpy(bError,"DSL has not been compiled with zlib support");
@@ -262,7 +262,7 @@ TITUS_SOCKET * Titus_Sockets3_Base::Accept(TITUS_SOCKET * s, sockaddr *addr, soc
 	return ret;
 }
 
-bool Titus_Sockets3_Base::BindToAddr(TITUS_SOCKET * sock, const char * host, int port) {
+bool DSL_Sockets3_Base::BindToAddr(DSL_SOCKET * sock, const char * host, int port) {
 #if defined(DEBUG)
 	char buf[NI_MAXHOST], sport[NI_MAXSERV];
 #endif
@@ -284,7 +284,7 @@ bool Titus_Sockets3_Base::BindToAddr(TITUS_SOCKET * sock, const char * host, int
 		if (ret == 0) {
 #if defined(DEBUG)
 			if (getnameinfo((struct sockaddr*)&addr, sizeof(addr), buf, sizeof(buf), sport, sizeof(sport), NI_NUMERICHOST | NI_NUMERICSERV) == 0) {
-				printf("Titus_Sockets3_Base::BindToAddr() -> Bound to %s:%s\n", buf, sport);
+				printf("DSL_Sockets3_Base::BindToAddr() -> Bound to %s:%s\n", buf, sport);
 			}
 #endif
 			return true;
@@ -312,7 +312,7 @@ bool Titus_Sockets3_Base::BindToAddr(TITUS_SOCKET * sock, const char * host, int
 				if (ret == 0) {
 #if defined(DEBUG)
 					if (getnameinfo(Scan->ai_addr, Scan->ai_addrlen, buf, sizeof(buf), sport, sizeof(sport), NI_NUMERICHOST|NI_NUMERICSERV) == 0) {
-						printf("Titus_Sockets3_Base::BindToAddr() -> Bound to %s:%s\n", buf, sport);
+						printf("DSL_Sockets3_Base::BindToAddr() -> Bound to %s:%s\n", buf, sport);
 					}
 #endif
 					bret = true;
@@ -320,7 +320,7 @@ bool Titus_Sockets3_Base::BindToAddr(TITUS_SOCKET * sock, const char * host, int
 					pUpdateError(sock);
 #if defined(DEBUG)
 					if (getnameinfo(Scan->ai_addr, Scan->ai_addrlen, buf, sizeof(buf), sport, sizeof(sport), NI_NUMERICHOST|NI_NUMERICSERV) == 0) {
-						printf("Titus_Sockets3_Base::BindToAddr() -> Error binding %s:%s\n", buf, sport);
+						printf("DSL_Sockets3_Base::BindToAddr() -> Error binding %s:%s\n", buf, sport);
 					}
 #endif
 				}
@@ -335,7 +335,7 @@ bool Titus_Sockets3_Base::BindToAddr(TITUS_SOCKET * sock, const char * host, int
 	return bret;
 }
 
-bool Titus_Sockets3_Base::Bind(TITUS_SOCKET * sock, int port) {
+bool DSL_Sockets3_Base::Bind(DSL_SOCKET * sock, int port) {
 	if (sock->family == AF_UNIX) {
 		pUpdateError(sock, 999, "Bind() does not support Unix Domain Sockets.");
 		/* use BindToAddr() with the filename in the addr field. port is ignored for AF_UNIX sockets */
@@ -366,7 +366,7 @@ bool Titus_Sockets3_Base::Bind(TITUS_SOCKET * sock, int port) {
 	return (ret == 0) ? true:false;
 }
 
-bool Titus_Sockets3_Base::Listen(TITUS_SOCKET * sock, int backlog) {
+bool DSL_Sockets3_Base::Listen(DSL_SOCKET * sock, int backlog) {
 	int ret = listen(sock->sock,backlog);
 	if (ret) {
 		pUpdateError(sock);
@@ -375,7 +375,7 @@ bool Titus_Sockets3_Base::Listen(TITUS_SOCKET * sock, int backlog) {
 	return true;
 }
 
-int Titus_Sockets3_Base::Close(TITUS_SOCKET * sock) {
+int DSL_Sockets3_Base::Close(DSL_SOCKET * sock) {
 	if (sock == NULL) { return -1; }
 
 	hMutex.Lock();
@@ -385,8 +385,8 @@ int Titus_Sockets3_Base::Close(TITUS_SOCKET * sock) {
 	}
 	hMutex.Release();
 
-	if (sock->flags & TS3_FLAG_SSL) {
-		Titus_Sockets3_SSL * ssl = dynamic_cast<Titus_Sockets3_SSL *>(this);
+	if (sock->flags & DS3_FLAG_SSL) {
+		DSL_Sockets3_SSL * ssl = dynamic_cast<DSL_Sockets3_SSL *>(this);
 		if (ssl) {
 			ssl->pCloseSSL(sock);
 		}
@@ -402,8 +402,8 @@ int Titus_Sockets3_Base::Close(TITUS_SOCKET * sock) {
 	return ret;
 }
 
-int Titus_Sockets3_Base::GetFamilyHint(const char * host, int port) {
-	TITUS_SOCKET sock;
+int DSL_Sockets3_Base::GetFamilyHint(const char * host, int port) {
+	DSL_SOCKET sock;
 	sock.family = PF_UNSPEC;
 	addrinfo * ai = pResolve(&sock, host, port);
 	int ret = PF_INET;
@@ -414,7 +414,7 @@ int Titus_Sockets3_Base::GetFamilyHint(const char * host, int port) {
 	return ret;
 }
 
-bool Titus_Sockets3_Base::Connect(TITUS_SOCKET * sock, sockaddr * addr, size_t addrlen) {
+bool DSL_Sockets3_Base::Connect(DSL_SOCKET * sock, sockaddr * addr, size_t addrlen) {
 	if (connect(sock->sock,addr,addrlen) != 0) {
 		pUpdateError(sock);
 		pUpdateAddrInfo(sock);
@@ -424,7 +424,7 @@ bool Titus_Sockets3_Base::Connect(TITUS_SOCKET * sock, sockaddr * addr, size_t a
 	return true;
 }
 
-bool Titus_Sockets3_Base::Connect(TITUS_SOCKET * sock, const char * host, int port) {
+bool DSL_Sockets3_Base::Connect(DSL_SOCKET * sock, const char * host, int port) {
 	if (sock->family == AF_UNIX) {
 		struct sockaddr_un addr;
 		memset(&addr, 0, sizeof(addr));
@@ -460,7 +460,7 @@ bool Titus_Sockets3_Base::Connect(TITUS_SOCKET * sock, const char * host, int po
 	}
 }
 
-bool Titus_Sockets3_Base::ConnectWithTimeout(TITUS_SOCKET * sock, const char * host, int port, uint32 timeout) {
+bool DSL_Sockets3_Base::ConnectWithTimeout(DSL_SOCKET * sock, const char * host, int port, uint32 timeout) {
 	if (sock->family == AF_UNIX) {
 		pUpdateError(sock, 999, "ConnectWithTimeout() does not support Unix Domain Sockets.");
 		return false;
@@ -485,7 +485,7 @@ bool Titus_Sockets3_Base::ConnectWithTimeout(TITUS_SOCKET * sock, const char * h
 	while (Scan && tries--) {
 		Connect(sock, Scan->ai_addr, Scan->ai_addrlen);
 #if defined(DEBUG)
-		printf("Titus_Sockets3_Base::ConnectWithTimeout(%s:%d): Trying %s ...\n", host, port, sock->remote_ip);
+		printf("DSL_Sockets3_Base::ConnectWithTimeout(%s:%d): Trying %s ...\n", host, port, sock->remote_ip);
 #endif
 		memset(&timeo,0,sizeof(timeo));
 		timeo.tv_sec = (timeout / 1000);
@@ -508,12 +508,12 @@ bool Titus_Sockets3_Base::ConnectWithTimeout(TITUS_SOCKET * sock, const char * h
 	return ret;
 }
 
-int Titus_Sockets3_Base::Send(TITUS_SOCKET * sock, const char * data_in, int datalen, bool doloop) {
+int DSL_Sockets3_Base::Send(DSL_SOCKET * sock, const char * data_in, int datalen, bool doloop) {
 	char * data = (char *)data_in;
 	if (datalen == -1) { datalen = strlen(data); }
 
 #ifdef ENABLE_ZLIB
-	if (sock->flags & TS3_FLAG_ZIP) {
+	if (sock->flags & DS3_FLAG_ZIP) {
 		unsigned long dlen = compressBound(datalen)+9;
 		char * data2 = (char *)dsl_malloc(dlen);
 		if (compress2((Bytef *)data2+9, &dlen, (Bytef *)data, datalen, 5) == Z_OK && dlen < datalen) {
@@ -540,7 +540,7 @@ int Titus_Sockets3_Base::Send(TITUS_SOCKET * sock, const char * data_in, int dat
 			case -1:
 				pUpdateError(sock);
 #ifdef ENABLE_ZLIB
-				if (sock->flags & TS3_FLAG_ZIP) {
+				if (sock->flags & DS3_FLAG_ZIP) {
 					dsl_free(data);
 				}
 #endif
@@ -548,7 +548,7 @@ int Titus_Sockets3_Base::Send(TITUS_SOCKET * sock, const char * data_in, int dat
 			case 0:
 				pUpdateError(sock);
 #ifdef ENABLE_ZLIB
-				if (sock->flags & TS3_FLAG_ZIP) {
+				if (sock->flags & DS3_FLAG_ZIP) {
 					dsl_free(data);
 				}
 #endif
@@ -561,20 +561,20 @@ int Titus_Sockets3_Base::Send(TITUS_SOCKET * sock, const char * data_in, int dat
 	} while (left > 0 && doloop);
 
 #ifdef ENABLE_ZLIB
-	if (sock->flags & TS3_FLAG_ZIP) {
+	if (sock->flags & DS3_FLAG_ZIP) {
 		dsl_free(data);
 	}
 #endif
 	return n;
 }
 
-int Titus_Sockets3_Base::pSend(TITUS_SOCKET * sock, const char * data, uint32 datalen) {
+int DSL_Sockets3_Base::pSend(DSL_SOCKET * sock, const char * data, uint32 datalen) {
 	return send(sock->sock, data, datalen, 0);
 }
 
-int Titus_Sockets3_Base::SendTo(TITUS_SOCKET * sock, const char * host, int port, const char * data_in, int datalen) {
+int DSL_Sockets3_Base::SendTo(DSL_SOCKET * sock, const char * host, int port, const char * data_in, int datalen) {
 	char * data = (char *)data_in;
-	if (sock->flags & TS3_FLAG_SSL) {
+	if (sock->flags & DS3_FLAG_SSL) {
 		sprintf(bError, "SendTo doesn't work with SSL");
 		bErrNo = 0x54530000;
 		return -1;
@@ -583,7 +583,7 @@ int Titus_Sockets3_Base::SendTo(TITUS_SOCKET * sock, const char * host, int port
 	if (datalen == -1) { datalen = strlen(data); }
 
 #ifdef ENABLE_ZLIB
-	if (sock->flags & TS3_FLAG_ZIP) {
+	if (sock->flags & DS3_FLAG_ZIP) {
 		unsigned long dlen = compressBound(datalen)+9;
 		char * data2 = (char *)dsl_malloc(dlen);
 		if (compress2((Bytef *)data2+9, &dlen, (Bytef *)data, datalen, 5) == Z_OK && dlen < datalen) {
@@ -607,7 +607,7 @@ int Titus_Sockets3_Base::SendTo(TITUS_SOCKET * sock, const char * host, int port
 		if (ret <= 0) { pUpdateError(sock); }
 		pUpdateAddrInfo(sock);
 #ifdef ENABLE_ZLIB
-		if (sock->flags & TS3_FLAG_ZIP) {
+		if (sock->flags & DS3_FLAG_ZIP) {
 			dsl_free(data);
 		}
 #endif
@@ -615,15 +615,15 @@ int Titus_Sockets3_Base::SendTo(TITUS_SOCKET * sock, const char * host, int port
 	}
 	pUpdateError(sock);
 #ifdef ENABLE_ZLIB
-	if (sock->flags & TS3_FLAG_ZIP) {
+	if (sock->flags & DS3_FLAG_ZIP) {
 		dsl_free(data);
 	}
 #endif
 	return -1;
 }
 
-int Titus_Sockets3_Base::RecvFrom(TITUS_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize) {
-	if (sock->flags & TS3_FLAG_SSL) {
+int DSL_Sockets3_Base::RecvFrom(DSL_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize) {
+	if (sock->flags & DS3_FLAG_SSL) {
 		sprintf(bError, "RecvFrom doesn't work with SSL");
 		bErrNo = 0x54530000;
 		return -1;
@@ -666,24 +666,24 @@ int Titus_Sockets3_Base::RecvFrom(TITUS_SOCKET * sock, char * host, uint32 hostS
 	return n;
 }
 
-int Titus_Sockets3_Base::pRecv(TITUS_SOCKET * sock, char * buf, uint32 bufsize) {
+int DSL_Sockets3_Base::pRecv(DSL_SOCKET * sock, char * buf, uint32 bufsize) {
 	int n = recv(sock->sock,buf,bufsize,0);
 	if (n <= 0) { pUpdateError(sock); }
 	if (n < 0) { n = -1; }
 	return n;
 }
 
-int Titus_Sockets3_Base::pPeek(TITUS_SOCKET * sock, char * buf, uint32 bufsize) {
+int DSL_Sockets3_Base::pPeek(DSL_SOCKET * sock, char * buf, uint32 bufsize) {
 	int n = recv(sock->sock,buf,bufsize,MSG_PEEK);
 	if (n <= 0) { pUpdateError(sock); }
 	if (n < 0) { n = -1; }
 	return n;
 }
 
-int Titus_Sockets3_Base::Recv(TITUS_SOCKET * sock, char * buf, uint32 bufsize) {
+int DSL_Sockets3_Base::Recv(DSL_SOCKET * sock, char * buf, uint32 bufsize) {
 #ifdef ENABLE_ZLIB
 	int n = 0;
-	if (sock->flags & TS3_FLAG_ZIP) {
+	if (sock->flags & DS3_FLAG_ZIP) {
 		if (bufsize < 8) {
 			bErrNo = 0x54530021;
 			strcpy(bError,"Buffer too small");
@@ -759,12 +759,12 @@ int Titus_Sockets3_Base::Recv(TITUS_SOCKET * sock, char * buf, uint32 bufsize) {
 	return pRecv(sock,buf,bufsize);
 }
 
-int Titus_Sockets3_Base::Peek(TITUS_SOCKET * sock, char * buf, uint32 bufsize) {
+int DSL_Sockets3_Base::Peek(DSL_SOCKET * sock, char * buf, uint32 bufsize) {
 	return pPeek(sock,buf,bufsize);
 }
 
-int Titus_Sockets3_Base::PeekFrom(TITUS_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize) {
-	if (sock->flags & TS3_FLAG_SSL) {
+int DSL_Sockets3_Base::PeekFrom(DSL_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize) {
+	if (sock->flags & DS3_FLAG_SSL) {
 		sprintf(bError, "PeekFrom doesn't work with SSL");
 		bErrNo = 0x54530000;
 		return -1;
@@ -793,7 +793,7 @@ int Titus_Sockets3_Base::PeekFrom(TITUS_SOCKET * sock, char * host, uint32 hostS
 	return n;
 }
 
-int Titus_Sockets3_Base::RecvLine(TITUS_SOCKET * sock, char * buf, int bufsize) {
+int DSL_Sockets3_Base::RecvLine(DSL_SOCKET * sock, char * buf, int bufsize) {
 	int n = Peek(sock,buf,bufsize - 1);
 	if (n < 0) { return RL3_ERROR; }
 	if (n == 0) { return RL3_CLOSED; }
@@ -815,7 +815,7 @@ int Titus_Sockets3_Base::RecvLine(TITUS_SOCKET * sock, char * buf, int bufsize) 
 	return RL3_NOLINE;
 }
 
-int Titus_Sockets3_Base::RecvLineFrom(TITUS_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize) {
+int DSL_Sockets3_Base::RecvLineFrom(DSL_SOCKET * sock, char * host, uint32 hostSize, int * port, char * buf, uint32 bufsize) {
 	int n = PeekFrom(sock, host, hostSize, port, buf,bufsize - 1);
 	if (n <= 0) { pUpdateError(sock); }
 	if (n < 0) { return RL3_ERROR; }
@@ -835,7 +835,7 @@ int Titus_Sockets3_Base::RecvLineFrom(TITUS_SOCKET * sock, char * host, uint32 h
 	return RL3_NOLINE;
 }
 
-int Titus_Sockets3_Base::Select_Read(TITUS_SOCKET * sock, uint32 millisec) {
+int DSL_Sockets3_Base::Select_Read(DSL_SOCKET * sock, uint32 millisec) {
 	timeval timeo;
 	timeo.tv_sec = millisec / 1000;
 	millisec -= (timeo.tv_sec * 1000);
@@ -843,7 +843,7 @@ int Titus_Sockets3_Base::Select_Read(TITUS_SOCKET * sock, uint32 millisec) {
 	return Select_Read(sock, &timeo);
 }
 
-int Titus_Sockets3_Base::pSelect_Read(TITUS_SOCKET * sock, timeval * timeo) {
+int DSL_Sockets3_Base::pSelect_Read(DSL_SOCKET * sock, timeval * timeo) {
 	fd_set fd;
 	FD_ZERO(&fd);
 	FD_SET(sock->sock, &fd);
@@ -852,61 +852,61 @@ int Titus_Sockets3_Base::pSelect_Read(TITUS_SOCKET * sock, timeval * timeo) {
 	return ret;
 }
 
-int Titus_Sockets3_Base::Select_Read(TITUS_SOCKET * sock, timeval * timeo) {
+int DSL_Sockets3_Base::Select_Read(DSL_SOCKET * sock, timeval * timeo) {
 	return pSelect_Read(sock, timeo);
 }
 
-int Titus_Sockets3_Base::Select_List(TITUS_SOCKET_LIST * list_r, TITUS_SOCKET_LIST * list_w, timeval * timeo) {
+int DSL_Sockets3_Base::Select_List(DSL_SOCKET_LIST * list_r, DSL_SOCKET_LIST * list_w, timeval * timeo) {
 	fd_set fd, fd2;
 	FD_ZERO(&fd);
 	FD_ZERO(&fd2);
 	SOCKET high = 0;
-	TITUS_SOCKET_LIST tmp, tmp2;
+	DSL_SOCKET_LIST tmp, tmp2;
 	uint32 i;
 	if (list_r) {
-		memcpy(&tmp, list_r, sizeof(TITUS_SOCKET_LIST));
+		memcpy(&tmp, list_r, sizeof(DSL_SOCKET_LIST));
 		for (i = 0; i < list_r->num; i++) {
 			if (list_r->socks[i]->sock > high) {
 				high = list_r->socks[i]->sock;
 			}
 			FD_SET(list_r->socks[i]->sock, &fd);
 		}
-		TFD_ZERO(list_r);
+		DFD_ZERO(list_r);
 	} else {
-		TFD_ZERO(&tmp);
+		DFD_ZERO(&tmp);
 	}
 	if (list_w) {
-		memcpy(&tmp2, list_w, sizeof(TITUS_SOCKET_LIST));
+		memcpy(&tmp2, list_w, sizeof(DSL_SOCKET_LIST));
 		for (i = 0; i < list_w->num; i++) {
 			if (list_w->socks[i]->sock > high) {
 				high = list_w->socks[i]->sock;
 			}
 			FD_SET(list_w->socks[i]->sock, &fd2);
 		}
-		TFD_ZERO(list_w);
+		DFD_ZERO(list_w);
 	} else {
-		TFD_ZERO(&tmp2);
+		DFD_ZERO(&tmp2);
 	}
 	int ret = select(high+1,list_r ? &fd : NULL,list_w ? &fd2 : NULL,NULL,timeo);
 	if (ret < 0) { pUpdateError(NULL); }
 	if (list_r) {
 		for (i = 0; i < tmp.num; i++) {
 			if (FD_ISSET(tmp.socks[i]->sock, &fd)) {
-				TFD_SET(list_r, tmp.socks[i]);
+				DFD_SET(list_r, tmp.socks[i]);
 			}
 		}
 	}
 	if (list_w) {
 		for (i = 0; i < tmp2.num; i++) {
 			if (FD_ISSET(tmp2.socks[i]->sock, &fd2)) {
-				TFD_SET(list_w, tmp2.socks[i]);
+				DFD_SET(list_w, tmp2.socks[i]);
 			}
 		}
 	}
 	return ret;
 }
 
-int Titus_Sockets3_Base::Select_List(TITUS_SOCKET_LIST * list_r, TITUS_SOCKET_LIST * list_w, uint32 millisec) {
+int DSL_Sockets3_Base::Select_List(DSL_SOCKET_LIST * list_r, DSL_SOCKET_LIST * list_w, uint32 millisec) {
 	timeval timeo;
 	timeo.tv_sec = millisec / 1000;
 	millisec -= (timeo.tv_sec * 1000);
@@ -914,12 +914,12 @@ int Titus_Sockets3_Base::Select_List(TITUS_SOCKET_LIST * list_r, TITUS_SOCKET_LI
 	return Select_List(list_r, list_w, &timeo);
 }
 
-int Titus_Sockets3_Base::Select_Read_List(TITUS_SOCKET_LIST * list, timeval * timeo) {
+int DSL_Sockets3_Base::Select_Read_List(DSL_SOCKET_LIST * list, timeval * timeo) {
 	fd_set fd;
 	FD_ZERO(&fd);
 	SOCKET high=0;
-	TITUS_SOCKET_LIST tmp;
-	memcpy(&tmp, list, sizeof(TITUS_SOCKET_LIST));
+	DSL_SOCKET_LIST tmp;
+	memcpy(&tmp, list, sizeof(DSL_SOCKET_LIST));
 	uint32 i;
 	for (i=0; i < list->num; i++) {
 		if (list->socks[i]->sock > high) {
@@ -927,18 +927,18 @@ int Titus_Sockets3_Base::Select_Read_List(TITUS_SOCKET_LIST * list, timeval * ti
 		}
 		FD_SET(list->socks[i]->sock, &fd);
 	}
-	TFD_ZERO(list);
+	DFD_ZERO(list);
 	int ret = select(high+1,&fd,NULL,NULL,timeo);
 	if (ret < 0) { pUpdateError(NULL); }
 	for (i=0; i < tmp.num; i++) {
 		if (FD_ISSET(tmp.socks[i]->sock, &fd)) {
-			TFD_SET(list, tmp.socks[i]);
+			DFD_SET(list, tmp.socks[i]);
 		}
 	}
 	return ret;
 }
 
-int Titus_Sockets3_Base::Select_Read_List(TITUS_SOCKET_LIST * list, uint32 millisec) {
+int DSL_Sockets3_Base::Select_Read_List(DSL_SOCKET_LIST * list, uint32 millisec) {
 	timeval timeo;
 	timeo.tv_sec = millisec / 1000;
 	millisec -= (timeo.tv_sec * 1000);
@@ -946,7 +946,7 @@ int Titus_Sockets3_Base::Select_Read_List(TITUS_SOCKET_LIST * list, uint32 milli
 	return Select_Read_List(list, &timeo);
 }
 
-int Titus_Sockets3_Base::Select_Write(TITUS_SOCKET * sock, timeval * timeo) {
+int DSL_Sockets3_Base::Select_Write(DSL_SOCKET * sock, timeval * timeo) {
 	fd_set fd;
 	FD_ZERO(&fd);
 	FD_SET(sock->sock, &fd);
@@ -955,7 +955,7 @@ int Titus_Sockets3_Base::Select_Write(TITUS_SOCKET * sock, timeval * timeo) {
 	return ret;
 }
 
-int Titus_Sockets3_Base::Select_Write(TITUS_SOCKET * sock, uint32 millisec) {
+int DSL_Sockets3_Base::Select_Write(DSL_SOCKET * sock, uint32 millisec) {
 	timeval timeo;
 	timeo.tv_sec = millisec / 1000;
 	millisec -= (timeo.tv_sec * 1000);
@@ -964,21 +964,21 @@ int Titus_Sockets3_Base::Select_Write(TITUS_SOCKET * sock, uint32 millisec) {
 
 }
 
-int Titus_Sockets3_Base::SetLinger(TITUS_SOCKET * sock, bool linger, unsigned short timeo) {
+int DSL_Sockets3_Base::SetLinger(DSL_SOCKET * sock, bool linger, unsigned short timeo) {
 	struct linger lin = { linger ? 1:0, linger ? timeo:0 };
 	int ret = setsockopt(sock->sock, SOL_SOCKET, SO_LINGER, (char *)&lin, sizeof(lin));
 	pUpdateError(sock);
 	return ret;
 }
 
-int Titus_Sockets3_Base::SetReuseAddr(TITUS_SOCKET * sock, bool reuse_addr) {
+int DSL_Sockets3_Base::SetReuseAddr(DSL_SOCKET * sock, bool reuse_addr) {
 	int ra = reuse_addr ? 1:0;
 	int ret = setsockopt(sock->sock, SOL_SOCKET, SO_REUSEADDR, (char *)&ra, sizeof(ra));
 	pUpdateError(sock);
 	return ret;
 }
 
-int Titus_Sockets3_Base::SetNoDelay(TITUS_SOCKET * sock, bool no_delay) {
+int DSL_Sockets3_Base::SetNoDelay(DSL_SOCKET * sock, bool no_delay) {
 #ifdef TCP_NODELAY
 	int nodelay = no_delay ? 1:0;
 	int ret = setsockopt(sock->sock, IPPROTO_TCP, TCP_NODELAY, (char *)&nodelay, sizeof(int));
@@ -990,14 +990,14 @@ int Titus_Sockets3_Base::SetNoDelay(TITUS_SOCKET * sock, bool no_delay) {
 #endif
 }
 
-int Titus_Sockets3_Base::SetKeepAlive(TITUS_SOCKET * sock, bool ka) {
+int DSL_Sockets3_Base::SetKeepAlive(DSL_SOCKET * sock, bool ka) {
 	int keepalive = ka ? 1:0;
 	int ret = setsockopt(sock->sock,SOL_SOCKET,SO_KEEPALIVE,(char *)&keepalive,sizeof(int));
 	pUpdateError(sock);
 	return ret;
 }
 
-int Titus_Sockets3_Base::SetBroadcast(TITUS_SOCKET * sock, bool broadcast) {
+int DSL_Sockets3_Base::SetBroadcast(DSL_SOCKET * sock, bool broadcast) {
 	int tmp = broadcast ? 1:0;
 	int ret = setsockopt(sock->sock,SOL_SOCKET,SO_BROADCAST,(char *)&tmp,sizeof(tmp));
 	pUpdateError(sock);
@@ -1008,19 +1008,19 @@ int Titus_Sockets3_Base::SetBroadcast(TITUS_SOCKET * sock, bool broadcast) {
 #ifndef SIO_UDP_CONNRESET
 #define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR,12)
 #endif
-bool Titus_Sockets3_Base::DisableUDPConnReset(TITUS_SOCKET * sock, bool noconnreset) {
+bool DSL_Sockets3_Base::DisableUDPConnReset(DSL_SOCKET * sock, bool noconnreset) {
 	DWORD dwBytesReturned = 0;
 	BOOL bNewBehavior = noconnreset ? false:true;
 	return (WSAIoctl(sock->sock, SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL) == 0) ? true:false;
 }
 #else
-bool Titus_Sockets3_Base::DisableUDPConnReset(TITUS_SOCKET * sock, bool noconnreset) {
+bool DSL_Sockets3_Base::DisableUDPConnReset(DSL_SOCKET * sock, bool noconnreset) {
 	return true;
 }
 #endif
 
 
-int Titus_Sockets3_Base::SetRecvTimeout(TITUS_SOCKET * sock, uint32 millisec) {
+int DSL_Sockets3_Base::SetRecvTimeout(DSL_SOCKET * sock, uint32 millisec) {
 #ifdef WIN32
 	int ret = setsockopt(sock->sock,SOL_SOCKET,SO_RCVTIMEO,(char *)&millisec,sizeof(millisec));
 #else
@@ -1033,7 +1033,7 @@ int Titus_Sockets3_Base::SetRecvTimeout(TITUS_SOCKET * sock, uint32 millisec) {
 	return ret;
 }
 
-int Titus_Sockets3_Base::SetSendTimeout(TITUS_SOCKET * sock, uint32 millisec) {
+int DSL_Sockets3_Base::SetSendTimeout(DSL_SOCKET * sock, uint32 millisec) {
 #ifdef WIN32
 	int ret = setsockopt(sock->sock,SOL_SOCKET,SO_SNDTIMEO,(char *)&millisec,sizeof(millisec));
 #else
@@ -1046,11 +1046,11 @@ int Titus_Sockets3_Base::SetSendTimeout(TITUS_SOCKET * sock, uint32 millisec) {
 	return ret;
 }
 
-bool Titus_Sockets3_Base::IsNonBlocking(TITUS_SOCKET * sock) {
+bool DSL_Sockets3_Base::IsNonBlocking(DSL_SOCKET * sock) {
 	return sock->nonblocking;
 }
 
-void Titus_Sockets3_Base::SetNonBlocking(TITUS_SOCKET * sock, bool non_blocking) {
+void DSL_Sockets3_Base::SetNonBlocking(DSL_SOCKET * sock, bool non_blocking) {
 	sock->nonblocking = non_blocking;
 #ifdef _WIN32
 	unsigned long blah = non_blocking ? 1:0;
@@ -1065,7 +1065,7 @@ void Titus_Sockets3_Base::SetNonBlocking(TITUS_SOCKET * sock, bool non_blocking)
 	pUpdateError(sock);
 }
 
-std::string Titus_Sockets3_Base::GetHostIP(const char * host, int type, int proto) {
+std::string DSL_Sockets3_Base::GetHostIP(const char * host, int type, int proto) {
 	struct addrinfo hints, *ret, *scan;
 	std::string str="";
 
@@ -1082,7 +1082,7 @@ std::string Titus_Sockets3_Base::GetHostIP(const char * host, int type, int prot
 		return str;
 	}
 
-	char buf[TS3_MAX_HOSTLEN];
+	char buf[DS3_MAX_HOSTLEN];
 	if (ret) {
 		//sockaddr_in * sa = (sockaddr_in *)ret->ai_addr;
 		scan = ret;
@@ -1102,16 +1102,16 @@ std::string Titus_Sockets3_Base::GetHostIP(const char * host, int type, int prot
 	return str;
 }
 
-int Titus_Sockets3_Base::GetLastError(T_SOCKET * sock) {
+int DSL_Sockets3_Base::GetLastError(D_SOCKET * sock) {
 	if (sock) { return sock->last_errno; }
 	return bErrNo;
 }
-const char * Titus_Sockets3_Base::GetLastErrorString(T_SOCKET * sock) {
+const char * DSL_Sockets3_Base::GetLastErrorString(D_SOCKET * sock) {
 	if (sock) { return sock->last_error; }
 	return bError;
 }
 
-void Titus_Sockets3_Base::pUpdateError(TITUS_SOCKET * sock, int serrno, const char * errstr) {
+void DSL_Sockets3_Base::pUpdateError(DSL_SOCKET * sock, int serrno, const char * errstr) {
 	bErrNo = errno;
 	strlcpy(bError, errstr, sizeof(bError));
 	if (sock != NULL) {
@@ -1123,7 +1123,7 @@ void Titus_Sockets3_Base::pUpdateError(TITUS_SOCKET * sock, int serrno, const ch
 	}
 }
 
-void Titus_Sockets3_Base::pUpdateError(TITUS_SOCKET * sock) {
+void DSL_Sockets3_Base::pUpdateError(DSL_SOCKET * sock) {
 #if defined(WIN32)
 	bErrNo = WSAGetLastError();
 	if (bErrNo) {

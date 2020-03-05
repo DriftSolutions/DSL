@@ -13,9 +13,9 @@
 #include <drift/Mutex.h>
 #include <drift/GenLib.h>
 
-Titus_Mutex  * iniMutex()
+DSL_Mutex  * iniMutex()
 {
-	static Titus_Mutex actualMutex;
+	static DSL_Mutex actualMutex;
 	return &actualMutex;
 }
 

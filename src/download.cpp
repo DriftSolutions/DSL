@@ -11,30 +11,30 @@
 #include <drift/dslcore.h>
 #include <drift/download.h>
 
-void TitusDownloadCore::privZero() {
+void DSL_Download_Core::privZero() {
 	callback = NULL;
 	u_ptr = NULL;
 	error = TD_NO_ERROR;
 }
 
-TitusDownloadCore::TitusDownloadCore() {
+DSL_Download_Core::DSL_Download_Core() {
 	this->privZero();
 }
 
-TitusDownloadCore::TitusDownloadCore(const char * url, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+DSL_Download_Core::DSL_Download_Core(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	this->privZero();
 }
 
-TitusDownloadCore::TitusDownloadCore(Titus_Download_Type type, const char * host, int port, const char * path, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+DSL_Download_Core::DSL_Download_Core(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	this->privZero();
 }
 
-TitusDownloadCore::~TitusDownloadCore() {
+DSL_Download_Core::~DSL_Download_Core() {
 }
 
-Titus_Download_Errors TitusDownloadCore::GetError() { return this->error; }
+DSL_Download_Errors DSL_Download_Core::GetError() { return this->error; }
 
-char Titus_Download_Error_Strings[TD_NUM_ERRORS][56] = {
+char DSL_Download_Error_Strings[TD_NUM_ERRORS][56] = {
 	"No Error",
 
 	"File Access Error",
@@ -53,18 +53,18 @@ char Titus_Download_Error_Strings[TD_NUM_ERRORS][56] = {
 	"Authorization Needed or Bad Username/Password"
 };
 
-const char * TitusDownloadCore::GetErrorString() {
+const char * DSL_Download_Core::GetErrorString() {
 	if (this->error >= TD_NUM_ERRORS) {
 		static char unkerr[] = "Unkown Error";
 		return unkerr;
 	}
-	return Titus_Download_Error_Strings[this->error];
+	return DSL_Download_Error_Strings[this->error];
 }
 
-bool TitusDownloadCore::Download(const char * SaveAs) {
+bool DSL_Download_Core::Download(const char * SaveAs) {
 	if (this->error != TD_NO_ERROR) { return false; }
 
-	TITUS_FILE * fp = RW_OpenFile(SaveAs, "wb");
+	DSL_FILE * fp = RW_OpenFile(SaveAs, "wb");
 	if (fp == NULL) {
 		this->error = TD_FILE_ACCESS;
 		return false;
@@ -74,10 +74,10 @@ bool TitusDownloadCore::Download(const char * SaveAs) {
 	return ret;
 }
 
-bool TitusDownloadCore::Download(FILE * fWriteTo) {
+bool DSL_Download_Core::Download(FILE * fWriteTo) {
 	if (this->error != TD_NO_ERROR) { return false; }
 
-	TITUS_FILE * fp = RW_ConvertFile(fWriteTo, false);
+	DSL_FILE * fp = RW_ConvertFile(fWriteTo, false);
 	bool ret = this->Download(fp);
 	fp->close(fp);
 	return ret;

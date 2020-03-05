@@ -20,8 +20,8 @@ int main(int argc, char * argv[]) {
 	dsl_get_hash_providers(p);
 	printf("Num hash providers: %zu\n", p.size());
 
-	Titus_Sockets3_OpenSSL * socks = new Titus_Sockets3_OpenSSL();
-	Titus_Sockets3_GnuTLS * socks2 = new Titus_Sockets3_GnuTLS();
+	DSL_Sockets3_OpenSSL * socks = new DSL_Sockets3_OpenSSL();
+	DSL_Sockets3_GnuTLS * socks2 = new DSL_Sockets3_GnuTLS();
 
 	dsl_get_hash_providers(p);
 	printf("Num hash providers: %zu\n", p.size());

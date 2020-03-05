@@ -17,7 +17,7 @@
 #define DSL_DEFAULT_MUTEX_TIMEOUT -1
 #endif
 
-class DSL_API_CLASS Titus_Mutex_Base {
+class DSL_API_CLASS DSL_Mutex_Base {
 public:
 	virtual bool Lock(int timeout)=0;
 	virtual bool Lock()=0;
@@ -30,25 +30,25 @@ public:
 	virtual THREADIDTYPE LockingThread()=0;
 };
 
-class DSL_API_CLASS Titus_MutexLocker {
+class DSL_API_CLASS DSL_MutexLocker {
 private:
-	Titus_Mutex_Base * hMutex;
+	DSL_Mutex_Base * hMutex;
 public:
-	Titus_MutexLocker(Titus_Mutex_Base * mutex);
-	~Titus_MutexLocker();
+	DSL_MutexLocker(DSL_Mutex_Base * mutex);
+	~DSL_MutexLocker();
 };
 
 #if defined(WIN32) || defined(XBOX)
 
-class DSL_API_CLASS Titus_Mutex_Win32CS : public Titus_Mutex_Base {
+class DSL_API_CLASS DSL_Mutex_Win32CS : public DSL_Mutex_Base {
 	private:
 		THREADIDTYPE LockingThreadID;
 		int refcnt;
 		int lock_timeout;
 		CRITICAL_SECTION cs;
 	public:
-		Titus_Mutex_Win32CS(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT);
-		~Titus_Mutex_Win32CS();
+		DSL_Mutex_Win32CS(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT);
+		~DSL_Mutex_Win32CS();
 
 		bool Lock(int timeout);
 		bool Lock();
@@ -63,15 +63,15 @@ class DSL_API_CLASS Titus_Mutex_Win32CS : public Titus_Mutex_Base {
 		THREADIDTYPE LockingThread();
 };
 
-class DSL_API_CLASS Titus_Mutex_Win32Mutex : public Titus_Mutex_Base {
+class DSL_API_CLASS DSL_Mutex_Win32Mutex : public DSL_Mutex_Base {
 	private:
 		THREADIDTYPE LockingThreadID;
 		int refcnt;
 		int lock_timeout;
 		HANDLE hMutex;
 	public:
-		Titus_Mutex_Win32Mutex(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT, const char * name = NULL);
-		~Titus_Mutex_Win32Mutex();
+		DSL_Mutex_Win32Mutex(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT, const char * name = NULL);
+		~DSL_Mutex_Win32Mutex();
 
 		bool Lock(int timeout);
 		bool Lock();
@@ -87,24 +87,24 @@ class DSL_API_CLASS Titus_Mutex_Win32Mutex : public Titus_Mutex_Base {
 };
 
 #if DSL_DEFAULT_MUTEX_TIMEOUT > 0
-#define Titus_Mutex Titus_Mutex_Win32Mutex
-#define Titus_TimedMutex Titus_Mutex_Win32Mutex
+#define DSL_Mutex DSL_Mutex_Win32Mutex
+#define DSL_TimedMutex DSL_Mutex_Win32Mutex
 #else
-#define Titus_Mutex Titus_Mutex_Win32CS
-#define Titus_TimedMutex Titus_Mutex_Win32Mutex
+#define DSL_Mutex DSL_Mutex_Win32CS
+#define DSL_TimedMutex DSL_Mutex_Win32Mutex
 #endif
 
 #else // defined(WIN32) || defined(XBOX)
 
-class DSL_API_CLASS Titus_Mutex_pthreads : public Titus_Mutex_Base {
+class DSL_API_CLASS DSL_Mutex_pthreads : public DSL_Mutex_Base {
 	private:
 		THREADIDTYPE LockingThreadID;
 		int refcnt;
 		int lock_timeout;
 		pthread_mutex_t hMutex;
 	public:
-		Titus_Mutex_pthreads(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT);
-		virtual ~Titus_Mutex_pthreads();
+		DSL_Mutex_pthreads(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT);
+		virtual ~DSL_Mutex_pthreads();
 
 		bool Lock(int timeout);
 		bool Lock();
@@ -119,27 +119,27 @@ class DSL_API_CLASS Titus_Mutex_pthreads : public Titus_Mutex_Base {
 		THREADIDTYPE LockingThread();
 };
 
-#define Titus_Mutex Titus_Mutex_pthreads
-#define Titus_TimedMutex Titus_Mutex_pthreads
+#define DSL_Mutex DSL_Mutex_pthreads
+#define DSL_TimedMutex DSL_Mutex_pthreads
 #endif // defined(WIN32) || defined(XBOX)
 
 #ifdef DEBUG_MUTEX
 #define LockMutex(x) { \
-	OutputDebugString("Titus_Mutex::Lock()\n"); \
-	printf("Titus_Mutex::Lock(%s, %d)\n", __FILE__, __LINE__); \
+	OutputDebugString("DSL_Mutex::Lock()\n"); \
+	printf("DSL_Mutex::Lock(%s, %d)\n", __FILE__, __LINE__); \
 	x.Lock(); \
-	OutputDebugString("Titus_Mutex::Locked()\n"); \
-	printf("Titus_Mutex::Locked(%s, %d)\n", __FILE__, __LINE__); \
+	OutputDebugString("DSL_Mutex::Locked()\n"); \
+	printf("DSL_Mutex::Locked(%s, %d)\n", __FILE__, __LINE__); \
 }
 #define LockMutexPtr(x) { \
-	OutputDebugString("Titus_Mutex::Lock()\n"); \
-	printf("Titus_Mutex::Lock(%s, %d)\n", __FILE__, __LINE__); \
+	OutputDebugString("DSL_Mutex::Lock()\n"); \
+	printf("DSL_Mutex::Lock(%s, %d)\n", __FILE__, __LINE__); \
 	x->Lock(); \
-	OutputDebugString("Titus_Mutex::Locked()\n"); \
-	printf("Titus_Mutex::Locked(%s, %d)\n", __FILE__, __LINE__); \
+	OutputDebugString("DSL_Mutex::Locked()\n"); \
+	printf("DSL_Mutex::Locked(%s, %d)\n", __FILE__, __LINE__); \
 }
-#define RelMutex(x) { printf("Titus_Mutex::Release(%s, %d)\n", __FILE__, __LINE__); x.Release(); }
-#define RelMutexPtr(x) { OutputDebugString("Titus_Mutex::Release()\n"); printf("Titus_Mutex::Release(%s, %d)\n", __FILE__, __LINE__); x->Release(); printf("Titus_Mutex::Released(%s, %d)\n", __FILE__, __LINE__); OutputDebugString("Titus_Mutex::Released()\n");  }
+#define RelMutex(x) { printf("DSL_Mutex::Release(%s, %d)\n", __FILE__, __LINE__); x.Release(); }
+#define RelMutexPtr(x) { OutputDebugString("DSL_Mutex::Release()\n"); printf("DSL_Mutex::Release(%s, %d)\n", __FILE__, __LINE__); x->Release(); printf("DSL_Mutex::Released(%s, %d)\n", __FILE__, __LINE__); OutputDebugString("DSL_Mutex::Released()\n");  }
 #else
 #define LockMutex(x) x.Lock()
 #define LockMutexPtr(x) x->Lock()
@@ -149,10 +149,10 @@ class DSL_API_CLASS Titus_Mutex_pthreads : public Titus_Mutex_Base {
 #define RelMutexPtr(x) x->Release()
 #endif
 
-#define AutoMutex(x) Titus_MutexLocker MAKE_UNIQUE_NAME (&x)
-#define AutoMutexPtr(x) Titus_MutexLocker MAKE_UNIQUE_NAME (x)
+#define AutoMutex(x) DSL_MutexLocker MAKE_UNIQUE_NAME (&x)
+#define AutoMutexPtr(x) DSL_MutexLocker MAKE_UNIQUE_NAME (x)
 
 // *** DO NOT USE THIS, FOR DSL INTERNAL USE ONLY ***
-Titus_Mutex * dslMutex();
+DSL_Mutex * dslMutex();
 
 #endif // _INCLUDE_MUTEX_H_

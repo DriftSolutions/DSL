@@ -31,7 +31,7 @@ DSL_API bool DSL_CC hash_finish(HASH_CTX *ctx, uint8 * out, size_t outlen);
 DSL_API bool DSL_CC hashdata(const char * name, const uint8 *data, size_t datalen, char * out, size_t outlen, bool raw_output = false);
 DSL_API bool DSL_CC hashfile(const char * name, const char * fn, char * out, size_t outlen, bool raw_output = false);
 DSL_API bool DSL_CC hashfile_fp(const char * name, FILE * fp, char * out, size_t outlen, bool raw_output = false);
-DSL_API bool DSL_CC hashfile_rw(const char * name, TITUS_FILE * fp, char * out, size_t outlen, bool raw_output = false);
+DSL_API bool DSL_CC hashfile_rw(const char * name, DSL_FILE * fp, char * out, size_t outlen, bool raw_output = false);
 
 /* The rest are for internal use only */
 

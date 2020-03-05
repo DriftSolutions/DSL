@@ -15,7 +15,7 @@
 
 void DSL_CC buffer_init(DSL_BUFFER * buf, bool useMutex) {
 	memset(buf, 0, sizeof(DSL_BUFFER));
-	if (useMutex) { buf->hMutex = new Titus_Mutex(); }
+	if (useMutex) { buf->hMutex = new DSL_Mutex(); }
 }
 
 void DSL_CC buffer_free(DSL_BUFFER * buf) {
@@ -94,21 +94,21 @@ bool DSL_CC buffer_append(DSL_BUFFER * buf, const char * ptr, int64 len) {
 	return true;
 }
 
-Titus_Buffer::Titus_Buffer() {
+DSL_Buffer::DSL_Buffer() {
 	data = NULL;
 	len  = 0;
 }
 
-Titus_Buffer::~Titus_Buffer() { Clear(); }
+DSL_Buffer::~DSL_Buffer() { Clear(); }
 
-void Titus_Buffer::Clear() {
+void DSL_Buffer::Clear() {
 	LockMutex(hMutex);
 	if (data) { dsl_free(data); }
 	data = NULL;
 	len  = 0;
 	RelMutex(hMutex);
 }
-void Titus_Buffer::RemoveFromEnd(uint32 ulen) {
+void DSL_Buffer::RemoveFromEnd(uint32 ulen) {
 	if (ulen >= len) {
 		Clear();
 	} else {
@@ -119,7 +119,7 @@ void Titus_Buffer::RemoveFromEnd(uint32 ulen) {
 	}
 }
 
-void Titus_Buffer::RemoveFromBeginning(uint32 ulen) {
+void DSL_Buffer::RemoveFromBeginning(uint32 ulen) {
 	if (ulen >= len) {
 		Clear();
 	} else {
@@ -131,15 +131,15 @@ void Titus_Buffer::RemoveFromBeginning(uint32 ulen) {
 	}
 }
 
-char * Titus_Buffer::Get() {
+char * DSL_Buffer::Get() {
 	return data;
 }
 
-uint32 Titus_Buffer::GetLen() {
+uint32 DSL_Buffer::GetLen() {
 	return len;
 }
 
-bool Titus_Buffer::Get(char * buf, uint32 * size) {
+bool DSL_Buffer::Get(char * buf, uint32 * size) {
 	LockMutex(hMutex);
 	*size = len;
 	if (*size < len) {
@@ -152,7 +152,7 @@ bool Titus_Buffer::Get(char * buf, uint32 * size) {
 	return false;
 }
 
-bool Titus_Buffer::Get(char * buf, uint32 size) {
+bool DSL_Buffer::Get(char * buf, uint32 size) {
 	if (data == NULL) { return size > 0 ? false:true; }
 	LockMutex(hMutex);
 	if (size < len) {
@@ -165,7 +165,7 @@ bool Titus_Buffer::Get(char * buf, uint32 size) {
 	return false;
 }
 
-void Titus_Buffer::Set(const char * buf, uint32 ulen) {
+void DSL_Buffer::Set(const char * buf, uint32 ulen) {
 	LockMutex(hMutex);
 	if (ulen == 0xFFFFFFFF) { ulen = strlen(buf); }
 	data = (char *)dsl_realloc(data, ulen);
@@ -173,7 +173,7 @@ void Titus_Buffer::Set(const char * buf, uint32 ulen) {
 	len = ulen;
 	RelMutex(hMutex);
 }
-void Titus_Buffer::Append(const char * buf, uint32 ulen) {
+void DSL_Buffer::Append(const char * buf, uint32 ulen) {
 	LockMutex(hMutex);
 	if (ulen == 0xFFFFFFFF) { ulen = strlen(buf); }
 	data = (char *)dsl_realloc(data, len+ulen);
@@ -181,7 +181,7 @@ void Titus_Buffer::Append(const char * buf, uint32 ulen) {
 	len += ulen;
 	RelMutex(hMutex);
 }
-void Titus_Buffer::Prepend(const char * buf, uint32 ulen) {
+void DSL_Buffer::Prepend(const char * buf, uint32 ulen) {
 	LockMutex(hMutex);
 	if (ulen == 0xFFFFFFFF) { ulen = strlen(buf); }
 	data = (char *)dsl_realloc(data, len+ulen);
@@ -191,27 +191,27 @@ void Titus_Buffer::Prepend(const char * buf, uint32 ulen) {
 	RelMutex(hMutex);
 };
 
-void Titus_Buffer::Append_int8(int8 val) {
+void DSL_Buffer::Append_int8(int8 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_uint8(uint8 val) {
+void DSL_Buffer::Append_uint8(uint8 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_int16(int16 val) {
+void DSL_Buffer::Append_int16(int16 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_uint16(uint16 val) {
+void DSL_Buffer::Append_uint16(uint16 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_int32(int32 val) {
+void DSL_Buffer::Append_int32(int32 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_uint32(uint32 val) {
+void DSL_Buffer::Append_uint32(uint32 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_int64(int64 val) {
+void DSL_Buffer::Append_int64(int64 val) {
 	Append((char *)&val, sizeof(val));
 }
-void Titus_Buffer::Append_uint64(uint64 val) {
+void DSL_Buffer::Append_uint64(uint64 val) {
 	Append((char *)&val, sizeof(val));
 }

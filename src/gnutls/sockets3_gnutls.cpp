@@ -13,20 +13,20 @@
 #include <drift/sockets3.h>
 #include <drift/gnutls.h>
 
-Titus_Mutex  * gtlsSockMutex()
+DSL_Mutex  * gtlsSockMutex()
 {
-	static Titus_Mutex actualMutex;
+	static DSL_Mutex actualMutex;
 	return &actualMutex;
 }
 
 extern DSL_Library_Registerer dsl_gnutls_autoreg;
-Titus_Sockets3_GnuTLS::Titus_Sockets3_GnuTLS() {
+DSL_Sockets3_GnuTLS::DSL_Sockets3_GnuTLS() {
 	gnutls_cred = NULL;
-	avail_flags |= TS3_FLAG_SSL;
+	avail_flags |= DS3_FLAG_SSL;
 	dsl_gnutls_autoreg.EnsureLinked();
 }
 
-Titus_Sockets3_GnuTLS::~Titus_Sockets3_GnuTLS() {
+DSL_Sockets3_GnuTLS::~DSL_Sockets3_GnuTLS() {
 	LockMutexPtr(gtlsSockMutex());
 	if (gnutls_cred != NULL) {
 		gnutls_certificate_free_credentials(gnutls_cred);
@@ -35,12 +35,12 @@ Titus_Sockets3_GnuTLS::~Titus_Sockets3_GnuTLS() {
 	RelMutexPtr(gtlsSockMutex());
 }
 
-TITUS_SOCKET * Titus_Sockets3_GnuTLS::pAllocSocket() {
-	return new TITUS_SOCKET_GNUTLS();
+DSL_SOCKET * DSL_Sockets3_GnuTLS::pAllocSocket() {
+	return new DSL_SOCKET_GNUTLS();
 }
 
-int Titus_Sockets3_GnuTLS::pRecv(TITUS_SOCKET * pSock, char * buf, uint32 bufsize) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+int DSL_Sockets3_GnuTLS::pRecv(DSL_SOCKET * pSock, char * buf, uint32 bufsize) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		ssize_t n;
@@ -66,23 +66,23 @@ int Titus_Sockets3_GnuTLS::pRecv(TITUS_SOCKET * pSock, char * buf, uint32 bufsiz
 		return n;
 	}
 
-	return Titus_Sockets3_Base::pRecv(sock, buf, bufsize);
+	return DSL_Sockets3_Base::pRecv(sock, buf, bufsize);
 }
 
-int Titus_Sockets3_GnuTLS::pPeek(TITUS_SOCKET * pSock, char * buf, uint32 bufsize) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+int DSL_Sockets3_GnuTLS::pPeek(DSL_SOCKET * pSock, char * buf, uint32 bufsize) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		ssize_t n = gnutls_record_check_pending(sock->gtls);
 		if (n > 0) { return n; }
 	}
 
-	return Titus_Sockets3_Base::pPeek(sock, buf, bufsize);
+	return DSL_Sockets3_Base::pPeek(sock, buf, bufsize);
 }
 
 
-int Titus_Sockets3_GnuTLS::pSend(TITUS_SOCKET * pSock, const char * data, uint32 datalen) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+int DSL_Sockets3_GnuTLS::pSend(DSL_SOCKET * pSock, const char * data, uint32 datalen) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		ssize_t n;
@@ -95,10 +95,10 @@ int Titus_Sockets3_GnuTLS::pSend(TITUS_SOCKET * pSock, const char * data, uint32
 		return n;
 	}
 
-	return Titus_Sockets3_Base::pSend(sock, data, datalen);
+	return DSL_Sockets3_Base::pSend(sock, data, datalen);
 }
 
-bool Titus_Sockets3_GnuTLS::EnableSSL(const char * cert, TS3_SSL_METHOD method) {
+bool DSL_Sockets3_GnuTLS::EnableSSL(const char * cert, DS3_SSL_METHOD method) {
 	AutoMutexPtr(gtlsSockMutex());
 	if (gnutls_cred != NULL) {
 		gnutls_certificate_free_credentials(gnutls_cred);
@@ -117,17 +117,17 @@ bool Titus_Sockets3_GnuTLS::EnableSSL(const char * cert, TS3_SSL_METHOD method) 
 		return false;
 	}
 
-	enabled_flags |= TS3_FLAG_SSL;
+	enabled_flags |= DS3_FLAG_SSL;
 	return true;
 }
 
-bool Titus_Sockets3_GnuTLS::SwitchToSSL_Server(TITUS_SOCKET * pSock) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+bool DSL_Sockets3_GnuTLS::SwitchToSSL_Server(DSL_SOCKET * pSock) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		gnutls_deinit(sock->gtls);
 		sock->gtls = NULL;
-		sock->flags &= ~TS3_FLAG_SSL;
+		sock->flags &= ~DS3_FLAG_SSL;
 	}
 
 	int n = gnutls_init(&sock->gtls, GNUTLS_SERVER);
@@ -159,18 +159,18 @@ bool Titus_Sockets3_GnuTLS::SwitchToSSL_Server(TITUS_SOCKET * pSock) {
 		return false;
 	}
 
-	sock->flags |= TS3_FLAG_SSL;
+	sock->flags |= DS3_FLAG_SSL;
 	sock->ssl_is_client = false;
 	return true;
 }
 
-bool Titus_Sockets3_GnuTLS::SwitchToSSL_Client(TITUS_SOCKET * pSock) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+bool DSL_Sockets3_GnuTLS::SwitchToSSL_Client(DSL_SOCKET * pSock) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		gnutls_deinit(sock->gtls);
 		sock->gtls = NULL;
-		sock->flags &= ~TS3_FLAG_SSL;
+		sock->flags &= ~DS3_FLAG_SSL;
 	}
 
 	int n = gnutls_init(&sock->gtls, GNUTLS_CLIENT);
@@ -202,13 +202,13 @@ bool Titus_Sockets3_GnuTLS::SwitchToSSL_Client(TITUS_SOCKET * pSock) {
 		return false;
 	}
 
-	sock->flags |= TS3_FLAG_SSL;
+	sock->flags |= DS3_FLAG_SSL;
 	sock->ssl_is_client = true;
 	return true;
 }
 
-int Titus_Sockets3_GnuTLS::pSelect_Read(TITUS_SOCKET * pSock, timeval * timeo) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+int DSL_Sockets3_GnuTLS::pSelect_Read(DSL_SOCKET * pSock, timeval * timeo) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		int n = gnutls_record_check_pending(sock->gtls);
@@ -217,11 +217,11 @@ int Titus_Sockets3_GnuTLS::pSelect_Read(TITUS_SOCKET * pSock, timeval * timeo) {
 		}
 	}
 
-	return Titus_Sockets3_Base::pSelect_Read(sock, timeo);
+	return DSL_Sockets3_Base::pSelect_Read(sock, timeo);
 }
 
-void Titus_Sockets3_GnuTLS::pCloseSSL(TITUS_SOCKET * pSock) {
-	TITUS_SOCKET_GNUTLS * sock = static_cast<TITUS_SOCKET_GNUTLS *>(pSock);
+void DSL_Sockets3_GnuTLS::pCloseSSL(DSL_SOCKET * pSock) {
+	DSL_SOCKET_GNUTLS * sock = static_cast<DSL_SOCKET_GNUTLS *>(pSock);
 
 	if (sock->gtls) {
 		int n = gnutls_bye(sock->gtls, GNUTLS_SHUT_WR);
@@ -233,7 +233,7 @@ void Titus_Sockets3_GnuTLS::pCloseSSL(TITUS_SOCKET * pSock) {
 	}
 }
 
-gnutls_session_t Titus_Sockets3_GnuTLS::GetSSL_CTX() {
+gnutls_session_t DSL_Sockets3_GnuTLS::GetSSL_CTX() {
 	return ctx;
 }
 

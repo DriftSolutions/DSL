@@ -14,7 +14,7 @@
 #include <drift/GenLib.h>
 #include <drift/Threading.h>
 
-void TitusDownloadNoCurl::privZero() {
+void DSL_Download_NoCurl::privZero() {
 	this->host[0]=0;
 	this->path[0]=0;
 	this->user[0]=0;
@@ -25,15 +25,15 @@ void TitusDownloadNoCurl::privZero() {
 	this->errorOnRedirects = true;
 	this->callback = NULL;
 	this->error = TD_NO_ERROR;
-	this->socks = new Titus_Sockets3_Base();
+	this->socks = new DSL_Sockets3_Base();
 }
 
-TitusDownloadNoCurl::TitusDownloadNoCurl(const char * url, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+DSL_Download_NoCurl::DSL_Download_NoCurl(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	this->privZero();
 	this->callback = callback;
 	this->u_ptr = user_ptr;
 	this->error = TD_NO_ERROR;
-	strcpy(this->user_agent, "Titus HTTP Downloader Class (Mozilla)");
+	strcpy(this->user_agent, "DSL HTTP Downloader Class (Mozilla)");
 	if (user) { sstrcpy(this->user, user); }
 	if (pass) { sstrcpy(this->pass, pass); }
 
@@ -74,13 +74,13 @@ TitusDownloadNoCurl::TitusDownloadNoCurl(const char * url, Titus_Download_Callba
 	dsl_free(murl);
 }
 
-TitusDownloadNoCurl::TitusDownloadNoCurl(Titus_Download_Type type, const char * host, int port, const char * path, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+DSL_Download_NoCurl::DSL_Download_NoCurl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	this->privZero();
 	this->mode = type;
 	if (host) { sstrcpy(this->host,host); }
 	this->port = port;
 	if (path) { sstrcpy(this->path,path); }
-	sstrcpy(this->user_agent,"Titus HTTP Downloader Class (Mozilla)");
+	sstrcpy(this->user_agent,"DSL HTTP Downloader Class (Mozilla)");
 
 	this->callback = callback;
 	this->u_ptr = user_ptr;
@@ -100,30 +100,30 @@ TitusDownloadNoCurl::TitusDownloadNoCurl(Titus_Download_Type type, const char * 
 	}
 }
 
-TitusDownloadNoCurl::~TitusDownloadNoCurl() {
+DSL_Download_NoCurl::~DSL_Download_NoCurl() {
 	delete this->socks;
 }
 
-//Titus_Download_Errors Titus_Download::GetError() { return this->error; }
+//DSL_Download_Errors DSL_Download::GetError() { return this->error; }
 
-void TitusDownloadNoCurl::SetTimeout(unsigned long millisec) {
+void DSL_Download_NoCurl::SetTimeout(unsigned long millisec) {
 	this->timeo = millisec;
 }
 
-void TitusDownloadNoCurl::FollowRedirects(bool follow) {
+void DSL_Download_NoCurl::FollowRedirects(bool follow) {
 	this->followRedirects = follow;
 }
 
-void TitusDownloadNoCurl::ErrorOnRedirects(bool error) {
+void DSL_Download_NoCurl::ErrorOnRedirects(bool error) {
 	this->errorOnRedirects = error;
 }
 
-void TitusDownloadNoCurl::SetUserAgent(const char * ua) {
+void DSL_Download_NoCurl::SetUserAgent(const char * ua) {
 	strcpy(user_agent, ua);
 }
 
 /*
-char Titus_Download_Error_Strings[11][256] = {
+char DSL_Download_Error_Strings[11][256] = {
 	"No Error",
 
 	"File Access Error",
@@ -139,15 +139,15 @@ char Titus_Download_Error_Strings[11][256] = {
 	"Server tried to redirect, but FollowRedirects is Off"
 };
 
-const char * Titus_Download::GetErrorString() {
-	return Titus_Download_Error_Strings[this->error];
+const char * DSL_Download::GetErrorString() {
+	return DSL_Download_Error_Strings[this->error];
 }
 */
 
-bool TitusDownloadNoCurl::Download(const char * SaveAs) {
+bool DSL_Download_NoCurl::Download(const char * SaveAs) {
 	if (this->error != TD_NO_ERROR) { return false; }
 
-	TITUS_FILE * fp = RW_OpenFile(SaveAs, "wb");
+	DSL_FILE * fp = RW_OpenFile(SaveAs, "wb");
 	if (fp == NULL) {
 		this->error = TD_FILE_ACCESS;
 		return false;
@@ -157,16 +157,16 @@ bool TitusDownloadNoCurl::Download(const char * SaveAs) {
 	return ret;
 }
 
-bool TitusDownloadNoCurl::Download(FILE * fWriteTo) {
+bool DSL_Download_NoCurl::Download(FILE * fWriteTo) {
 	if (this->error != TD_NO_ERROR) { return false; }
 
-	TITUS_FILE * fp = RW_ConvertFile(fWriteTo, false);
+	DSL_FILE * fp = RW_ConvertFile(fWriteTo, false);
 	bool ret = this->Download(fp);
 	fp->close(fp);
 	return ret;
 }
 
-bool TitusDownloadNoCurl::Download(TITUS_FILE * fWriteTo) {
+bool DSL_Download_NoCurl::Download(DSL_FILE * fWriteTo) {
 	if (this->error != TD_NO_ERROR) { return false; }
 
 	if (this->mode == TD_HTTP) {
@@ -181,10 +181,10 @@ bool TitusDownloadNoCurl::Download(TITUS_FILE * fWriteTo) {
 	return false;
 }
 
-bool TitusDownloadNoCurl::privDownloadHTTP(TITUS_FILE * fWriteTo) {
+bool DSL_Download_NoCurl::privDownloadHTTP(DSL_FILE * fWriteTo) {
 	char * buf = (char *)dsl_malloc(16384);
 	uint64 got=0,fullsize=0;
-	T_SOCKET * sock = this->socks->Create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	D_SOCKET * sock = this->socks->Create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == NULL) {
 		dsl_free(buf);
 		this->error = TD_ERROR_CREATING_SOCKET;
@@ -287,7 +287,7 @@ bool TitusDownloadNoCurl::privDownloadHTTP(TITUS_FILE * fWriteTo) {
 					dsl_free(tmp);
 				}
 
-				TitusDownloadNoCurl * dl = new TitusDownloadNoCurl(p,callback,user,pass);
+				DSL_Download_NoCurl * dl = new DSL_Download_NoCurl(p,callback,user,pass);
 				if (dl->GetError() == TD_NO_ERROR) {
 					bool ret = dl->Download(fWriteTo);
 					this->error = dl->GetError();
@@ -331,10 +331,10 @@ bool TitusDownloadNoCurl::privDownloadHTTP(TITUS_FILE * fWriteTo) {
 	return true;
 }
 
-bool TitusDownloadNoCurl::privDownloadFTP(TITUS_FILE * fWriteTo) {
+bool DSL_Download_NoCurl::privDownloadFTP(DSL_FILE * fWriteTo) {
 	char * buf = new char[16384];
 	long got=0,fullsize=0;
-	T_SOCKET * sock = this->socks->Create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	D_SOCKET * sock = this->socks->Create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == NULL) {
 		this->error = TD_ERROR_CREATING_SOCKET;
 		return false;
@@ -345,7 +345,7 @@ bool TitusDownloadNoCurl::privDownloadFTP(TITUS_FILE * fWriteTo) {
 		return false;
 	}
 
-	T_SOCKET * dSock=NULL;
+	D_SOCKET * dSock=NULL;
 
 	int n=0,ln=0;
 	memset(buf,0,16384);

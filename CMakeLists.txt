@@ -22,7 +22,7 @@ IF(ENABLE_STATIC)
 message(STATUS "Building static libraries")
 ENDIF()
 
-add_definitions(-DDSL_DEFAULT_MUTEX_TIMEOUT=1800000 -DENABLE_ZLIB)
+add_definitions(-DDSL_DEFAULT_MUTEX_TIMEOUT=1800000 -DENABLE_ZLIB -DDSL_NO_COMPAT)
 
 include_directories(.)
 IF (WIN32)

@@ -37,7 +37,7 @@ DSL_LIBRARY_FUNCTIONS dsl_curl_funcs = {
 };
 DSL_Library_Registerer dsl_curl_autoreg(dsl_curl_funcs);
 
-void TitusDownloadCurl::privZero() {
+void DSL_Download_Curl::privZero() {
 	callback = NULL;
 	error = TD_NO_ERROR;
 	cHandle = NULL;
@@ -45,16 +45,16 @@ void TitusDownloadCurl::privZero() {
 }
 
 size_t tdCurlWrite(void *ptr, size_t size, size_t nmemb, void *stream) {
-	TITUS_FILE * fp = (TITUS_FILE *)stream;
+	DSL_FILE * fp = (DSL_FILE *)stream;
 	return fp->write(ptr, size * nmemb, fp) / size;
 }
 
 int tdCurlCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
-	TitusDownloadCurlCallback * cb = (TitusDownloadCurlCallback *)clientp;
+	DSL_Download_CurlCallback * cb = (DSL_Download_CurlCallback *)clientp;
 	return cb->callback(dlnow, dltotal, cb->user_ptr) ? 0:1;
 }
 
-bool TitusDownloadCurl::pCommonInit(const char * url, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+bool DSL_Download_Curl::pCommonInit(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	callback = callback;
 	u_ptr = user_ptr;
 
@@ -87,7 +87,7 @@ bool TitusDownloadCurl::pCommonInit(const char * url, Titus_Download_Callback ca
 	curl_easy_setopt(cHandle, CURLOPT_URL, url);
 	curl_easy_setopt(cHandle, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, 3);
-	curl_easy_setopt(cHandle, CURLOPT_USERAGENT, "Titus HTTP Downloader Class (Mozilla)");
+	curl_easy_setopt(cHandle, CURLOPT_USERAGENT, "DSL HTTP Downloader Class (Mozilla)");
 	curl_easy_setopt(cHandle, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(cHandle, CURLOPT_WRITEFUNCTION, tdCurlWrite);
 	if (callback) {
@@ -116,23 +116,23 @@ bool TitusDownloadCurl::pCommonInit(const char * url, Titus_Download_Callback ca
 	return true;
 }
 
-TitusDownloadCurl::TitusDownloadCurl() {
+DSL_Download_Curl::DSL_Download_Curl() {
 	privZero();
 	pCommonInit();
 }
 
-TitusDownloadCurl::TitusDownloadCurl(const char * url, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+DSL_Download_Curl::DSL_Download_Curl(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	privZero();
 	pCommonInit(url, callback, user, pass, user_ptr);
 }
 
-char Titus_Download_Type_String[3][6] = {
+char DSL_Download_Type_String[3][6] = {
 	"http",
 	"https",
 	"ftp"
 };
 
-TitusDownloadCurl::TitusDownloadCurl(Titus_Download_Type type, const char * host, int port, const char * path, Titus_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
+DSL_Download_Curl::DSL_Download_Curl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
 	privZero();
 	if (type != TD_HTTP && type != TD_HTTPS && type != TD_FTP) {
 		this->error = TD_INVALID_PROTOCOL;
@@ -140,20 +140,20 @@ TitusDownloadCurl::TitusDownloadCurl(Titus_Download_Type type, const char * host
 	}
 	char url[1024];
 	memset(url, 0, sizeof(url));
-	snprintf(url, sizeof(url)-1, "%s://%s:%d%s", Titus_Download_Type_String[type], host, port, path);
+	snprintf(url, sizeof(url)-1, "%s://%s:%d%s", DSL_Download_Type_String[type], host, port, path);
 	pCommonInit(url, callback, user, pass, user_ptr);
 }
 
-TitusDownloadCurl::~TitusDownloadCurl() {
+DSL_Download_Curl::~DSL_Download_Curl() {
 	if (cHandle) {
 		curl_easy_cleanup(cHandle);
 		cHandle = NULL;
 	}
 }
 
-//Titus_Download_Errors Titus_Download::GetError() { return this->error; }
+//DSL_Download_Errors DSL_Download::GetError() { return this->error; }
 
-void TitusDownloadCurl::SetTimeout(unsigned long millisec) {
+void DSL_Download_Curl::SetTimeout(unsigned long millisec) {
 #if defined(CURLOPT_CONNECTTIMEOUT_MS)
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_CONNECTTIMEOUT_MS, millisec); }
 #else
@@ -161,27 +161,27 @@ void TitusDownloadCurl::SetTimeout(unsigned long millisec) {
 #endif
 }
 
-void TitusDownloadCurl::FollowRedirects(bool follow) {
+void DSL_Download_Curl::FollowRedirects(bool follow) {
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, follow ? 3:0); }
 }
 
-void TitusDownloadCurl::ErrorOnRedirects(bool error) {
+void DSL_Download_Curl::ErrorOnRedirects(bool error) {
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, error ? 0:3); }
 }
 
-void TitusDownloadCurl::SetUserAgent(const char * ua) {
+void DSL_Download_Curl::SetUserAgent(const char * ua) {
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_USERAGENT, ua); }
 }
 
-bool TitusDownloadCurl::Download(const char * SaveAs) {
-	return TitusDownloadCore::Download(SaveAs);
+bool DSL_Download_Curl::Download(const char * SaveAs) {
+	return DSL_Download_Core::Download(SaveAs);
 }
 
-bool TitusDownloadCurl::Download(FILE * fWriteTo) {
-	return TitusDownloadCore::Download(fWriteTo);
+bool DSL_Download_Curl::Download(FILE * fWriteTo) {
+	return DSL_Download_Core::Download(fWriteTo);
 }
 
-bool TitusDownloadCurl::Download(TITUS_FILE * fWriteTo) {
+bool DSL_Download_Curl::Download(DSL_FILE * fWriteTo) {
 	if (this->error != TD_NO_ERROR || cHandle == NULL) { return false; }
 
 	curl_easy_setopt(cHandle, CURLOPT_WRITEDATA, fWriteTo);
