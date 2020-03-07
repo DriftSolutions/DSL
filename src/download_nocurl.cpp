@@ -210,11 +210,11 @@ bool DSL_Download_NoCurl::privDownloadHTTP(DSL_FILE * fWriteTo) {
 		snprintf(buf2,sizeof(buf2),"%s:%s",this->user,this->pass);
 		base64_encode(buf2,strlen(buf2),buf3);
 		snprintf(buf2, sizeof(buf2), "Authorization: Basic %s\r\n",buf3);
-		sstrcat(buf, buf2);
+		strlcat(buf, buf2, 16384);
 	}
 
-	sstrcat(buf,"\r\n");
-	//printf("RAW GET: %s\n", buf);
+	strlcat(buf, "\r\n", 16384);
+//	printf("RAW GET: %s", buf);
 	if (this->timeo) {
 		this->socks->SetRecvTimeout(sock, timeo);
 	}

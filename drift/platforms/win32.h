@@ -67,6 +67,11 @@
 #pragma message( "Will automatically link with " LIBNAMEGNUTLS "" )
 #pragma comment(lib, LIBNAMEGNUTLS)
 #endif
+#if defined(ENABLE_SODIUM) && !defined(DSL_SODIUM_EXPORTS)
+#define LIBNAMESODIUM "dsl" PART1 "-sodium" PART2 LIBSUFFIX ".lib"
+#pragma message( "Will automatically link with " LIBNAMESODIUM "" )
+#pragma comment(lib, LIBNAMESODIUM)
+#endif
 
 #if defined(DSL_DLL)
 	#if defined(DSL_EXPORTS)
