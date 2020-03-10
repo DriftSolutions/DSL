@@ -8,9 +8,23 @@
 \***********************************************************************/
 //@AUTOHEADER@END@
 
-// version byte + 32 byte BLAKE2b hash
-#define HASH_SIZE_BYTES (crypto_generichash_BYTES + 1)
+#ifndef __DSL_SODIUM_HASH__
+#define __DSL_SODIUM_HASH__
 
+/**
+ * \defgroup sodium libsodium Wrappers
+ */
+
+/** \addtogroup sodium
+ * @{
+ */
+
+/** 32 byte BLAKE2b hash */
+#define HASH_SIZE_BYTES (crypto_generichash_BYTES)
+
+/**
+ * Wrapper for libsodium's BLAKE2b hash
+ */
 class DSL_SODIUM_API_CLASS DS_Hash {
 public:
 	uint8_t hash[HASH_SIZE_BYTES];
@@ -41,13 +55,21 @@ public:
 };
 extern DSL_SODIUM_API_CLASS DS_Hash null_hash;
 
+/**
+ * Hashing functions extending DS_Hash<br>
+ * Example: DS_Hash hash = DS_Hasher().HashData((uint8_t *)"xyz", 3);
+ */
 class DSL_SODIUM_API_CLASS DS_Hasher : public DS_Hash {
 public:
 
 	DS_Hasher();
-	DS_Hasher(const uint8_t * data, size_t len, uint8_t nVersion);
-	DS_Hasher(vector<uint8_t>& data, uint8_t nVersion);
+	DS_Hasher(const uint8_t * data, size_t len);
+	DS_Hasher(vector<uint8_t>& data);
 
-	DS_Hash HashData(const uint8_t * data, size_t len, uint8_t nVersion);
-	DS_Hash HashData(vector<uint8_t>& data, uint8_t nVersion);
+	DS_Hash HashData(const uint8_t * data, size_t len);
+	DS_Hash HashData(vector<uint8_t>& data);
 };
+
+/**@}*/
+
+#endif // __DSL_SODIUM_HASH__

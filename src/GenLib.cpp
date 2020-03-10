@@ -914,8 +914,8 @@ DSL_API uint64 DSL_CC ByteSwap64(uint64 val) {
 }
 
 #ifdef LITTLE_ENDIAN
-DSL_API uint32 DSL_CC Get_ULE16(uint16 x) { return(x); }
-DSL_API int32 DSL_CC Get_SLE16(int16 x) { return(x); }
+DSL_API uint16 DSL_CC Get_ULE16(uint16 x) { return(x); }
+DSL_API int16 DSL_CC Get_SLE16(int16 x) { return(x); }
 DSL_API uint32 DSL_CC Get_ULE32(uint32 x) { return(x); }
 DSL_API int32 DSL_CC Get_SLE32(int32 x) { return(x); }
 DSL_API uint64 DSL_CC Get_ULE64(uint64 x) { return(x); }

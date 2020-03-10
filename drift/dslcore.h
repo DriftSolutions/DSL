@@ -56,6 +56,14 @@
 using namespace std;
 #endif
 
+/**
+ * \defgroup dslcore DSL Core Functions
+ */
+
+/** \addtogroup dslcore
+ * @{
+ */
+
 #include <drift/types.h>
 
 #if defined(ENABLE_ZLIB)
@@ -97,25 +105,59 @@ using namespace std;
 
 typedef struct {
 	int major, minor;
-	uint32 compile_options;
+	uint32 compile_options; ///< See the DSL_OPTION_* defines. Will be a bitmask of 0 or more of them.
 } DSL_VERSION;
-DSL_API void DSL_CC dsl_get_version(DSL_VERSION * ver);
-DSL_API const char * DSL_CC dsl_get_version_string();
+DSL_API void DSL_CC dsl_get_version(DSL_VERSION * ver); ///< Fills in a DSL_VERSION struct you provide.
+DSL_API const char * DSL_CC dsl_get_version_string(); ///< Returns the DSL version string.
 
+/**
+ * Call when your app starts to initialize DSL. You can call dsl_init() more than once without issue since it is ref-counted.
+ * @sa dsl_cleanup
+ */
 DSL_API bool DSL_CC dsl_init();
-DSL_API void dsl_cleanup(); /* we don't have dsl_cleanup as DSL_CC(__stdcall) so it can be used with atexit() */
-DSL_API bool DSL_CC fill_random_buffer(uint8 * buf, size_t len);
+/**
+ * Call when your app is exiting or you are done with all DSL functions. Initialization is ref-counted so you need to call it the same number of times you called dsl_init().<br>
+ * Windows: We don't have dsl_cleanup as DSL_CC(__stdcall) so it can be used with atexit().
+ * @sa dsl_init
+ */
+DSL_API void dsl_cleanup();
+/**
+ * Fills a buffer with random data.<br />
+ * Windows: Uses RtlGenRandom if available.<br />
+ * Linux: Uses the SYS_getrandom syscall if available, or /dev/urandom, or /dev/random (falling back in that order).<br />
+ * Both: If all the above fails, falls back to rand() :(
+ */
+DSL_API bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len);
 
 DSL_API void * DSL_CC dsl_malloc(size_t lSize);
 DSL_API void * DSL_CC dsl_realloc(void * ptr, size_t lSize);
 DSL_API char * DSL_CC dsl_strdup(const char * ptr);
 DSL_API wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr);
+/**
+ * Returns a dynamically allocated string using printf formatting, free with dsl_free.
+ * @sa dsl_free
+ */
 DSL_API char * DSL_CC dsl_mprintf(const char * fmt, ...);
+/**
+ * Returns a dynamically allocated string using printf formatting, free with dsl_free.
+ * @sa dsl_free
+ */
 DSL_API char * DSL_CC dsl_vmprintf(const char * fmt, va_list va);
+/**
+ * Returns a dynamically allocated string using printf formatting, free with dsl_free.
+ * @sa dsl_free
+ */
 DSL_API wchar_t * DSL_CC dsl_wmprintf(const wchar_t * fmt, ...);
 DSL_API void DSL_CC dsl_free(void * ptr);
+/**
+ * Call dsl_free on a pointer if it's not NULL
+ */
 #define dsl_freenn(ptr) if (ptr) { dsl_free(ptr); }
 #define dsl_new(x) (x *)dsl_malloc(sizeof(x));
+
+/**@}*/
+
+#ifndef DOXYGEN_SKIP
 
 typedef struct {
 	bool has_init; /* has been initialized successfully */
@@ -150,5 +192,7 @@ public:
 #define free #error
 #define freenn #error
 #endif
+
+#endif // DOXYGEN_SKIP
 
 #endif // __DSLCORE_H__

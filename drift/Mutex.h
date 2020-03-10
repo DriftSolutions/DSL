@@ -13,10 +13,22 @@
 
 #include <drift/Threading.h>
 
+/**
+ * \defgroup mutex Mutexes/Critical Sections
+ * DSL_Mutex will be #define'd automatically to the right implementation for your system.
+ */
+
+/** \addtogroup mutex
+ * @{
+ */
+
 #if !defined(DSL_DEFAULT_MUTEX_TIMEOUT)
 #define DSL_DEFAULT_MUTEX_TIMEOUT -1
 #endif
 
+/**
+ * Base class for our mutex implementations.
+ */
 class DSL_API_CLASS DSL_Mutex_Base {
 public:
 	virtual bool Lock(int timeout)=0;
@@ -29,6 +41,8 @@ public:
 
 	virtual THREADIDTYPE LockingThread()=0;
 };
+
+#ifndef DOXYGEN_SKIP
 
 class DSL_API_CLASS DSL_MutexLocker {
 private:
@@ -123,6 +137,8 @@ class DSL_API_CLASS DSL_Mutex_pthreads : public DSL_Mutex_Base {
 #define DSL_TimedMutex DSL_Mutex_pthreads
 #endif // defined(WIN32) || defined(XBOX)
 
+#endif // DOXYGEN_SKIP
+
 #ifdef DEBUG_MUTEX
 #define LockMutex(x) { \
 	OutputDebugString("DSL_Mutex::Lock()\n"); \
@@ -149,10 +165,19 @@ class DSL_API_CLASS DSL_Mutex_pthreads : public DSL_Mutex_Base {
 #define RelMutexPtr(x) x->Release()
 #endif
 
+/**
+ * Mutex locker class for automatic locking/unlocking in a scope.
+ */
 #define AutoMutex(x) DSL_MutexLocker MAKE_UNIQUE_NAME (&x)
 #define AutoMutexPtr(x) DSL_MutexLocker MAKE_UNIQUE_NAME (x)
 
+/**@}*/
+
+#ifndef DOXYGEN_SKIP
+
 // *** DO NOT USE THIS, FOR DSL INTERNAL USE ONLY ***
 DSL_Mutex * dslMutex();
+
+#endif // DOXYGEN_SKIP
 
 #endif // _INCLUDE_MUTEX_H_

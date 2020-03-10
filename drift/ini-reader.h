@@ -11,6 +11,14 @@
 #ifndef __INI_READER_H__
 #define __INI_READER_H__
 
+/**
+ * \defgroup ini INI File Reader/Writer
+ */
+
+/** \addtogroup ini
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +41,8 @@ DSL_API int DSL_CC Write_INI_Int(const char *pszPath, const char *pszSection, co
 #ifdef __cplusplus
 }
 #endif
+
+/**@}*/
 
 #endif // __INI_READER_H__
 

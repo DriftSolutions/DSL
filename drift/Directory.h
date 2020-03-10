@@ -8,12 +8,23 @@
 \***********************************************************************/
 //@AUTOHEADER@END@
 
+#ifndef __DSL_DIRECTORY_H__
+#define __DSL_DIRECTORY_H__
+
 #ifdef __GLIBC__
 	#if __GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 24)
 		#warning "Old glibc, using readdir_r"
 		#define __DSL_USE_READDIR_R__ 1
 	#endif
 #endif
+
+/**
+ * \defgroup directory Directory Reader
+ */
+
+/** \addtogroup directory
+ * @{
+ */
 
 class DSL_API_CLASS Directory {
 private:
@@ -36,15 +47,31 @@ private:
 
 public:
 	Directory();
-	Directory(const char * dir);
-	Directory(const wchar_t * dir);
+	Directory(const char * dir); ///< Constructor with directory path (ANSI/UTF-8)
+	Directory(const wchar_t * dir); ///< Constructor with directory path (Unicode)
 	~Directory();
 
-	bool Open(const wchar_t * dir);
-	bool Open(const char * dir);
+	bool Open(const char * dir); ///< Open directory (ANSI/UTF-8)
+	bool Open(const wchar_t * dir); ///< Open directory (Unicode)
 
-	bool Read(wchar_t * buf, unsigned long bufSize, bool * is_dir=NULL, int64 * size=NULL);
+	/**
+	 * Read a directory entry (ANSI/UTF-8)
+	 * @param is_dir [optional] Will be set to true if entry is a directory.
+	 * @param size [optional] Size of the returned file. On Linux setting this to NULL will save a call to stat().
+	 * @return true true on success, false on error or end of the directory.
+	 */
 	bool Read(char * buf, unsigned long bufSize, bool * is_dir=NULL, int64 * size=NULL);
+	/**
+	 * Read a directory entry (Unicode)
+	 * @param is_dir [optional] Will be set to true if entry is a directory.
+	 * @param size [optional] Size of the returned file. On Linux setting this to NULL will save a call to stat().
+	 * @return true true on success, false on error or end of the directory.
+	 */
+	bool Read(wchar_t * buf, unsigned long bufSize, bool * is_dir = NULL, int64 * size = NULL);
 
-	void Close();
+	void Close(); ///< Close the directory. Will be called automatically during deconstruction.
 };
+
+/**@}*/
+
+#endif // __DSL_DIRECTORY_H__

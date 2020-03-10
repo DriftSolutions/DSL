@@ -228,6 +228,15 @@ typedef struct sockaddr_un
 //platform-specific types/defines
 #define THREADTYPE unsigned __stdcall
 typedef unsigned (__stdcall *ThreadProto)(void *);
+
+/**
+ * \defgroup crtwindows Windows CRT Fixups
+ */
+
+/** \addtogroup crtwindows
+ * @{
+ */
+
 #if !defined(EWOULDBLOCK) || EWOULDBLOCK != WSAEWOULDBLOCK
 #undef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
@@ -260,6 +269,6 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define lseek64 _lseeki64
 #define tell64 _telli64
 #define ftruncate _chsize_s
-//#define getpid GetCurrentProcessId
-//#define stat64struct _stat64
 #define dsl_mkdir(x,y) _mkdir(x)
+
+/**@}*/

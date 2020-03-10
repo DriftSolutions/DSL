@@ -26,14 +26,13 @@ vector<uint8_t> DS_Hash::GetVector() {
 }
 
 void DS_Hash::SetNull() {
-	//this is used in a static initializer so can't use bin2hex
 	memset(hash, 0, HASH_SIZE_BYTES);
 }
 bool DS_Hash::IsNull() {
-	return (sodium_is_zero(&hash[1], sizeof(hash) - 1) == 1);
+	return (sodium_is_zero(&hash[0], sizeof(hash)) == 1);
 }
 bool DS_Hash::IsValid() {
-	return !(sodium_is_zero(&hash[1], sizeof(hash) - 1) == 1);
+	return !(sodium_is_zero(&hash[0], sizeof(hash)) == 1);
 }
 
 bool DS_Hash::SetFromHexString(string str) {
@@ -56,20 +55,19 @@ bool DS_Hash::SetFromBinaryData(uint8_t * p_hash, size_t len) {
 DS_Hasher::DS_Hasher() {
 	SetNull();
 }
-DS_Hasher::DS_Hasher(const uint8_t * data, size_t len, uint8_t nVersion) {
-	HashData(data, len, nVersion);
+DS_Hasher::DS_Hasher(const uint8_t * data, size_t len) {
+	HashData(data, len);
 }
-DS_Hasher::DS_Hasher(vector<uint8_t>& data, uint8_t nVersion) {
-	HashData(data, nVersion);
+DS_Hasher::DS_Hasher(vector<uint8_t>& data) {
+	HashData(data);
 }
 
-DS_Hash DS_Hasher::HashData(const uint8_t * data, size_t len, uint8_t nVersion) {
-	crypto_generichash(&hash[1], HASH_SIZE_BYTES - 1, data, len, NULL, 0);
-	hash[0] = nVersion;
+DS_Hash DS_Hasher::HashData(const uint8_t * data, size_t len) {
+	crypto_generichash(&hash[0], HASH_SIZE_BYTES, data, len, NULL, 0);
 	return *this;
 }
-DS_Hash DS_Hasher::HashData(vector<uint8_t>& data, uint8_t nVersion) {
-	return HashData(data.data(), data.size(), nVersion);
+DS_Hash DS_Hasher::HashData(vector<uint8_t>& data) {
+	return HashData(data.data(), data.size());
 }
 
 #endif

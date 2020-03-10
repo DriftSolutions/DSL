@@ -8,8 +8,12 @@
 \***********************************************************************/
 //@AUTOHEADER@END@
 
-#ifndef __DS_KEYS__ENCRYPTION__
-#define __DS_KEYS__ENCRYPTION__
+#ifndef __DSL_SODIUM_KEYS_ENCRYPTION__
+#define __DSL_SODIUM_KEYS_ENCRYPTION__
+
+/** \addtogroup sodium
+ * @{
+ */
 
 #define ENC_PUBKEY_SIZE_BYTES (crypto_box_PUBLICKEYBYTES + 1)
 #define ENC_PRIVKEY_SIZE_BYTES (crypto_box_SECRETKEYBYTES + 1)
@@ -159,4 +163,7 @@ public:
 	}
 };
 
-#endif // __DS_KEYS__ENCRYPTION__
+/**@}*/
+
+
+#endif // __DSL_SODIUM_KEYS_ENCRYPTION__

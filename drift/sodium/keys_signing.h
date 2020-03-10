@@ -8,6 +8,13 @@
 \***********************************************************************/
 //@AUTOHEADER@END@
 
+#ifndef __DSL_SODIUM_KEYS_SIGNING__
+#define __DSL_SODIUM_KEYS_SIGNING__
+
+/** \addtogroup sodium
+ * @{
+ */
+
 #define SIG_PUBKEY_SIZE_BYTES (crypto_sign_PUBLICKEYBYTES + 1)
 #define SIG_PRIVKEY_SIZE_BYTES (crypto_sign_SECRETKEYBYTES + 1)
 #define SIG_SIZE_BYTES crypto_sign_BYTES
@@ -125,3 +132,7 @@ public:
 		return false;
 	}
 };
+
+/**@}*/
+
+#endif // __DSL_SODIUM_KEYS_SIGNING__

@@ -81,6 +81,14 @@
 typedef void * (*ThreadProto)(void *);
 
 //crt fixups
+/**
+ * \defgroup crtlinux Linux CRT Fixups
+ */
+
+/** \addtogroup crtlinux
+ * @{
+ */
+
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 #define stristr strcasestr
@@ -88,5 +96,7 @@ typedef void * (*ThreadProto)(void *);
 #define dsl_mkdir(x,y) mkdir(x, y)
 //#define lseek64 lseek64
 #define tell64(x) lseek64(x, 0, SEEK_CUR)
+
+/**@}*/
 
 COMPILE_TIME_ASSERT(sizeof(off_t) == 8)

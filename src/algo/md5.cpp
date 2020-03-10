@@ -19,8 +19,6 @@
 #include <drift/hash.h>
 #include <drift/algo/md5.h>
 
-void DSL_CC md5_transform(uint32 buf[4], uint32 const in[16]);
-
 #ifndef HIGHFIRST
 #define byteReverse(buf, len)	/* Nothing */
 #else
@@ -47,7 +45,7 @@ void byteReverse(unsigned char *buf, unsigned longs)
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
  * initialization constants.
  */
-void DSL_CC md5_init(md5_context *ctx) {
+void md5_init(md5_context *ctx) {
     ctx->buf[0] = 0x67452301;
     ctx->buf[1] = 0xefcdab89;
     ctx->buf[2] = 0x98badcfe;
@@ -61,7 +59,7 @@ void DSL_CC md5_init(md5_context *ctx) {
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void DSL_CC md5_update(md5_context *ctx, const uint8 * buf, uint32 len)
+void md5_update(md5_context *ctx, const uint8 * buf, uint32 len)
 {
     uint32 t;
 
@@ -109,7 +107,7 @@ void DSL_CC md5_update(md5_context *ctx, const uint8 * buf, uint32 len)
  * Final wrapup - pad to 64-byte boundary with the bit pattern 
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-void DSL_CC md5_finish(md5_context *ctx, uint8 digest[16])
+void md5_finish(md5_context *ctx, uint8 digest[16])
 {
     unsigned count;
     unsigned char *p;
@@ -174,7 +172,7 @@ void DSL_CC md5_finish(md5_context *ctx, uint8 digest[16])
  * reflect the addition of 16 longwords of new data.  md5_update blocks
  * the data and converts bytes into longwords for this routine.
  */
-void DSL_CC md5_transform(uint32 buf[4], uint32 const in[16]) {
+void md5_transform(uint32 buf[4], uint32 const in[16]) {
     register uint32 a, b, c, d;
 
     a = buf[0];
@@ -346,7 +344,7 @@ bool native_md5_finish(HASH_CTX * ctx, uint8 * out) {
 }
 
 HASH_NATIVE hash_md5 = {
-	16,
+	MD5_HASH_SIZE,
 	64,
 
 	native_md5_init,

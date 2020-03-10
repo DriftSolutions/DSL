@@ -162,7 +162,7 @@ const char * DSL_CC dsl_get_version_string() {
 	return version;
 }
 
-bool DSL_CC fill_random_buffer(uint8 * buf, size_t len) {
+bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 	int tries = 0;
 
 #if !defined(WIN32)

@@ -1,12 +1,12 @@
-//!AUTOHEADER!BEGIN!
+//@AUTOHEADER@BEGIN@
 /***********************************************************************\
-|                    Drift Standard Libraries v1.0.0                    |
-|                  Copyright 2010-2020 Drift Solutions                  |
+|                    Drift Standard Libraries v1.01                     |
+|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
 | Docs and more information available at https://www.driftsolutions.dev |
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
 \***********************************************************************/
-//!AUTOHEADER!END!
+//@AUTOHEADER@END@
 
 #ifndef __DSL_BASE64_H__
 #define __DSL_BASE64_H__

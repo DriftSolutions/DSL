@@ -1,6 +1,17 @@
-#pragma once
+//@AUTOHEADER@BEGIN@
+/***********************************************************************\
+|                    Drift Standard Libraries v1.01                     |
+|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
+| Docs and more information available at https://www.driftsolutions.dev |
+|          This file released under the 3-clause BSD license,           |
+|            see included DSL.LICENSE.TXT file for details.             |
+\***********************************************************************/
+//@AUTOHEADER@END@
+
 #ifndef _DSL_COMPAT_H_
 #define _DSL_COMPAT_H_
+
+#define fill_random_buffer dsl_fill_random_buffer
 
 #define TITUS_SOCKET DSL_SOCKET
 #define T_SOCKET D_SOCKET

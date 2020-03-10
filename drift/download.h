@@ -14,16 +14,35 @@
 #include <drift/rwops.h>
 #include <drift/sockets3.h>
 
-typedef bool (*DSL_Download_Callback)(uint64 got, uint64 fullsize, void * user_ptr);
-// fullsize will be 0 if the server doesn't give a Content-Length header
+/**
+ * \defgroup download HTTP/FTP File Transfer
+ */
 
+/** \addtogroup download
+ * @{
+ */
+
+/**
+ * Progress callback for the download class.
+ * @param got How much of the fille has been received so far.
+ * @param fullsize The full size of the file that is being downloaded. Will be 0 if the server doesn't give a Content-Length header.
+ * @return true to continue download or false to abort.
+ */
+typedef bool (*DSL_Download_Callback)(uint64 got, uint64 fullsize, void * user_ptr);
+
+/** \enum DSL_Download_Type
+ * The type of download to perform.
+ */
 enum DSL_Download_Type {
-	TD_HTTP,
-	TD_HTTPS,
-	TD_FTP
+	TD_HTTP, ///< HTTP
+	TD_HTTPS, ///< HTTPS (needs ENABLE_CURL defined)
+	TD_FTP ///< FTP
 };
 
 #define DSL_SHOULDRETRY(x) ((x < 5) & (x > 0))
+/** \enum DSL_Download_Errors
+ * Download error codes
+ */
 enum DSL_Download_Errors {
 	TD_NO_ERROR,
 
@@ -44,21 +63,32 @@ enum DSL_Download_Errors {
 	TD_NUM_ERRORS
 };
 
+/** \class DSL_Download_Core
+ * This base class shouldn't be used directly.
+ * @sa DSL_Download_Curl
+ * @sa DSL_Download_NoCurl
+ */
 class DSL_API_CLASS DSL_Download_Core {
 protected:
 	DSL_Download_Callback callback;
-	void * u_ptr; // pointer set by you and will be sent to your callback function for your own use
+	void * u_ptr; ///< Pointer set by you and will be sent to your callback function for your own use
 	DSL_Download_Errors error;
 	virtual void privZero();
 public:
+#ifndef DOXYGEN_SKIP
 	DSL_Download_Core();
 	DSL_Download_Core(const char * url, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
 	DSL_Download_Core(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
 	virtual ~DSL_Download_Core();
+#endif
 
-	virtual bool Download(const char * SaveAs); // begin download
-	virtual bool Download(FILE * fWriteTo); // begin download
-	virtual bool Download(DSL_FILE * fWriteTo) = 0; // begin download
+	virtual bool Download(const char * SaveAs); ///< Begin download saving to file SaveAs
+	virtual bool Download(FILE * fWriteTo); ///< Begin download saving to FILE stream
+	/**
+	 * Begin download saving to DSL_FILE stream.
+	 * @sa DSL_FILE
+	 */
+	virtual bool Download(DSL_FILE * fWriteTo) = 0;
 
 	virtual void SetTimeout(unsigned long millisec) = 0;
 	virtual void SetUserAgent(const char * ua) = 0;
@@ -88,9 +118,13 @@ public:
 	DSL_Download_NoCurl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
 	virtual ~DSL_Download_NoCurl();
 
-	virtual bool Download(const char * SaveAs); // begin download
-	virtual bool Download(FILE * fWriteTo); // begin download
-	virtual bool Download(DSL_FILE * fWriteTo); // begin download
+	virtual bool Download(const char * SaveAs); ///< Begin download saving to file SaveAs
+	virtual bool Download(FILE * fWriteTo); ///< Begin download saving to FILE stream
+	/**
+	 * Begin download saving to DSL_FILE stream.
+	 * @sa DSL_FILE
+	 */
+	virtual bool Download(DSL_FILE * fWriteTo);
 
 	virtual void SetTimeout(unsigned long millisec);
 	virtual void SetUserAgent(const char * ua);
@@ -101,7 +135,7 @@ public:
 	//virtual const char * GetErrorString();
 };
 
-#if defined(ENABLE_CURL)
+#if defined(ENABLE_CURL) || defined(DOXYGEN_SKIP)
 
 #if defined(DSL_DLL) && defined(WIN32)
 	#if defined(DSL_CURL_EXPORTS)
@@ -116,10 +150,12 @@ public:
 	#define DSL_CURL_API_CLASS
 #endif
 
+#ifndef DOXYGEN_SKIP
 struct DSL_Download_CurlCallback {
 	DSL_Download_Callback callback;
 	void * user_ptr;
 };
+#endif
 
 class DSL_CURL_API_CLASS DSL_Download_Curl: public DSL_Download_Core {
 private:
@@ -134,9 +170,13 @@ public:
 	DSL_Download_Curl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
 	virtual ~DSL_Download_Curl();
 
+	virtual bool Download(const char * SaveAs); ///< Begin download saving to file SaveAs
+	virtual bool Download(FILE * fWriteTo); ///< Begin download saving to FILE stream
+	/**
+	 * Begin download saving to DSL_FILE stream.
+	 * @sa DSL_FILE
+	 */
 	virtual bool Download(DSL_FILE * fWriteTo);
-	virtual bool Download(const char * SaveAs); // begin download
-	virtual bool Download(FILE * fWriteTo); // begin download
 
 	virtual void SetTimeout(unsigned long millisec);
 	virtual void SetUserAgent(const char * ua);
@@ -148,5 +188,7 @@ public:
 #else
 #define DSL_Download DSL_Download_NoCurl
 #endif
+
+/**@}*/
 
 #endif // __DSL_DOWNLOAD_H__

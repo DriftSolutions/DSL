@@ -194,7 +194,7 @@ bool dsl_openssl_init() {
 #endif
 	uint8 buf[1024];
 	while (!RAND_status()) {
-		if (fill_random_buffer(buf, sizeof(buf))) {
+		if (dsl_fill_random_buffer(buf, sizeof(buf))) {
 			RAND_add(buf, sizeof(buf), sizeof(buf) - 1);
 		}
 	}
