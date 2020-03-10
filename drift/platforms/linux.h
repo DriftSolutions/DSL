@@ -17,6 +17,12 @@
 #endif
 #define DSL_CC
 
+#if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#define DSL_DEPRECATE  __attribute__((__deprecated__))
+#else
+#define DSL_DEPRECATE
+#endif /* __GNUC__ */
+
 #if !defined(_FILE_OFFSET_BITS) || _FILE_OFFSET_BITS != 64
 #define _FILE_OFFSET_BITS 64
 #endif

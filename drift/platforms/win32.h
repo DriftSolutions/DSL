@@ -85,6 +85,7 @@
 	#define DSL_API
 	#define DSL_API_CLASS
 #endif
+#define DSL_DEPRECATE __declspec(deprecated)
 
 #ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE
