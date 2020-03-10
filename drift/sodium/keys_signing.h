@@ -1,4 +1,4 @@
-//!AUTOHEADER!BEGIN!
+//@AUTOHEADER@BEGIN@
 /***********************************************************************\
 |                    Drift Standard Libraries v1.01                     |
 |            Copyright 2010-2020 Drift Solutions / Indy Sams            |
@@ -6,7 +6,7 @@
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
 \***********************************************************************/
-//!AUTOHEADER!END!
+//@AUTOHEADER@END@
 
 #define SIG_PUBKEY_SIZE_BYTES (crypto_sign_PUBLICKEYBYTES + 1)
 #define SIG_PRIVKEY_SIZE_BYTES (crypto_sign_SECRETKEYBYTES + 1)
