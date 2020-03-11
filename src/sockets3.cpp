@@ -1113,12 +1113,12 @@ const char * DSL_Sockets3_Base::GetLastErrorString(D_SOCKET * sock) {
 
 void DSL_Sockets3_Base::pUpdateError(DSL_SOCKET * sock, int serrno, const char * errstr) {
 	bErrNo = errno;
-	strlcpy(bError, errstr, sizeof(bError));
+	sstrcpy(bError, errstr);
 	if (sock != NULL) {
 		sock->last_errno = bErrNo;
-		strlcpy(sock->last_error, bError, sizeof(sock->last_error));
+		sstrcpy(sock->last_error, bError);
 	}
-	if (bErrNo != 0 && bErrNo != EWOULDBLOCK && bErrNo != ENOTCONN && bErrNo != EINPROGRESS && bErrNo != ENOENT && !silent) {
+	if (!silent && bErrNo != 0 && bErrNo != EWOULDBLOCK && bErrNo != ENOTCONN && bErrNo != EINPROGRESS && bErrNo != ENOENT) {
 		printf("pUpdateError(): %d -> %s\n",bErrNo,bError);
 	}
 }
@@ -1137,7 +1137,7 @@ void DSL_Sockets3_Base::pUpdateError(DSL_SOCKET * sock) {
 	if (bErrNo != 0) {
 		char *error = strerror(bErrNo);
 		if (error) {
-			strlcpy(bError,error,sizeof(bError)-1);
+			sstrcpy(bError,error);
 		} else {
 			sprintf(bError,"Unknown Error (Code: %d)",bErrNo);
 		}
@@ -1145,7 +1145,7 @@ void DSL_Sockets3_Base::pUpdateError(DSL_SOCKET * sock) {
 #endif
 	if (sock != NULL) {
 		sock->last_errno = bErrNo;
-		strlcpy(sock->last_error, bError, sizeof(sock->last_error));
+		sstrcpy(sock->last_error, bError);
 	}
 	if (bErrNo != 0 && bErrNo != EWOULDBLOCK && bErrNo != ENOTCONN && bErrNo != EINPROGRESS && bErrNo != ENOENT && !silent) {
 		printf("pUpdateError(): %d -> %s\n",bErrNo,bError);

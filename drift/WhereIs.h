@@ -8,6 +8,15 @@
 \***********************************************************************/
 //@AUTOHEADER@END@
 
+/**
+ * \defgroup whereis Library Finder
+ * Searches common library folders for .DLLs/.SOs
+ */
+
+/** \addtogroup whereis
+ * @{
+ */
+
 #define WHEREIS_MAX_RESULTS 256
 typedef struct {
 	int nCount;
@@ -16,3 +25,5 @@ typedef struct {
 
 DSL_API WHEREIS_RESULTS * DSL_CC WhereIs(const char * fn);
 DSL_API void DSL_CC WhereIs_FreeResults(WHEREIS_RESULTS * ptr);
+
+/**@}*/
