@@ -82,6 +82,15 @@ DSL_API size_t DSL_CC strlcpy(char * dst, const char * src, size_t siz);
  */
 DSL_API size_t DSL_CC strlcat(char * dst, const char * src, size_t siz);
 #endif
+/**
+ * Shorthand strlcpy so you don't have to use sizeof() on your char array.
+ */
+#define sstrcpy(x,y) strlcpy(x,y,sizeof(x))
+/**
+ * Shorthand strlcat so you don't have to use sizeof() on your char array.
+ */
+#define sstrcat(x,y) strlcat(x,y,sizeof(x))
+
 
 #define TRIM_LEFT	0x01
 #define TRIM_RIGHT	0x02

@@ -53,7 +53,7 @@ DSL_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
 	if (!fp) { return NULL; }
 
 	DSL_FILE * ret = new DSL_FILE;
-	memset(ret,0,sizeof(DSL_FILE));
+	memset(ret, 0, sizeof(DSL_FILE));
 
 	ret->fp = fp;
 	ret->read = file_read;
@@ -69,7 +69,7 @@ DSL_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
 
 DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
 	DSL_FILE * ret = new DSL_FILE;
-	memset(ret,0,sizeof(DSL_FILE));
+	memset(ret, 0, sizeof(DSL_FILE));
 
 	ret->fp = fp;
 	ret->read = file_read;
@@ -89,7 +89,7 @@ DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
 };
 
 struct TP_MEMHANDLE {
-	char * mem;
+	uint8 * mem;
 	bool bDelete;
 	int64 offset;
 	int64 size;
@@ -175,7 +175,7 @@ DSL_FILE * DSL_CC RW_OpenMemory(int64 size) {
 	TP_MEMHANDLE * mem = new TP_MEMHANDLE;
 	memset(mem,0,sizeof(TP_MEMHANDLE));
 
-	mem->mem = new char[size];
+	mem->mem = new uint8[size];
 	mem->bDelete = true;
 	memset(mem->mem,0,size);
 	mem->size = size;
@@ -192,7 +192,7 @@ DSL_FILE * DSL_CC RW_OpenMemory(int64 size) {
 	return ret;
 }
 
-DSL_FILE * DSL_CC RW_ConvertMemory(char * buf, int64 size) {
+DSL_FILE * DSL_CC RW_ConvertMemory(uint8 * buf, int64 size) {
 	DSL_FILE * ret = new DSL_FILE;
 	memset(ret,0,sizeof(DSL_FILE));
 	TP_MEMHANDLE * mem = new TP_MEMHANDLE;

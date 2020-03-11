@@ -78,7 +78,7 @@ void physfs_close(DSL_FILE * fp) {
 	PHYSFS_close(o_fp);
 }
 
-DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose) {
+DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode) {
 	PHYSFS_file * fp = NULL;
 	if (strstr(mode, "a")) {
 		fp = PHYSFS_openAppend(fn);
@@ -100,11 +100,6 @@ DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode, bool autoclose) {
 	ret->close = physfs_close;
 	ret->flush = physfs_flush;
 	ret->eof = physfs_eof;
-
-	TP_RWOPT * opt = new TP_RWOPT;
-	memset(opt,0,sizeof(TP_RWOPT));
-	opt->autoclose = autoclose;
-	ret->p_extra = opt;
 
 	return ret;
 };

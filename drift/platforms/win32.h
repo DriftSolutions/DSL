@@ -261,6 +261,9 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define wgetenv _wgetenv
 #define access _access
 #define stricmp _stricmp
+#define atoi64(x) _atoi64(x)
+#define atou64(x) _strtoui64(x, NULL, 10)
+#define atoul(x) strtoul(x, NULL, 10)
 #define S_ISDIR(x) (x & _S_IFDIR)
 #define S_ISREG(x) (x & _S_IFREG)
 #define S_ISEXEC(x) (x & _S_IEXEC)
@@ -270,5 +273,20 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define tell64 _telli64
 #define ftruncate _chsize_s
 #define dsl_mkdir(x,y) _mkdir(x)
+
+#define tcslen _tcslen
+#define tcscpy _tcscpy
+#define tcsncpy _tcsncpy
+#define tcscat _tcscat
+#define tprintf _tprintf
+#define tsnprintf _sntprintf
+#define tcschr _tcschr
+#define tcsrchr _tcsrchr
+#define stprintf _stprintf
+#define tstoi _tstoi
+#define tcscmp tcscmp
+#define tcsicmp _tcsicmp
+#define tcsncmp _tcsncmp
+#define tcsnicmp _tcsnicmp
 
 /**@}*/

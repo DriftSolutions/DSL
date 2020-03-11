@@ -57,7 +57,7 @@ using namespace std;
 #endif
 
 /**
- * \defgroup dslcore DSL Core Functions
+ * \defgroup dslcore DSL Core Functions & Data Types
  */
 
 /** \addtogroup dslcore

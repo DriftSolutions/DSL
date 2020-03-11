@@ -13,6 +13,16 @@
 
 #include <drift/Mutex.h>
 
+/**
+ * \defgroup atomic Atomic Integer Class
+ * These days you should just #include <atomic>, this was made before that existed.
+ */
+
+/** \addtogroup atomic
+ * @{
+ */
+
+
 template <class T>
 class SyncedInt {
 #if defined(WIN32)
@@ -75,5 +85,7 @@ public:
 	T Get() { return value; }
 #endif
 };
+
+/**@}*/
 
 #endif // _INCLUDE_SYNCEDINT_H_

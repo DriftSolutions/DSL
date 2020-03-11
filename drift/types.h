@@ -10,6 +10,10 @@
 
 #include <inttypes.h>
 
+/** \addtogroup dslcore
+ * @{
+ */
+
 #if !defined(__BOOL_DEFINED) && !defined(__cplusplus)
 #define bool unsigned char
 #endif
@@ -40,9 +44,6 @@
 
 #if defined(WIN32)
 	typedef int socklen_t;
-	#define atoi64(x) _atoi64(x)
-	#define atou64(x) _strtoui64(x, NULL, 10)
-	#define atoul(x) strtoul(x, NULL, 10)
 #else
 	#define VOID void
 	#ifndef SOCKET
@@ -52,13 +53,7 @@
 	#ifndef HANDLE
 		#define HANDLE void *
 	#endif
-	#define atoi64(x) strtoll(x, NULL, 10)
-	#define atou64(x) strtoull(x, NULL, 10)
-	#define atoul(x) strtoul(x, NULL, 10)
 #endif
-
-#define sstrcpy(x,y) strlcpy(x,y,sizeof(x))
-#define sstrcat(x,y) strlcat(x,y,sizeof(x))
 
 #if defined(WIN32)
 	#define PATH_SEP '\\'
@@ -94,24 +89,7 @@ typedef char tchar;
 #define ttoi atoi
 #endif
 
-#if defined(WIN32)
-//the eternal CRT fixup
-#define tcslen _tcslen
-#define tcscpy _tcscpy
-#define tcsncpy _tcsncpy
-#define tcscat _tcscat
-#define tprintf _tprintf
-#define tsnprintf _sntprintf
-#define tcschr _tcschr
-#define tcsrchr _tcsrchr
-#define stprintf _stprintf
-#define tstoi _tstoi
-#define tcscmp tcscmp
-#define tcsicmp _tcsicmp
-#define tcsncmp _tcsncmp
-#define tcsnicmp _tcsnicmp
-#endif
-
+#ifndef DOXYGEN_SKIP
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -127,6 +105,7 @@ COMPILE_TIME_ASSERT(sizeof(uint8) == 1)
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
 #pragma GCC diagnostic pop
 #endif
+#endif // DOXYGEN_SKIP
 
 #if  defined(__i386__) || defined(__ia64__) || defined(WIN32) || (defined(__alpha__) || defined(__alpha)) || defined(__arm__) || defined(ARM) || (defined(__mips__) && defined(__MIPSEL__)) || defined(__SYMBIAN32__) || defined(__x86_64__) || defined(__LITTLE_ENDIAN__)
 	#undef BIG_ENDIAN
@@ -139,3 +118,5 @@ COMPILE_TIME_ASSERT(sizeof(uint8) == 1)
 	#define BIG_ENDIAN
 	#endif
 #endif
+
+/**@}*/
