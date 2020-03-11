@@ -12,10 +12,12 @@
 #include <drift/GenLib.h>
 #include <drift/Mutex.h>
 #include <drift/Threading.h>
+#include <drift/os_version.h>
 #include <stdarg.h>
 #if defined(WIN32)
 #include <tchar.h>
 #endif
+#include <immintrin.h>
 
 DSL_Mutex * dslMutex()
 {
@@ -162,6 +164,53 @@ const char * DSL_CC dsl_get_version_string() {
 	return version;
 }
 
+bool DSL_CC dsl_rdrand(uint8 * buf, size_t len) {
+	if (!InstructionSet::RDRAND()) {
+		return false;
+	}
+
+	int tries = 0;
+	size_t left = len;
+	uint8 *p = buf;
+
+	while (left > 0 && tries < 10) {
+#ifdef WIN64
+		if (left >= 8) {
+			uint64_t tmp;
+			if (_rdrand64_step(&tmp)) {
+				memcpy(p, &tmp, sizeof(tmp));
+				p += sizeof(tmp);
+				left -= sizeof(tmp);
+			} else {
+				tries++;
+			}
+		} else 
+#endif
+		if (left >= 4) {
+			uint32_t tmp;
+			if (_rdrand32_step(&tmp)) {
+				memcpy(p, &tmp, sizeof(tmp));
+				p += sizeof(tmp);
+				left -= sizeof(tmp);
+			} else {
+				tries++;
+			}
+		} else {
+			uint16_t tmp;
+			if (_rdrand16_step(&tmp)) {
+				size_t toGen = (left < sizeof(tmp)) ? left : sizeof(tmp);
+				memcpy(p, &tmp, toGen);
+				p += toGen;
+				left -= toGen;
+			} else {
+				tries++;
+			}
+		}
+	}
+
+	return (left == 0) ? true : false;
+}
+
 bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 	int tries = 0;
 
@@ -174,8 +223,11 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 		if (grn > 0) {
 			left -= grn;
 			p += grn;
+		} else {
+			tries++;
 		}
 	}
+	tries = 0;
 #endif
 	while (left > 0 && tries++ < 10) {
 		FILE * fp = fopen("/dev/urandom", "rb");
@@ -195,7 +247,9 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 			fclose(fp);
 		}
 	}
-	return (left == 0) ? true:false;
+	if (left == 0) {
+		return true;
+	}
 #else
 	if (RGR != NULL) {
 		while (tries++ < 10) {
@@ -205,6 +259,11 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 		}
 	}
 #endif
+
+	// try RDRAND if supported
+	if (dsl_rdrand(buf, len)) {
+		return true;
+	}
 
 	// crappy fallback
 	for (unsigned int i=0; i < len; i++) {

@@ -16,8 +16,11 @@
 
 #ifdef WIN32
 #include <intrin.h>
+#define __real_cpuid __cpuid
 #else
 #include <cpuid.h>
+DSL_API void DSL_CC linux_cpuid(int cpuInfo[4], int function_id);
+#define __real_cpuid linux_cpuid
 #endif
 
 /**
@@ -125,12 +128,12 @@ private:
 
 			// Calling __cpuid with 0x0 as the function_id argument
 			// gets the number of the highest valid function ID.
-			__cpuid(cpui.data(), 0);
+			__real_cpuid(cpui.data(), 0);
 			nIds_ = cpui[0];
 
 			for (int i = 0; i <= nIds_; ++i)
 			{
-				__cpuidex(cpui.data(), i, 0);
+				__real_cpuid(cpui.data(), i);
 				data_.push_back(cpui);
 			}
 
@@ -165,7 +168,7 @@ private:
 
 			// Calling __cpuid with 0x80000000 as the function_id argument
 			// gets the number of the highest valid extended ID.
-			__cpuid(cpui.data(), 0x80000000);
+			__real_cpuid(cpui.data(), 0x80000000);
 			nExIds_ = cpui[0];
 
 			char brand[0x40];
@@ -173,7 +176,7 @@ private:
 
 			for (int i = 0x80000000; i <= nExIds_; ++i)
 			{
-				__cpuidex(cpui.data(), i, 0);
+				__real_cpuid(cpui.data(), i);
 				extdata_.push_back(cpui);
 			}
 
@@ -210,17 +213,6 @@ private:
 		std::vector<std::array<int, 4>> extdata_;
 	};
 };
-
-class CPUInformation {
-	InstructionSet cpuid;
-
-	uint8 nLogicalProcessors;		// Number op logical processors.
-	uint8 nPhysicalProcessors;		// Number of physical processors
-
-	int64 Speed;					// In cycles per second.
-};
-
-DSL_API bool DSL_CC GetCPUInformation(CPUInformation& cpuinfo);
 
 /**@}*/
 

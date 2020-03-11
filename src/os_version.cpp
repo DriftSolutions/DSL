@@ -66,6 +66,10 @@ bool DSL_CC Is64Bit() {
 #endif
 }
 
+DSL_API void DSL_CC linux_cpuid(int cpuInfo[4], int function_id) {
+	__cpuid(function_id, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
+}
+
 #endif
 
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
