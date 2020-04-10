@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
 
 	printf("PhysFS test\n");
 	PHYSFS_init(argv[0]);
-	DSL_FILE * fp = RW_OpenPhysFS("test.file", "rb", true);
+	DSL_FILE * fp = RW_OpenPhysFS("test.file", "rb");
 	if (fp) {
 		fp->close(fp);
 	}

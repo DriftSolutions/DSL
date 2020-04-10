@@ -104,8 +104,6 @@ DSL_Download_NoCurl::~DSL_Download_NoCurl() {
 	delete this->socks;
 }
 
-//DSL_Download_Errors DSL_Download::GetError() { return this->error; }
-
 void DSL_Download_NoCurl::SetTimeout(unsigned long millisec) {
 	this->timeo = millisec;
 }

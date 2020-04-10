@@ -222,4 +222,11 @@ bool DSL_Download_Curl::Download(DSL_FILE * fWriteTo) {
 	return (ret == CURLE_OK) ? true:false;
 }
 
+string curl_escapestring(string str) {
+	char * tmp = curl_escape(str.c_str(), str.length());
+	string ret = tmp;
+	curl_free(tmp);
+	return ret;
+}
+
 #endif
