@@ -223,10 +223,11 @@ DSL_API bool DSL_CC hashfile_rw(const char * name, DSL_FILE * fp, char * out, si
 	if (raw_output) {
 		ret2 = hash_finish(ctx, (uint8 *)out, outlen);
 	} else {
+		size_t hsize = ctx->hashSize;
 		unsigned char * hashtmp = (unsigned char *)dsl_malloc(ctx->hashSize);
 		ret2 = hash_finish(ctx, hashtmp, ctx->hashSize);
 		if (ret2) {
-			ret2 = (bin2hex(hashtmp, ctx->hashSize, out, outlen) != NULL);
+			ret2 = (bin2hex(hashtmp, hsize, out, outlen) != NULL);
 		}
 		dsl_free(hashtmp);
 	}
