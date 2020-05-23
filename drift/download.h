@@ -184,7 +184,7 @@ public:
 	virtual void ErrorOnRedirects(bool error);
 };
 
-DSL_API string curl_escapestring(string str);
+DSL_API_CLASS string curl_escapestring(string str);
 
 #define DSL_Download DSL_Download_Curl
 #else

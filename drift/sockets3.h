@@ -28,7 +28,7 @@
 #define DS3_MAX_HOSTLEN 40
 #define DS3_MAX_SERVLEN 8
 
-class DSL_SOCKET {
+class DSL_API_CLASS DSL_SOCKET {
 	friend class DSL_Sockets3_Base;
 private:
 	int last_errno = 0;
