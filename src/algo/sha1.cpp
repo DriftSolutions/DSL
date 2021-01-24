@@ -262,28 +262,3 @@ void sha1_get_digest(const void *data, size_t size,
 	sha1_result(&ctx, result);
 }
 
-bool native_sha1_init(HASH_CTX * ctx) {
-	sha1_ctxt * sctx = (sha1_ctxt *)dsl_malloc(sizeof(sha1_ctxt));
-	memset(sctx, 0, sizeof(sha1_ctxt));
-	sha1_init(sctx);
-	ctx->pptr1 = sctx;
-	return true;
-}
-
-void native_sha1_update(HASH_CTX * ctx, const uint8 *input, size_t length) {
-	sha1_loop((sha1_ctxt *)ctx->pptr1, input, length);
-}
-bool native_sha1_finish(HASH_CTX * ctx, uint8 * out) {
-	sha1_result((sha1_ctxt *)ctx->pptr1, out);
-	dsl_free(ctx->pptr1);
-	return true;
-}
-
-HASH_NATIVE hash_sha1 = {
-	20,
-	64,
-
-	native_sha1_init,
-	native_sha1_update,
-	native_sha1_finish
-};

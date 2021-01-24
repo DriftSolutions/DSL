@@ -78,6 +78,7 @@ DSL_API void DSL_CC dsl_remove_hash_provider(const HASH_PROVIDER * p);
 DSL_API void DSL_CC dsl_get_hash_providers(vector<const HASH_PROVIDER *>& p);
 
 DSL_API void DSL_CC dsl_add_native_hash(const char * name, const HASH_NATIVE * p); /* This should be called directly after dsl_init() and before any other DSL functions. The pointer must remain valid until after dsl_cleanup() is called. */
+extern const HASH_PROVIDER dsl_native_hashers;
 #endif // DOXYGEN_SKIP
 
 #endif // _DSL_HASH_H_

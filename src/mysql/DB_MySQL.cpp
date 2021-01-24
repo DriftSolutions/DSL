@@ -11,6 +11,9 @@
 #ifdef ENABLE_MYSQL
 #include <drift/dslcore.h>
 #include <drift/DB_MySQL.h>
+#if !defined(MARIADB_BASE_VERSION) && !defined(MARIADB_VERSION_ID) && MYSQL_VERSION_ID >= 80001 && MYSQL_VERSION_ID != 80002
+typedef bool my_bool;
+#endif
 #include <sstream>
 using namespace std;
 

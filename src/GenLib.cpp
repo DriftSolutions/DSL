@@ -432,11 +432,10 @@ bool DSL_CC dsl_mkdir_r(const char * fullpath, int mode) {
 		}
 		p++;
 	}
-	dsl_mkdir(newdir, mode);
-
+	bool ret = (dsl_mkdir(newdir, mode) == 0 || errno == EEXIST);
 	dsl_free(tmp);
 	dsl_free(newdir);
-	return (access(newdir, F_OK) == 0);
+	return ret;
 }
 
 bool DSL_CC strempty(const char * p) {

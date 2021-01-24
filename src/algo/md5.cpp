@@ -326,28 +326,3 @@ void md5_transform(uint32 buf[4], uint32 const in[16]) {
 
 #endif
 
-bool native_md5_init(HASH_CTX * ctx) {
-	md5_context * md5ctx = (md5_context *)dsl_malloc(sizeof(md5_context));
-	memset(md5ctx, 0, sizeof(md5_context));
-	md5_init(md5ctx);
-	ctx->pptr1 = md5ctx;
-	return true;
-}
-
-void native_md5_update(HASH_CTX * ctx, const uint8 *input, size_t length) {
-	md5_update((md5_context *)ctx->pptr1, input, length);
-}
-bool native_md5_finish(HASH_CTX * ctx, uint8 * out) {
-	md5_finish((md5_context *)ctx->pptr1, out);
-	dsl_free(ctx->pptr1);
-	return true;
-}
-
-HASH_NATIVE hash_md5 = {
-	MD5_HASH_SIZE,
-	64,
-
-	native_md5_init,
-	native_md5_update,
-	native_md5_finish
-};

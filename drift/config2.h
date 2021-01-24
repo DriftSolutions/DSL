@@ -21,16 +21,18 @@ enum DS_VALUE_TYPE {
 */
 
 class DSL_API_CLASS ConfigValue {
-public:
-	ConfigValue();
-	~ConfigValue();
-
-	DS_VALUE_TYPE Type;
+	friend class Universal_Config2;
+protected:
 	string sString;
 	union {
 		int64 Int;
 		double Float;
 	};
+public:
+	ConfigValue();
+	~ConfigValue();
+
+	DS_VALUE_TYPE Type;
 
 	int64 AsInt();
 	double AsFloat();
@@ -42,6 +44,7 @@ public:
 	void SetValue(double val);
 	void SetValue(const char * val);
 	void SetValue(const uint8_t * val, size_t len);
+	void SetValue(bool val) { SetValue((int64)val); }
 
 	void Reset();
 };
@@ -79,7 +82,7 @@ public:
 
 typedef std::vector<ConfigSection *> scanStackType2;
 
-class DSL_API_CLASS Universal_Config2 {
+class DSL_API_CLASS Universal_Config2 {	
 	private:
 		ConfigSection::sectionList sections;
 
