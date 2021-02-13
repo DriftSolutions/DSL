@@ -23,10 +23,7 @@ void DS_SigPubKey::SetNull() {
 }
 
 bool DS_SigPubKey::IsValid() {
-	if (key[0] != SIG_VER_PUBKEY) {
-		return false;
-	}
-	if (sodium_is_zero(&key[1], sizeof(key) - 1) == 1) {
+	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
 	return true;
@@ -35,7 +32,6 @@ bool DS_SigPubKey::IsValid() {
 string DS_SigPubKey::GetString() {
 	char key_str[(sizeof(key) * 2) + 1];
 	sodium_bin2hex(key_str, sizeof(key_str), key, sizeof(key));
-	//bin2hex(key, sizeof(key), key_str, sizeof(key_str));
 	return key_str;
 }
 const char * DS_SigPubKey::c_str() { return GetString().c_str(); }
@@ -61,8 +57,7 @@ bool DS_SigPubKey::SetFromBinaryData(const uint8_t * pdata, size_t len) {
 
 void DS_SigPrivKey::updatePubKey() {
 	uint8_t tmp[SIG_PUBKEY_SIZE_BYTES];
-	if (crypto_sign_ed25519_sk_to_pk(&tmp[1], &key[1]) == 0) {
-		tmp[0] = SIG_VER_PUBKEY;
+	if (crypto_sign_ed25519_sk_to_pk(tmp, key) == 0) {
 		pubkey.SetFromBinaryData(tmp, SIG_PUBKEY_SIZE_BYTES);
 	}
 	else {
@@ -87,7 +82,6 @@ DS_SigPrivKey::~DS_SigPrivKey() {
 string DS_SigPrivKey::GetString() {
 	char key_str[(sizeof(key) * 2) + 1];
 	sodium_bin2hex(key_str, sizeof(key_str), key, sizeof(key));
-	//bin2hex(key, sizeof(key), key_str, sizeof(key_str));
 	return key_str;
 }
 const char * DS_SigPrivKey::c_str() { return GetString().c_str(); }
@@ -98,10 +92,7 @@ void DS_SigPrivKey::SetNull() {
 	pubkey.SetNull();
 }
 bool DS_SigPrivKey::IsValid() {
-	if (key[0] != SIG_VER_PRIVKEY) {
-		return false;
-	}
-	if (sodium_is_zero(&key[1], sizeof(key) - 1) == 1) {
+	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
 	if (!pubkey.IsValid()) {
@@ -118,9 +109,7 @@ bool DS_SigPrivKey::IsValid() {
 bool DS_SigPrivKey::Generate() {
 	uint8_t pk[SIG_PUBKEY_SIZE_BYTES] = { 0 };
 	uint8_t sk[SIG_PRIVKEY_SIZE_BYTES] = { 0 };
-	if (crypto_sign_keypair(&pk[1], &sk[1]) == 0) {
-		sk[0] = SIG_VER_PRIVKEY;
-		pk[0] = SIG_VER_PUBKEY;
+	if (crypto_sign_keypair(pk, sk) == 0) {
 		SetBothFromBinaryData(sk, sizeof(sk), pk, sizeof(pk));
 		sodium_memzero(&sk, sizeof(sk));
 		return IsValid();
@@ -177,7 +166,7 @@ bool DS_Signature::SignData(DS_SigPrivKey& key, const uint8_t * msg, size_t msgl
 	if (!key.IsValid()) {
 		return false;
 	}
-	if (crypto_sign_detached(hash, NULL, msg, msglen, &key.key[1]) != 0) {
+	if (crypto_sign_detached(hash, NULL, msg, msglen, key.key) != 0) {
 		return false;
 	}
 	pubkey = key.pubkey;
@@ -193,7 +182,6 @@ string DS_Signature::GetString() {
 const char * DS_Signature::c_str() { return GetString().c_str(); }
 
 void DS_Signature::SetNull() {
-	//this is used in a static initializer so can't use bin2hex
 	memset(hash, 0, SIG_SIZE_BYTES);
 	pubkey.SetNull();
 }

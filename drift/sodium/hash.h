@@ -32,6 +32,8 @@ public:
 	DS_Hash();
 
 	vector<uint8_t> GetVector();
+	string GetString();
+	const char * c_str();
 
 	void SetNull();
 	bool IsNull();

@@ -15,15 +15,11 @@
  * @{
  */
 
-#define SIG_PUBKEY_SIZE_BYTES (crypto_sign_PUBLICKEYBYTES + 1)
-#define SIG_PRIVKEY_SIZE_BYTES (crypto_sign_SECRETKEYBYTES + 1)
+#define SIG_PUBKEY_SIZE_BYTES (crypto_sign_PUBLICKEYBYTES)
+#define SIG_PRIVKEY_SIZE_BYTES (crypto_sign_SECRETKEYBYTES)
 #define SIG_SIZE_BYTES crypto_sign_BYTES
 
-// public keys start with Z and private keys start with C
-#define SIG_VER_PUBKEY 0x5A
-#define SIG_VER_PRIVKEY 0x43
-
-class DS_SigPubKey {
+class DSL_SODIUM_API_CLASS DS_SigPubKey {
 public:
 	uint8_t key[SIG_PUBKEY_SIZE_BYTES];
 
@@ -51,7 +47,7 @@ public:
 	}
 };
 
-class DS_SigPrivKey {
+class DSL_SODIUM_API_CLASS DS_SigPrivKey {
 private:
 	void updatePubKey();
 	bool fLocked;
@@ -89,7 +85,7 @@ public:
 	}
 };
 
-class DS_Signature {
+class DSL_SODIUM_API_CLASS DS_Signature {
 private:
 
 public:

@@ -22,6 +22,7 @@ int main(int argc, char * argv[]) {
 
 	DSL_Sockets3_OpenSSL * socks = new DSL_Sockets3_OpenSSL();
 	DSL_Sockets3_GnuTLS * socks2 = new DSL_Sockets3_GnuTLS();
+	DS_Hash hash;
 
 	dsl_get_hash_providers(p);
 	printf("Num hash providers: %zu\n", p.size());
@@ -34,6 +35,7 @@ int main(int argc, char * argv[]) {
 	hashtests["sha256"] = "d4abc4d6b461a88d41603c634933f513045e2533b544c67f03d5b56a3d6e93c6";
 	hashtests["sha1"] = "426cddde1d3699bfae66c0b3a37ef78fafb21e8f";
 	hashtests["md5"] = "f8aa86a89d24c64f390fcd7a28f0eca8";
+	hashtests["blake2b"] = "d4abc4d6b461a88d41603c634933f513045e2533b544c67f03d5b56a3d6e93c6";
 
 	for (auto e = p.begin(); e != p.end(); e++) {
 		printf("Testing provider %s\n", (*e)->name);

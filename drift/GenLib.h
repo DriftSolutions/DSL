@@ -137,8 +137,13 @@ DSL_API int64 DSL_CC filesize(const char * fn); ///< Get the size in bytes of a 
 DSL_API int DSL_CC truncate(const char * fn, int64 size); ///< Windows version of truncate()
 #endif
 
-DSL_API int DSL_CC str_replaceA(char *Str, unsigned long BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
-DSL_API int DSL_CC str_replaceW(wchar_t *Str, unsigned long BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement
+DSL_API_CLASS int DSL_CC str_replaceA(char *Str, unsigned long BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
+DSL_API_CLASS int DSL_CC str_replaceW(wchar_t *Str, unsigned long BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement
+
+#if !defined(NO_CPLUSPLUS)
+DSL_API_CLASS string DSL_CC str_replaceA(string str, string FindStr, string ReplStr); ///< Simple string replacement
+DSL_API_CLASS wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr); ///< Simple string replacement
+#endif
 
 DSL_API char * DSL_CC tchar2charA(char * str);
 DSL_API char * DSL_CC tchar2charW(wchar_t * str);

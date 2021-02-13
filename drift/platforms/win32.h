@@ -261,8 +261,10 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define wgetenv _wgetenv
 #define access _access
 #define stricmp _stricmp
+#define strtol64(x,y,z) _strtoi64(x,y,z)
+#define strtoul64(x,y,z) _strtoui64(x,y,z)
 #define atoi64(x) _atoi64(x)
-#define atou64(x) _strtoui64(x, NULL, 10)
+#define atou64(x) strtoul64(x, NULL, 10)
 #define atoul(x) strtoul(x, NULL, 10)
 #define S_ISDIR(x) (x & _S_IFDIR)
 #define S_ISREG(x) (x & _S_IFREG)

@@ -15,8 +15,8 @@
  * @{
  */
 
-#define ENC_PUBKEY_SIZE_BYTES (crypto_box_PUBLICKEYBYTES + 1)
-#define ENC_PRIVKEY_SIZE_BYTES (crypto_box_SECRETKEYBYTES + 1)
+#define ENC_PUBKEY_SIZE_BYTES (crypto_box_PUBLICKEYBYTES)
+#define ENC_PRIVKEY_SIZE_BYTES (crypto_box_SECRETKEYBYTES)
 #define ENC_NONCE_SIZE_BYTES crypto_box_NONCEBYTES
 #define ENC_SHARED_KEY_BYTE_SIZE crypto_box_BEFORENMBYTES
 #define ENC_NONCE_INT_TYPE uint32_t
@@ -27,10 +27,6 @@
 #if ENC_PUBKEY_SIZE_BYTES < randombytes_SEEDBYTES
 #error Uh-oh
 #endif
-
-// public keys start with Z and private keys start with C
-#define ENC_VER_PUBKEY 0x5A
-#define ENC_VER_PRIVKEY 0x43
 
 class DSL_SODIUM_API_CLASS DS_EncNonce {
 public:

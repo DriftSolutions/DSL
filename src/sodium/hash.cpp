@@ -24,6 +24,12 @@ vector<uint8_t> DS_Hash::GetVector() {
 	vector<uint8_t> ret(&hash[0], &hash[sizeof(hash)]);
 	return ret;
 }
+string DS_Hash::GetString() {
+	char hash_str[(sizeof(hash) * 2) + 1];
+	sodium_bin2hex(hash_str, sizeof(hash_str), hash, sizeof(hash));
+	return hash_str;
+}
+const char * DS_Hash::c_str() { return GetString().c_str(); }
 
 void DS_Hash::SetNull() {
 	memset(hash, 0, HASH_SIZE_BYTES);

@@ -102,7 +102,7 @@ bool DS_EncSharedKey::IsValid() {
 
 bool DS_EncSharedKey::Calculate(DS_EncPrivKey& privkey, DS_EncPubKey& pubkey) {
 	checkLocking();
-	if (crypto_box_beforenm(data, &pubkey.key[1], &privkey.key[1]) == 0) {
+	if (crypto_box_beforenm(data, pubkey.key, privkey.key) == 0) {
 		return IsValid();
 	}
 	return false;
@@ -161,15 +161,11 @@ DS_EncPubKey::DS_EncPubKey() {
 }
 
 void DS_EncPubKey::SetNull() {
-	//this is used in a static initializer so can't use bin2hex
 	sodium_memzero(key, sizeof(key));
 }
 
 bool DS_EncPubKey::IsValid() {
-	if (key[0] != ENC_VER_PUBKEY) {
-		return false;
-	}
-	if (sodium_is_zero(&key[1], sizeof(key) - 1) == 1) {
+	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
 	return true;
@@ -199,8 +195,7 @@ DS_EncPriKey: Encryption private key and encryption interface
 
 void DS_EncPrivKey::updatePubKey() {
 	uint8_t tmp[ENC_PUBKEY_SIZE_BYTES];
-	if (crypto_scalarmult_base(&tmp[1], &key[1]) == 0) {
-		tmp[0] = ENC_VER_PUBKEY;
+	if (crypto_scalarmult_base(tmp, key) == 0) {
 		pubkey.SetFromBinaryData(tmp, ENC_PUBKEY_SIZE_BYTES);
 	} else {
 		pubkey.SetNull();
@@ -227,10 +222,7 @@ void DS_EncPrivKey::SetNull() {
 }
 
 bool DS_EncPrivKey::IsValid() {
-	if (key[0] != ENC_VER_PRIVKEY) {
-		return false;
-	}
-	if (sodium_is_zero(&key[1], sizeof(key) - 1) == 1) {
+	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
 	if (!pubkey.IsValid()) {
@@ -244,7 +236,7 @@ bool DS_EncPrivKey::Encrypt(DS_EncPubKey& recpt_key, DS_EncNonce& nonce, DSL_BUF
 	buffer_init(&tmp);
 	buffer_set(&tmp, buf->data, buf->len);
 	buffer_resize(buf, buf->len + crypto_box_MACBYTES);
-	if (crypto_box_easy(buf->udata, tmp.udata, tmp.len, nonce.data, &recpt_key.key[1], &key[1]) == 0) {
+	if (crypto_box_easy(buf->udata, tmp.udata, tmp.len, nonce.data, recpt_key.key, key) == 0) {
 		buffer_free(&tmp);
 		return true;
 	}
@@ -257,7 +249,7 @@ bool DS_EncPrivKey::Decrypt(DS_EncPubKey& sender_key, DS_EncNonce& nonce, DSL_BU
 	buffer_init(&tmp);
 	buffer_set(&tmp, buf->data, buf->len);
 	buffer_resize(buf, buf->len - crypto_box_MACBYTES);
-	if (crypto_box_open_easy(buf->udata, tmp.udata, tmp.len, nonce.data, &sender_key.key[1], &key[1]) == 0) {
+	if (crypto_box_open_easy(buf->udata, tmp.udata, tmp.len, nonce.data, sender_key.key, key) == 0) {
 		buffer_free(&tmp);
 		return true;
 	}
@@ -268,9 +260,7 @@ bool DS_EncPrivKey::Decrypt(DS_EncPubKey& sender_key, DS_EncNonce& nonce, DSL_BU
 bool DS_EncPrivKey::Generate() {
 	uint8_t pk[ENC_PUBKEY_SIZE_BYTES] = { 0 };
 	uint8_t sk[ENC_PRIVKEY_SIZE_BYTES] = { 0 };
-	if (crypto_box_keypair(&pk[1], &sk[1]) == 0) {
-		sk[0] = ENC_VER_PRIVKEY;
-		pk[0] = ENC_VER_PUBKEY;
+	if (crypto_box_keypair(pk, sk) == 0) {
 		SetBothFromBinaryData(sk, sizeof(sk), pk, sizeof(pk));
 		sodium_memzero(&sk, sizeof(sk));
 		return IsValid();

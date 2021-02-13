@@ -636,6 +636,26 @@ int DSL_CC str_replaceW(wchar_t * Str, unsigned long BufSize, wchar_t *FindStr, 
 }
 #endif
 
+#if !defined(NO_CPLUSPLUS)
+string DSL_CC str_replaceA(string str, string FindStr, string ReplStr) {
+	int pos;
+	while ((pos = str.find(FindStr)) != str.npos) {
+		str.replace(pos, FindStr.length(), ReplStr);
+	}
+	return str;
+}
+
+#if !defined(FREEBSD)
+wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr) {
+	int pos;
+	while ((pos = str.find(FindStr)) != str.npos) {
+		str.replace(pos, FindStr.length(), ReplStr);
+	}
+	return str;
+}
+#endif // FREEBSD
+#endif // NO_CPLUSPLUS
+
 char * DSL_CC GetUserConfigFolderA(const char * name) {
 	char buf[MAX_PATH]={0};
 #if defined(WIN32)

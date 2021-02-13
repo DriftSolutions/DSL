@@ -89,8 +89,10 @@ typedef void * (*ThreadProto)(void *);
  * @{
  */
 
-#define atoi64(x) strtoll(x, NULL, 10)
-#define atou64(x) strtoull(x, NULL, 10)
+#define strtol64(x,y,z) strtoll(x,y,z)
+#define strtoul64(x,y,z) strtoull(x,y,z)
+#define atoi64(x) strtol64(x, NULL, 10)
+#define atou64(x) strtoul64(x, NULL, 10)
 #define atoul(x) strtoul(x, NULL, 10)
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
