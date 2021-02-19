@@ -87,6 +87,11 @@ include_directories(${MYSQL_INCLUDE_DIRS})
 link_directories(${MYSQL_LIBRARY_DIRS})
 SET(LIBS ${LIBS} ${MYSQL_LIBRARIES})
 
+pkg_search_module(SODIUM REQUIRED sodium libsodium)
+include_directories(${SODIUM_INCLUDE_DIRS})
+link_directories(${SODIUM_LIBRARY_DIRS})
+SET(LIBS ${LIBS} ${SODIUM_LIBRARIES})
+
 add_definitions(-fPIC -pthread)
 add_definitions(-Wall -D_REENTRANT -D_THREAD_SAFE -D_POSIX_C_SOURCE=200112 -D_FORTIFY_SOURCE=2 -D_FILE_OFFSET_BITS=64)
 

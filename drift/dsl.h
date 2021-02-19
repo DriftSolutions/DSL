@@ -33,6 +33,7 @@
 #include <drift/Threading.h>
 #include <drift/SyncedInt.h>
 #include <drift/Directory.h>
+#include <drift/serialize.h>
 
 #include <drift/DB_Common.h>
 #if defined(ENABLE_MYSQL)
