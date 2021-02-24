@@ -171,8 +171,7 @@ unsigned int DB_MySQL::GetError() {
 	return mysql_errno(sql);
 }
 
-MYSQL_RES *DB_MySQL::Query(std::string query, uint32_t len) {
-	if (len == 0) { len = query.length(); }
+MYSQL_RES *DB_MySQL::Query(std::string query) {
 	MYSQL_RES * ret = NULL;
 
 	if (!sql) {
@@ -183,11 +182,11 @@ MYSQL_RES *DB_MySQL::Query(std::string query, uint32_t len) {
 	}
 
 	query_count++;
-	if (!mysql_real_query(sql,query.c_str(),len)) {
+	if (!mysql_real_query(sql,query.c_str(),query.length())) {
 		ret = mysql_store_result(sql);
 	} else {
 		sql_printf("sql error in query(%u): %s\n",GetError(),GetErrorString().c_str());
-		if (len <= 4096) {
+		if (query.length() <= 4096) {
 			sql_printf("Query: %s\n",query.c_str());
 		} else {
 			sql_printf("Query: <too large to print>\n");
@@ -356,8 +355,8 @@ bool DB_MySQL::MultiSend(SQLConxMulti * scm) {
 	return ret;
 }
 
-void DB_MySQL::SCM_Query(std::string query, uint32_t len) {
-	MYSQL_RES * ret = Query(query, len);
+void DB_MySQL::SCM_Query(std::string query) {
+	MYSQL_RES * ret = Query(query);
 	if (ret) {
 		FreeResult(ret);
 	}

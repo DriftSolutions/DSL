@@ -118,22 +118,20 @@ int db_sqlite3_cb(void * ptr, int ncols, char ** values, char ** cols) {
 	SC_Row row;
 	row.NumFields = ncols;
 	for (int i = 0; i < ncols; i++) {
-		row.Values[cols[i]] = values[i];
+		row.Values[cols[i]] = (values[i] != NULL) ? values[i] : "NULL";
 	}
 	ret->rows.push_back(row);
 	return 0;
 }
 
-void DB_SQLite::SCM_Query(std::string query, uint32_t len) {
-	SQLite_Result * ret = Query(query, len);
+void DB_SQLite::SCM_Query(std::string query) {
+	SQLite_Result * ret = Query(query);
 	if (ret) {
 		delete ret;
 	}
 }
 
-SQLite_Result * DB_SQLite::Query(std::string query, uint32_t len) {
-	if (len == 0) { len = query.length(); }
-
+SQLite_Result * DB_SQLite::Query(std::string query) {
 	if (!handle) {
 		sql_printf("sql error: you don't have an SQLite DB open!\n");
 		return NULL;
@@ -155,7 +153,7 @@ SQLite_Result * DB_SQLite::Query(std::string query, uint32_t len) {
 		} else {
 			sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
 		}
-		if (len <= 4096) {
+		if (query.length() <= 4096) {
 			sql_printf("Query: %s\n",query.c_str());
 		} else {
 			sql_printf("Query: <too large to print>\n");

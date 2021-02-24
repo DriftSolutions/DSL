@@ -13,7 +13,7 @@
 
 #include <drift/Buffer.h>
 
-DSL_API_CLASS class DSL_Serializable {
+class DSL_API_CLASS DSL_Serializable {
 private:
 	bool _serialize_int(DSL_BUFFER * buf, void * val, uint8_t size, bool deserialize);
 protected:
