@@ -124,11 +124,35 @@ int db_sqlite3_cb(void * ptr, int ncols, char ** values, char ** cols) {
 	return 0;
 }
 
-void DB_SQLite::SCM_Query(std::string query) {
-	SQLite_Result * ret = Query(query);
-	if (ret) {
-		delete ret;
+bool DB_SQLite::NoResultQuery(std::string query) {
+	if (!handle) {
+		sql_printf("sql error: you don't have an SQLite DB open!\n");
+		return NULL;
 	}
+
+	query_count++;
+	char * errmsg = NULL;
+	int n = sqlite3_exec(handle, query.c_str(), NULL, NULL, &errmsg);
+	if (n == SQLITE_OK) {
+		if (errmsg) {
+			sqlite3_free(errmsg);
+		}
+		return true;
+	} else {
+		if (errmsg) {
+			sql_printf("sql error in query: %s\n", errmsg);
+			sqlite3_free(errmsg);
+		} else {
+			sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
+		}
+		if (query.length() <= 4096) {
+			sql_printf("Query: %s\n",query.c_str());
+		} else {
+			sql_printf("Query: <too large to print>\n");
+		}
+	}
+
+	return false;
 }
 
 SQLite_Result * DB_SQLite::Query(std::string query) {
@@ -257,14 +281,21 @@ bool DB_SQLite::MultiSend(SQLConxMulti * scm) {
 		sql_printf("Batch cnt %d\n", cnt);
 #endif
 		query_count += cnt;
-		/*
-		int status = sqlite_real_query(sql, q.str().c_str(), q.str().length());
-		if (status != 0) {
-			sql_printf("sql error in query(%u): %s\n",GetError(),GetErrorString().c_str());
+		char * errmsg = NULL;
+		int n = sqlite3_exec(handle, q.str().c_str(), NULL, NULL, &errmsg);
+		if (n == SQLITE_OK) {
+			if (errmsg) {
+				sqlite3_free(errmsg);
+			}
+		} else {
 			ret = false;
-			break;
+			if (errmsg) {
+				sql_printf("sql error in query: %s\n", errmsg);
+				sqlite3_free(errmsg);
+			} else {
+				sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
+			}
 		}
-		*/
 	}
 
 	return ret;

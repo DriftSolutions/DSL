@@ -69,6 +69,21 @@ void Universal_Config2::SetSectionValue(ConfigSection * sec, const char * name, 
 	sec->values[name] = val;
 }
 
+bool Universal_Config2::IsBool(const char * buf, bool * val) {
+	if (buf == NULL || buf[0] == 0) { return false; } // null/empty string
+
+	if (stricmp(buf, "true") == 0 || stricmp(buf, "on") == 0) {
+		if (val != NULL) { *val = true; }
+		return true;
+	}
+	if (stricmp(buf, "false") == 0 || stricmp(buf, "off") == 0) {
+		if (val != NULL) { *val = false; }
+		return true;
+	}
+
+	return false;
+}
+
 bool Universal_Config2::IsInt(const char * buf) {
 	if (buf == NULL || buf[0] == 0) { return false; } // null/empty string
 
@@ -235,12 +250,15 @@ bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * S
 
 		StrTokenizer * tok = new StrTokenizer(buf,' ');
 		unsigned long num = tok->NumTok();
+		bool tmpbool = false;
 		if (num > 1) {
 			ConfigValue sVal;
 			char * name = tok->GetSingleTok(1);
 			char * value = tok->GetTok(2, num);
 			if (IsFloat(value)) { // number
 				sVal.SetValue(atof(value));
+			} else if (IsBool(value, &tmpbool)) { // bool
+				sVal.SetValue(tmpbool);
 			} else if (IsInt(value)) { // number
 				sVal.SetValue((int64)atoi64(value));
 			} else { // string
@@ -299,6 +317,10 @@ void Universal_Config2::WriteSection(FILE * fp, ConfigSection * sec, int level) 
 				sprintf(buf,"\t%s%s %f\n",pref,x->first.c_str(),x->second.Float);
 				fwrite(buf,strlen(buf),1,fp);
 				break;
+			case DS_TYPE_BOOL:
+				sprintf(buf,"\t%s%s %s\n",pref,x->first.c_str(),(x->second.Int > 0) ? "true" : "false");
+				fwrite(buf,strlen(buf),1,fp);
+				break;
 			default:
 				break;
 		}
@@ -353,6 +375,9 @@ void Universal_Config2::PrintSection(ConfigSection * Scan, int level) {
 				break;
 			case DS_TYPE_BINARY:
 				printf("%s[%s] = Binary Data\n", buf, x->first.c_str());
+				break;
+			case DS_TYPE_BOOL:
+				printf("%s[%s] = %s\n",buf,x->first.c_str(),(x->second.Int > 0) ? "true" : "false");
 				break;
 			default:
 				printf("%s[%s] = Unknown Entry Type\n",buf,x->first.c_str());
@@ -432,8 +457,7 @@ void Universal_Config2::SetValueInt(const char * ssec, const char * name, int64 
 void Universal_Config2::SetValueBool(const char * ssec, const char * name, bool lval) {
 	ConfigSection * sec = GetSectionFromString(ssec, true);
 	ConfigValue val;
-	int64 tmp = lval ? 1 : 0;
-	val.SetValue(tmp);
+	val.SetValue(lval);
 	SetSectionValue(sec, name, val);
 }
 void Universal_Config2::SetValueFloat(const char * ssec, const char * name, double lval) {
@@ -466,7 +490,7 @@ bool ConfigValue::AsBool() {
 		}
 	} else if (Type == DS_TYPE_FLOAT) {
 		return (Float >= 1.00);
-	} else if (Type == DS_TYPE_INT) {
+	} else if (Type == DS_TYPE_INT || Type == DS_TYPE_BOOL) {
 		return (Int > 0);
 	}
 	return false;
@@ -476,7 +500,7 @@ int64 ConfigValue::AsInt() {
 		return atoi64(sString.c_str());
 	} else if (Type == DS_TYPE_FLOAT) {
 		return (int64)Float;
-	} else if (Type == DS_TYPE_INT) {
+	} else if (Type == DS_TYPE_INT || Type == DS_TYPE_BOOL) {
 		return Int;
 	}
 	return 0;
@@ -486,7 +510,7 @@ double ConfigValue::AsFloat() {
 		return atof(sString.c_str());
 	} else if (Type == DS_TYPE_FLOAT) {
 		return Float;
-	} else if (Type == DS_TYPE_INT) {
+	} else if (Type == DS_TYPE_INT || Type == DS_TYPE_BOOL) {
 		return (double)Int;
 	}
 	return 0;
@@ -502,6 +526,8 @@ string ConfigValue::AsString() {
 		char buf[64];
 		snprintf(buf, sizeof(buf), "%f", Float);
 		return buf;
+	} else if (Type == DS_TYPE_BOOL) {
+		return (Int > 0) ? "true" : "false";
 	}
 	return "";
 }
@@ -535,6 +561,11 @@ void ConfigValue::SetValue(const uint8_t * val, size_t len) {
 	Type = DS_TYPE_BINARY;
 	string s(val, val + len);
 	sString = s;
+}
+void ConfigValue::SetValue(bool val) {
+	Reset();
+	Type = DS_TYPE_BOOL;
+	Int = val;
 }
 
 /*

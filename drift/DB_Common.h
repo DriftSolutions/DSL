@@ -41,8 +41,6 @@ public:
 	virtual SQLConxMulti * MultiStart() = 0;
 	virtual bool MultiSend(SQLConxMulti *) = 0;
 	virtual bool MultiEnd(SQLConxMulti *) = 0;
-	/* used for multi interface, not for use with SELECT queries or others that return data */
-	virtual void SCM_Query(std::string query) = 0;
 
 protected:
 	sql_printf_type sql_printf = NULL;

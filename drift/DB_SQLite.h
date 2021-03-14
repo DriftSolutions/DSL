@@ -45,6 +45,7 @@ public:
 	std::string GetErrorString();
 	int GetError();
 
+	bool NoResultQuery(std::string query);
 	SQLite_Result * Query(std::string query);
 	size_t NumRows(SQLite_Result *result);
 	bool FetchRow(SQLite_Result *result, SC_Row& retRow);
@@ -62,7 +63,6 @@ public:
 	SQLConxMulti * MultiStart();
 	bool MultiSend(SQLConxMulti *);
 	bool MultiEnd(SQLConxMulti *);
-	void SCM_Query(std::string query);
 
 private:
 	sqlite3 * handle;

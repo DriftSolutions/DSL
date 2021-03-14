@@ -40,7 +40,8 @@ public:
 	std::string GetErrorString();
 	unsigned int GetError();
 
-	MYSQL_RES *Query(std::string query);
+	bool NoResultQuery(std::string query);
+	MYSQL_RES *Query(std::string query);	
 	uint64_t NumRows(MYSQL_RES *result);
 	bool FetchRow(MYSQL_RES *result, SC_Row& retRow);
 	bool FreeResult(MYSQL_RES *result);
@@ -56,7 +57,6 @@ public:
 	SQLConxMulti * MultiStart();
 	bool MultiSend(SQLConxMulti *);
 	bool MultiEnd(SQLConxMulti *);
-	void SCM_Query(std::string query);
 
 private:
 	MYSQL * sql;

@@ -171,29 +171,33 @@ unsigned int DB_MySQL::GetError() {
 	return mysql_errno(sql);
 }
 
-MYSQL_RES *DB_MySQL::Query(std::string query) {
-	MYSQL_RES * ret = NULL;
-
+bool DB_MySQL::NoResultQuery(std::string query) {
 	if (!sql) {
 		sql_printf("sql error: you are not connected to a MySQL server!\n");
 		if (!Connect()) {
-			return NULL;
+			return false;
 		}
 	}
 
 	query_count++;
-	if (!mysql_real_query(sql,query.c_str(),query.length())) {
-		ret = mysql_store_result(sql);
-	} else {
-		sql_printf("sql error in query(%u): %s\n",GetError(),GetErrorString().c_str());
+	bool ret = (mysql_real_query(sql, query.c_str(), query.length()) == 0);
+	if (!ret) {
+		sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
 		if (query.length() <= 4096) {
-			sql_printf("Query: %s\n",query.c_str());
+			sql_printf("Query: %s\n", query.c_str());
 		} else {
 			sql_printf("Query: <too large to print>\n");
 		}
 	}
-
 	return ret;
+}
+
+MYSQL_RES *DB_MySQL::Query(std::string query) {
+	if (!NoResultQuery(query)) {
+		return NULL;
+	}
+
+	return mysql_store_result(sql);
 }
 
 bool DB_MySQL::FetchRow(MYSQL_RES *result, SC_Row& retRow) {
@@ -355,10 +359,4 @@ bool DB_MySQL::MultiSend(SQLConxMulti * scm) {
 	return ret;
 }
 
-void DB_MySQL::SCM_Query(std::string query) {
-	MYSQL_RES * ret = Query(query);
-	if (ret) {
-		FreeResult(ret);
-	}
-}
 #endif // ENABLE_MYSQL

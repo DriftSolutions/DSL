@@ -44,7 +44,7 @@ public:
 	void SetValue(double val);
 	void SetValue(const char * val);
 	void SetValue(const uint8_t * val, size_t len);
-	void SetValue(bool val) { SetValue((int64)val); }
+	void SetValue(bool val);
 
 	void Reset();
 };
@@ -93,6 +93,7 @@ class DSL_API_CLASS Universal_Config2 {
 		void WriteSection(FILE * fp, ConfigSection * sec, int level);
 		void WriteBinarySection(FILE * fp, ConfigSection * sec);
 		void PrintSection(ConfigSection * Scan, int level);
+		bool IsBool(const char * buf, bool * val = NULL);
 		bool IsInt(const char * text);
 		bool IsFloat(const char * text);
 		ConfigSection * GetSectionFromString(const char * sec, bool create=false);
