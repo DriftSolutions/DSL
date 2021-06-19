@@ -49,8 +49,32 @@ protected:
 				ser2((uint8 *)&x->obj, sizeof(T));
 			}
 		}
+		return true;
 	}
 	#define serv(x,y) if (!serialize_vector<y>(buf, x, deserialize)) { return false; }
+	template <typename T> bool serialize_vector2(DSL_BUFFER * buf, vector<T>& vec, bool deserialize) {
+		if (deserialize) {
+			uint32 num;
+			ser(&num);
+			T obj;
+			vec.clear();
+			for (uint32 i = 0; i < num; i++) {
+				string tmp;
+				ser(&tmp);
+				if (!obj.FromSerialized(tmp)) { return false; }
+				vec.push_back(obj);
+			}
+		} else {
+			uint32 num = vec.size();
+			ser(&num);
+			for (auto x = vec.begin(); x != vec.end(); x++) {
+				string tmp = x->GetSerialized();
+				ser(&tmp);
+			}
+		}
+		return true;
+	}
+	#define serv2(x,y) if (!serialize_vector2<y>(buf, x, deserialize)) { return false; }
 
 	virtual bool Serialize(DSL_BUFFER * buf, bool deserialize) = 0;
 public:
