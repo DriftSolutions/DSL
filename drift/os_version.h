@@ -14,6 +14,7 @@
 #include <bitset>
 #include <array>
 
+#ifdef DSL_HAVE_CPUID
 #ifdef WIN32
 #include <intrin.h>
 #define __real_cpuid __cpuid
@@ -21,6 +22,7 @@
 #include <cpuid.h>
 DSL_API void DSL_CC linux_cpuid(int cpuInfo[4], int function_id);
 #define __real_cpuid linux_cpuid
+#endif
 #endif
 
 /**
@@ -34,6 +36,7 @@ DSL_API void DSL_CC linux_cpuid(int cpuInfo[4], int function_id);
 DSL_API const char * DSL_CC GetOSVersion();
 DSL_API bool DSL_CC Is64Bit();
 
+#if defined(DSL_HAVE_CPUID) || defined(DOXYGEN_SKIP)
 /* This class from MSDN */
 class DSL_API_CLASS InstructionSet
 {
@@ -213,6 +216,7 @@ private:
 		std::vector<std::array<int, 4>> extdata_;
 	};
 };
+#endif // DSL_HAVE_CPUID
 
 /**@}*/
 

@@ -65,10 +65,12 @@
 //platform/cpu defines
 #define PLATFORM "Linux"
 #define LINUX
-#ifdef __i386__
-	#define CPU "x86"
-#elif defined(__x86_64__)
+#if defined(__x86_64__)
 	#define CPU "x86_64"
+	#define DSL_HAVE_CPUID
+#elif defined(__i386__)
+	#define CPU "x86"
+	#define DSL_HAVE_CPUID
 #elif defined(__arm__)
 	#define CPU "ARM"
 #else

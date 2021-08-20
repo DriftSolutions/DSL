@@ -217,10 +217,12 @@ typedef struct sockaddr_un
 	#define CPU "x64"
 	/* __stdcall has no effect on 64-bit Windows */
 	#define DSL_CC
+	#define DSL_HAVE_CPUID
 #else
 	#define PLATFORM "Win32"
 	#define CPU "x86"
 	#define DSL_CC __stdcall
+	#define DSL_HAVE_CPUID
 #endif
 
 #include <drift/win32/poll.h>

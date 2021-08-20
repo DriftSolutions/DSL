@@ -72,4 +72,6 @@ DSL_API void DSL_CC linux_cpuid(int cpuInfo[4], int function_id) {
 
 #endif
 
+#if DSL_HAVE_CPUID
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
+#endif
