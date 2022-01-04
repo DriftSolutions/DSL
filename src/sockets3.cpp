@@ -13,12 +13,6 @@
 #include <drift/Threading.h>
 #include <drift/GenLib.h>
 
-DSL_Mutex  * resMutex()
-{
-  static DSL_Mutex actualMutex;
-  return &actualMutex;
-}
-
 /*
 struct DSL_SOCKET_IO {
 	void (*read)(DSL_SOCKET * sock, char * buf, uint32 bufSize);
@@ -88,9 +82,7 @@ addrinfo * DSL_Sockets3_Base::pResolve(DSL_SOCKET * sock, const char * host, int
 	hints.ai_family = sock->family;
 	hints.ai_socktype = sock->type;
 	hints.ai_protocol = sock->proto;
-	resMutex()->Lock();
-	int error = WspiapiGetAddrInfo(host, buf, &hints, &ret);//getaddrinfo(
-	resMutex()->Release();
+	int error = WspiapiGetAddrInfo(host, buf, &hints, &ret);//getaddrinfo
 	if (error) {
 		pUpdateError(sock);
 		return NULL;
@@ -1073,10 +1065,7 @@ std::string DSL_Sockets3_Base::GetHostIP(const char * host, int type, int proto)
 	hints.ai_family = AF_UNSPEC;
 	//hints.ai_socktype = type;
 	//hints.ai_protocol = proto;
-	resMutex()->Lock();
-	//getaddrinfo(
 	int error = WspiapiGetAddrInfo(host, "", &hints, &ret);
-	resMutex()->Release();
 	if (error) {
 		pUpdateError(NULL);
 		return str;

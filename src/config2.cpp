@@ -64,6 +64,16 @@ ConfigValue Universal_Config2::GetSectionValue(ConfigSection * sec, const char *
 	return rnull;
 }
 
+bool Universal_Config2::GetSectionValue(ConfigSection * sec, const char * name, ConfigValue& value) {
+	if (!sec) { return false; }
+	ConfigSection::valueList::iterator x = sec->values.find(name);
+	if (x != sec->values.end()) {
+		value = x->second;
+		return true;
+	}
+	return false;
+}
+
 void Universal_Config2::SetSectionValue(ConfigSection * sec, const char * name, const ConfigValue& val) {
 	if (!sec) { return; }
 	sec->values[name] = val;
@@ -413,6 +423,7 @@ ConfigSection * Universal_Config2::GetSectionFromString(const char * sec, bool c
 	return ret;
 }
 
+/*
 ConfigValue Universal_Config2::GetValue(const char * ssec, const char * name) {
 	ConfigSection * sec = GetSectionFromString(ssec);
 	if (sec) {
@@ -472,7 +483,7 @@ void Universal_Config2::SetValueBinary(const char * ssec, const char * name, con
 	val.SetValue(data, len);
 	SetSectionValue(sec, name, val);
 }
-
+*/
 
 ConfigValue::ConfigValue() {
 	Type = DS_TYPE_UNKNOWN;

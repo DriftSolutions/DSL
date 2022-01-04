@@ -24,6 +24,16 @@ void DSL_CC buffer_free(DSL_BUFFER * buf) {
 	memset(buf, 0xFE, sizeof(DSL_BUFFER));
 }
 
+string buffer_as_string(DSL_BUFFER * buf) {
+	string ret;
+	if (buf->hMutex) { buf->hMutex->Lock(); }
+	if (buf->len > 0) {
+		ret.assign(buf->data, buf->len);
+	}
+	if (buf->hMutex) { buf->hMutex->Release(); }
+	return ret;
+}
+
 void DSL_CC buffer_clear(DSL_BUFFER * buf) {
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 	dsl_freenn(buf->data);
@@ -167,7 +177,7 @@ bool DSL_Buffer::Get(char * buf, uint32 size) {
 
 void DSL_Buffer::Set(const char * buf, uint32 ulen) {
 	LockMutex(hMutex);
-	if (ulen == 0xFFFFFFFF) { ulen = strlen(buf); }
+	if (ulen == 0xFFFFFFFF) { ulen = uint32(strlen(buf)); }
 	data = (char *)dsl_realloc(data, ulen);
 	memcpy(data, buf, ulen);
 	len = ulen;
@@ -175,7 +185,7 @@ void DSL_Buffer::Set(const char * buf, uint32 ulen) {
 }
 void DSL_Buffer::Append(const char * buf, uint32 ulen) {
 	LockMutex(hMutex);
-	if (ulen == 0xFFFFFFFF) { ulen = strlen(buf); }
+	if (ulen == 0xFFFFFFFF) { ulen = uint32(strlen(buf)); }
 	data = (char *)dsl_realloc(data, len+ulen);
 	memcpy(data+len, buf, ulen);
 	len += ulen;
@@ -183,7 +193,7 @@ void DSL_Buffer::Append(const char * buf, uint32 ulen) {
 }
 void DSL_Buffer::Prepend(const char * buf, uint32 ulen) {
 	LockMutex(hMutex);
-	if (ulen == 0xFFFFFFFF) { ulen = strlen(buf); }
+	if (ulen == 0xFFFFFFFF) { ulen = uint32(strlen(buf)); }
 	data = (char *)dsl_realloc(data, len+ulen);
 	memmove(data+ulen, data, len);
 	memcpy(data, buf, ulen);

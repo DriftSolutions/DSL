@@ -322,6 +322,27 @@ IF(ENABLE_STATIC AND NOT WIN32)
 	target_link_libraries(${BASENAME}-static${LIBPOSTFIX} ${LIBS})
 ENDIF()
 
+# Build dsd_compiler
+
+AUX_SOURCE_DIRECTORY(dsd_compiler DSDFILES)	
+add_executable(dsd_compiler ${DSDFILES})
+IF(ENABLE_STATIC)
+	target_compile_definitions(dsd_compiler PRIVATE DSL_STATIC)
+	IF(WIN32)
+		target_link_libraries(dsd_compiler ${CORESTATIC} ${LIBS})
+		add_dependencies(dsd_compiler ${CORESTATIC})
+	ELSE(WIN32)
+		target_link_libraries(dsd_compiler ${BASENAME}-static${LIBPOSTFIX} ${LIBS})
+		add_dependencies(dsd_compiler ${BASENAME}-static${LIBPOSTFIX})
+	ENDIF()
+ELSE(ENABLE_STATIC)
+	add_executable(dsd_compiler ${file})
+	target_compile_definitions(dsd_compiler PRIVATE DSL_DLL)
+	target_link_libraries(dsd_compiler ${COREDLL})
+	add_dependencies(dsd_compiler ${COREDLL})
+ENDIF()
+
+# End dsd_compiler
 
 # Build tests
 
@@ -332,11 +353,11 @@ foreach(file ${files})
 		add_executable(test-${FN}-static ${file})
 		target_compile_definitions(test-${FN}-static PRIVATE DSL_STATIC ENABLE_PHYSFS ENABLE_MYSQL ENABLE_SQLITE ENABLE_CURL ENABLE_SODIUM ENABLE_OPENSSL ENABLE_GNUTLS)
 		IF(WIN32)
-		target_link_libraries(test-${FN}-static ${BASENAME}-physfs-static${LIBPOSTFIX} ${BASENAME}-mysql-static${LIBPOSTFIX} ${BASENAME}-sqlite-static${LIBPOSTFIX} ${BASENAME}-curl-static${LIBPOSTFIX} ${BASENAME}-sodium-static${LIBPOSTFIX} ${BASENAME}-openssl-static${LIBPOSTFIX} ${BASENAME}-gnutls-static${LIBPOSTFIX} ${CORESTATIC} ${LIBS})
-		add_dependencies(test-${FN}-static ${CORESTATIC} ${BASENAME}-physfs-static${LIBPOSTFIX} ${BASENAME}-mysql-static${LIBPOSTFIX} ${BASENAME}-sqlite-static${LIBPOSTFIX} ${BASENAME}-curl-static${LIBPOSTFIX} ${BASENAME}-sodium-static${LIBPOSTFIX} ${BASENAME}-openssl-static${LIBPOSTFIX} ${BASENAME}-gnutls-static${LIBPOSTFIX})
+			target_link_libraries(test-${FN}-static ${BASENAME}-physfs-static${LIBPOSTFIX} ${BASENAME}-mysql-static${LIBPOSTFIX} ${BASENAME}-sqlite-static${LIBPOSTFIX} ${BASENAME}-curl-static${LIBPOSTFIX} ${BASENAME}-sodium-static${LIBPOSTFIX} ${BASENAME}-openssl-static${LIBPOSTFIX} ${BASENAME}-gnutls-static${LIBPOSTFIX} ${CORESTATIC} ${LIBS})
+			add_dependencies(test-${FN}-static ${CORESTATIC} ${BASENAME}-physfs-static${LIBPOSTFIX} ${BASENAME}-mysql-static${LIBPOSTFIX} ${BASENAME}-sqlite-static${LIBPOSTFIX} ${BASENAME}-curl-static${LIBPOSTFIX} ${BASENAME}-sodium-static${LIBPOSTFIX} ${BASENAME}-openssl-static${LIBPOSTFIX} ${BASENAME}-gnutls-static${LIBPOSTFIX})
 		ELSE(WIN32)
-		target_link_libraries(test-${FN}-static ${BASENAME}-static${LIBPOSTFIX} ${LIBS})
-		add_dependencies(test-${FN}-static ${BASENAME}-static${LIBPOSTFIX})
+			target_link_libraries(test-${FN}-static ${BASENAME}-static${LIBPOSTFIX} ${LIBS})
+			add_dependencies(test-${FN}-static ${BASENAME}-static${LIBPOSTFIX})
 		ENDIF()
 	ENDIF()
 	IF(ENABLE_SHARED)

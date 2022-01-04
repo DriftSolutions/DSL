@@ -117,27 +117,21 @@ bool DSL_Sockets3_OpenSSL::EnableSSL(const char * cert, DS3_SSL_METHOD method) {
 	AutoMutexPtr(sslSockMutex());
 	const SSL_METHOD * meth = NULL;
 	switch (method) {
-#ifndef OPENSSL_NO_SSL3_METHOD
-		case DS3_SSL_METHOD_SSL3:
-			meth = SSLv3_method();
-			break;
-#endif
-
-#if defined(DTLS1_VERSION) && !defined(NO_DTLS1) && !defined(OPENSSL_NO_DTLS1_METHOD)
+#if defined(DTLS1_VERSION) && !defined(NO_DTLS1)
 		case DS3_SSL_METHOD_DTLS1:
+#if OPENSSL_VERSION_NUMBER >= 0x30000000
+			meth = DTLS_method();
+#else
 			meth = DTLSv1_method();
+#endif
 			break;
 #endif
 
-		case DS3_SSL_METHOD_TLS:
-#if OPENSSL_VERSION_NUMBER > 0x10100000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000
+		default:
 			meth = TLS_method();
-#elif OPENSSL_VERSION_NUMBER > 0x10000080
-			meth = TLSv1_2_method();
-#else
-			meth = TLSv1_method();
-#endif
 			break;
+#else
 
 #if OPENSSL_VERSION_NUMBER > 0x10000080
 #ifndef OPENSSL_NO_TLS1_METHOD
@@ -161,13 +155,18 @@ bool DSL_Sockets3_OpenSSL::EnableSSL(const char * cert, DS3_SSL_METHOD method) {
 			if (!this->silent) {
 				printf("DSL_Sockets3: Unknown TLS method, using default...\n");
 			}
+		case DS3_SSL_METHOD_TLS:
 #if OPENSSL_VERSION_NUMBER > 0x10100000
 			meth = TLS_method();
+#elif OPENSSL_VERSION_NUMBER > 0x10000080
+			meth = TLSv1_2_method();
 #else
 			meth = TLSv1_method();
 #endif
 			break;
+#endif // OPENSSL_VERSION_NUMBER >= 0x30000000
 	}
+
 	ctx = SSL_CTX_new((SSL_METHOD *)meth);
 	if (!ctx) {
 		//printf("OpenSSL Error: %u, %s\n", ERR_get_error(), ERR_error_string(ERR_get_error(), bError));
@@ -376,7 +375,11 @@ X509 * DSL_Sockets3_OpenSSL::GetSSL_Cert(DSL_SOCKET * pSock) { /// Don't forget 
 	AutoMutex(sslSockMutex);
 #endif
 	if (sock->ssl) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000
+		ret = SSL_get1_peer_certificate(sock->ssl);		
+#else
 		ret = SSL_get_peer_certificate(sock->ssl);
+#endif
 	}
 	return ret;
 }

@@ -105,7 +105,8 @@
 #pragma warning(disable: 4995)
 
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
+/* Target Win7 by default, at this time Win 7 and above is over 98% of market share */
+#define _WIN32_WINNT 0x0601
 #endif
 
 
@@ -249,6 +250,8 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #ifndef EINPROGRESS
 #define EINPROGRESS WSAEINPROGRESS
 #endif
+//On windows just consider readable as executable
+#define X_OK 0x04
 #define R_OK 0x04
 #define W_OK 0x02
 #define F_OK 0x00
@@ -277,6 +280,9 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define tell64 _telli64
 #define ftruncate _chsize_s
 #define dsl_mkdir(x,y) _mkdir(x)
+#ifndef _CRT_INTERNAL_NONSTDC_NAMES
+#define getpid() GetCurrentProcessId()
+#endif
 
 #define tcslen _tcslen
 #define tcscpy _tcscpy

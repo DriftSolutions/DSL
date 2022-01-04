@@ -61,6 +61,9 @@
 #include <dlfcn.h>
 #include <syscall.h>
 #include <linux/random.h>
+#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 25))	
+#include <sys/random.h>
+#endif
 
 //platform/cpu defines
 #define PLATFORM "Linux"

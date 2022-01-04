@@ -35,6 +35,7 @@ struct DSL_BUFFER {
 
 DSL_API void DSL_CC buffer_init(DSL_BUFFER * buf, bool useMutex = false); ///< Initialize the buffer, optionally with a mutex protecting it. If you don't use the mutex you need to either synchronize access yourself or only use it from a single thread.
 DSL_API void DSL_CC buffer_free(DSL_BUFFER * buf); ///< Free the buffer when you are done with it.
+DSL_API_CLASS string buffer_as_string(DSL_BUFFER * buf); ///< Gets the buffer as a string
 
 DSL_API void DSL_CC buffer_clear(DSL_BUFFER * buf); ///< Sets the buffer length to 0 and clears the data. It is still ready to be used unlike buffer_free.
 DSL_API void DSL_CC buffer_set(DSL_BUFFER * buf, const char * ptr, int64 len); ///< Sets the buffer to the specified data, discarding anything existing.

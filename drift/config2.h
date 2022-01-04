@@ -114,9 +114,11 @@ class DSL_API_CLASS Universal_Config2 {
 
 		ConfigSection * GetSection(ConfigSection * parent, const char * name);
 		ConfigValue GetSectionValue(ConfigSection * sec, const char * name);
+		bool GetSectionValue(ConfigSection * sec, const char * name, ConfigValue& value);
 		bool SectionHasValue(ConfigSection * sec, const char * name);
 		void SetSectionValue(ConfigSection * sec, const char * name, const ConfigValue& val);
 
+		/*
 		ConfigValue GetValue(const char * sec, const char * name);
 		string GetValueString(const char * sec, const char * name);
 		int64 GetValueInt(const char * sec, const char * name);
@@ -129,6 +131,7 @@ class DSL_API_CLASS Universal_Config2 {
 		void SetValueBool(const char * ssec, const char * name, bool lval);
 		void SetValueFloat(const char * sec, const char * name, double val);
 		void SetValueBinary(const char * sec, const char * name, const uint8_t * val, size_t len);
+		*/
 
 		// advanced commands
 		ConfigSection * FindOrAddSection(ConfigSection * parent, const char * name);

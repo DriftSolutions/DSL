@@ -234,7 +234,7 @@ bool DSL_CC hex2bin(const string str, vector<uint8_t>& bin) {
 void DSL_CC PrintData(FILE * fp, const uint8 * ptr, size_t len) {
 	unsigned int step = 0;
 	for (size_t beg = 0; beg < len; beg += 16) {
-		unsigned int tostep = ((len - beg) >= 16) ? 16 : (len - beg);
+		size_t tostep = ((len - beg) >= 16) ? 16 : (len - beg);
 
 		fprintf(fp, "%08xh: ", beg);
 
@@ -310,8 +310,8 @@ wchar_t * DSL_CC nopathW(wchar_t *fn) {
 }
 
 DSL_API char * DSL_CC strtrim(char *buf, const char * trim, uint8 sides) {
-	int32 i=0;
-	int32 len = strlen(trim);
+	size_t i=0;
+	size_t len = strlen(trim);
 	if (sides & TRIM_LEFT) {
 		size_t n = strspn(buf, trim);
 		if (n) {
@@ -638,7 +638,7 @@ int DSL_CC str_replaceW(wchar_t * Str, unsigned long BufSize, wchar_t *FindStr, 
 
 #if !defined(NO_CPLUSPLUS)
 string DSL_CC str_replaceA(string str, string FindStr, string ReplStr) {
-	int pos;
+	size_t pos;
 	while ((pos = str.find(FindStr)) != str.npos) {
 		str.replace(pos, FindStr.length(), ReplStr);
 	}
@@ -647,7 +647,7 @@ string DSL_CC str_replaceA(string str, string FindStr, string ReplStr) {
 
 #if !defined(FREEBSD)
 wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr) {
-	int pos;
+	size_t pos;
 	while ((pos = str.find(FindStr)) != str.npos) {
 		str.replace(pos, FindStr.length(), ReplStr);
 	}

@@ -1,0 +1,61 @@
+#pragma once
+
+enum DSD_TOKEN_ID {
+	DTI_NONE,
+	DTI_DEF,
+	DTI_OPTIONAL,
+	DTI_VECTOR,
+	DTI_OPEN_PAREN,
+	DTI_CLOSE_PAREN,
+	DTI_OPEN_BRACKET,
+	DTI_CLOSE_BRACKET,
+	DTI_EQUAL,
+	DTI_EOS,
+
+	DTI_NUMBER,
+	DTI_STRING,
+
+	DTI_TYPE_STRING,
+	DTI_TYPE_CHAR,
+	DTI_TYPE_BYTES,
+	DTI_TYPE_CUSTOM,
+	DTI_TYPE_UINT8,
+	DTI_TYPE_UINT16,
+	DTI_TYPE_UINT32,
+	DTI_TYPE_UINT64,
+	DTI_TYPE_INT8,
+	DTI_TYPE_INT16,
+	DTI_TYPE_INT32,
+	DTI_TYPE_INT64,
+
+	DTI_NUM_TOKENS,
+};
+
+struct DSD_TOKEN {
+	DSD_TOKEN_ID id;
+	const char * token;
+};
+
+const DSD_TOKEN dsd_tokens[] = {
+	{ DTI_DEF, "def" },
+	{ DTI_OPTIONAL, "optional" },
+	{ DTI_VECTOR, "vector" },
+	{ DTI_OPEN_PAREN, "{" },
+	{ DTI_CLOSE_PAREN, "}" },
+	{ DTI_OPEN_BRACKET, "[" },
+	{ DTI_CLOSE_BRACKET, "]" },
+	{ DTI_EQUAL, "=" },
+	{ DTI_EOS, ";" },
+	{ DTI_TYPE_STRING, "string" },
+	{ DTI_TYPE_CHAR, "char" },
+	{ DTI_TYPE_BYTES, "bytes" },
+	{ DTI_TYPE_UINT8, "uint8" },
+	{ DTI_TYPE_UINT16, "uint16" },
+	{ DTI_TYPE_UINT32, "uint32" },
+	{ DTI_TYPE_UINT64, "uint64" },
+	{ DTI_TYPE_INT8, "int8" },
+	{ DTI_TYPE_INT16, "int16" },
+	{ DTI_TYPE_INT32, "int32" },
+	{ DTI_TYPE_INT64, "int64" },
+	{ DTI_NONE, NULL }
+};

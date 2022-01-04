@@ -1,0 +1,22 @@
+
+def Test {
+	string str = 1;
+	uint8 u8 = 2;
+	uint16 u16 = 3;
+	uint32 i32 = 4;
+	uint64 i64 = 5;
+	char[256] bufx = 6;
+}
+
+def StringTest {
+	optional string str = 1;
+	bytes[512] bufx = 2;
+}
+
+def Test2 {
+	Test test = 5;
+	vector string strvec = 1;
+	vector uint8 u8vec = 2;
+	vector Test testvec = 3;
+	char[256] buxf = 4;
+}

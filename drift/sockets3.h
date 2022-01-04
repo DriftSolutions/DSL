@@ -67,7 +67,6 @@ enum DS3_SSL_METHOD {
 	DS3_SSL_METHOD_TLS1_1	= 2,
 	DS3_SSL_METHOD_TLS1_0	= 3,	///< this is the minimum you should use
 
-	DS3_SSL_METHOD_SSL3		= 4,	///< SSL v3 Only - DO NOT USE UNLESS YOU HAVE TO!!!
 #if !defined(NO_DTLS1)
 	DS3_SSL_METHOD_DTLS1	= 5,	///< Datagram TLS, consider this untested
 #endif

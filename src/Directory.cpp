@@ -51,7 +51,7 @@ bool Directory::Open(const char * dir) {
 //	if (mDir[strlen(mDir)-1] != PATH_SEP) { strcat(mDir, PATH_SEPS); }
 //	strcat(mDir,"*");
 
-	int bufSize = strlen(dir) + 16;
+	int bufSize = int(strlen(dir)) + 16;
 	wchar_t * wbuf = new wchar_t[bufSize];
 	int n = MultiByteToWideChar(CP_UTF8, 0, dir, -1, wbuf, bufSize);
 	if (n == 0) {

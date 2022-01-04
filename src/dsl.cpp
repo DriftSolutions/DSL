@@ -171,7 +171,18 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 #if !defined(WIN32)
 	size_t left = len;
 	uint8 *p = buf;
-#if defined(SYS_getrandom)
+#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 25))	
+	while (left > 0 && tries++ < 10) {
+		int grn = getrandom(p, left, GRND_NONBLOCK);
+		if (grn > 0) {
+			left -= grn;
+			p += grn;
+		} else {
+			tries++;
+		}
+	}
+	tries = 0;
+#elif defined(SYS_getrandom)
 	while (left > 0 && tries++ < 10) {
 		int grn = syscall(SYS_getrandom, p, left, GRND_NONBLOCK);
 		if (grn > 0) {
