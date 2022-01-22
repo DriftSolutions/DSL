@@ -23,9 +23,7 @@ int main(int argc, char * argv[]) {
 	DSL_Sockets3_OpenSSL * socks = new DSL_Sockets3_OpenSSL();
 	DSL_Sockets3_GnuTLS * socks2 = new DSL_Sockets3_GnuTLS();
 	DS_Hash hash;
-
-	dsl_get_hash_providers(p);
-	printf("Num hash providers: %zu\n", p.size());
+	hash.SetNull();
 
 	char buf[256], buf2[256];
 	string str = "Jen Towns is #1";
@@ -35,12 +33,17 @@ int main(int argc, char * argv[]) {
 	hashtests["sha256"] = "d4abc4d6b461a88d41603c634933f513045e2533b544c67f03d5b56a3d6e93c6";
 	hashtests["sha1"] = "426cddde1d3699bfae66c0b3a37ef78fafb21e8f";
 	hashtests["md5"] = "f8aa86a89d24c64f390fcd7a28f0eca8";
-	hashtests["blake2b"] = "d4abc4d6b461a88d41603c634933f513045e2533b544c67f03d5b56a3d6e93c6";
+	hashtests["blake2s256"] = "7551e904b28ee6f4be76d0b7d6d5d7edef312c46dcf07f0a2c9ed25bd9628b61";
+	hashtests["blake2b256"] = "457814f56ef15896dc58495609f747e7836229bc71136e92fe9fbc8c59aa142a";
+	hashtests["blake2b512"] = "636c594c418aba70c1bb4680e7ebf56b5de33048694372afeae9fe1d3fce123b185a2ad68ad8526c72a4c6298deb4bf8fc1a13e295a67a85314fe1d7f107c923";
 
+	dsl_get_hash_providers(p);
+	printf("Num hash providers: %zu\n", p.size());
 	for (auto e = p.begin(); e != p.end(); e++) {
 		printf("Testing provider %s\n", (*e)->name);
 		for (auto x = hashtests.begin(); x != hashtests.end(); x++) {
 			memset(buf, 0, sizeof(buf));
+			//printf("Attempting init of %s\n", x->first.c_str());
 			HASH_CTX * ptr = (*e)->hash_init(x->first.c_str());
 			if (ptr != NULL) {
 				(*e)->hash_update(ptr, (const uint8_t *)str.c_str(), str.length());

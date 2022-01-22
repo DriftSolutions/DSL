@@ -1,6 +1,3 @@
-#ifndef DSL_STATIC
-#define DSL_STATIC
-#endif
 #include <drift/dsl.h>
 #include "tokens.h"
 
@@ -122,11 +119,11 @@ public:
 	void Reset() {
 		id = 0;
 		name = "";
-		custom_type = "";
 		type = DTI_NONE;
 		optional = false;
 		vector = false;
 		size = 0;
+		custom_type = "";
 	}
 
 	bool IsValid() {
@@ -199,6 +196,7 @@ int main(int argc, const char * argv[]) {
 	fn_cpp += ".cpp";
 	string fn_h = fntmp;
 	fn_h += ".h";
+	free(fntmp);
 	printf("DSD File: %s\n", fn.c_str());
 	printf("CPP Ouput: %s\n", fn_cpp.c_str());
 	printf("Header Ouput: %s\n", fn_h.c_str());
@@ -358,7 +356,7 @@ int main(int argc, const char * argv[]) {
 	output_header(fp);
 	fprintf(fp, "#ifndef __DSL_SERIALIZE_H__\n#include <drift/dslcore.h>\n#include <drift/serialize.h>\n#endif\n\n");
 	for (auto x : definitions) {
-		fprintf(fp, "class %s : public DSL_Serializable {\n", x.name.c_str());
+		fprintf(fp, "class %s : public DSL_Serializable_DSD {\n", x.name.c_str());
 		fprintf(fp, "public:\n");
 		for (auto v : x.variables) {
 			if (v.type == DTI_TYPE_STRING) {
@@ -412,11 +410,15 @@ int main(int argc, const char * argv[]) {
 	output_header(fp);
 	fprintf(fp, "#include \"%s\"\n\n", nopath(fn_h.c_str()));
 	for (auto x : definitions) {
-		fprintf(fp, "bool %s::Serialize(DSL_BUFFER * buf, bool deserialize) {\n", x.name.c_str());
+		fprintf(fp, "bool %s::Serialize(DSL_BUFFER * serbuf, bool deserialize) {\n", x.name.c_str());
 		fprintf(fp, "\tuint8 id;\n");
-		fprintf(fp, "\tif (deserialize) {\n");
-		fprintf(fp, "\t\twhile (buf->len > 0) {\n");
-		fprintf(fp, "\t\t\tser(&id);\n");
+		fprintf(fp, "\tif (deserialize) {\n");		
+		fprintf(fp, "\t\tDSL_BUFFER * buf = serbuf;\n");
+		fprintf(fp, "\t\tuint32 len;\n");
+		fprintf(fp, "\t\twhile (buf->len > 1) {\n");
+		fprintf(fp, "\t\t\tid = buf->udata[0];\n");
+		fprintf(fp, "\t\t\tbuffer_remove_front(buf, 1);\n");
+		fprintf(fp, "\t\t\tser(&len);\n");
 		fprintf(fp, "\t\t\tif (id == 0) { break; }\n");
 		for (auto v : x.variables) {
 			if (v.type == DTI_TYPE_STRING) {
@@ -453,44 +455,56 @@ int main(int argc, const char * argv[]) {
 				printf("Internal error: we don't know how to handle variable %s :(\n", v.name.c_str());
 			}
 		}
+		fprintf(fp, "\t\t\telse {\n");
+		fprintf(fp, "\t\t\t\tbuffer_remove_front(buf, len);\n");//skip this entry, we it's from a newer version of the definition we don't know about
+		fprintf(fp, "\t\t\t}\n");
 		fprintf(fp, "\t\t}\n");
+		fprintf(fp, "\t\treturn true;\n");
+
 		fprintf(fp, "\t} else {\n");
+
+		fprintf(fp, "\t\tDSL_BUFFER * buf = dsl_new(DSL_BUFFER);\n");
+		fprintf(fp, "\t\tbuffer_init(buf);\n");
 		for (auto v : x.variables) {
 			if (v.type == DTI_TYPE_STRING) {
 				if (v.vector) {
-					fprintf(fp, "\t\tif (%s.size()) { id = %u; ser(&id); servstr(%s); }\n", v.name.c_str(), v.id, v.name.c_str());
+					fprintf(fp, "\t\tif (%s.size()) { servstr(%s); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), v.id);
 				} else {
-					fprintf(fp, "\t\tif (%s.length()) { id = %u; ser(&id); ser(&%s); }\n", v.name.c_str(), v.id, v.name.c_str());
+					fprintf(fp, "\t\tif (%s.length()) { ser(&%s); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), v.id);
 				}
 			} else if (v.type == DTI_TYPE_CHAR) {
-				fprintf(fp, "\t\tif (strlen(%s)) { id = %u; ser(&id); ser2(%s, strlen(%s)); }\n", v.name.c_str(), v.id, v.name.c_str(), v.name.c_str());
+				fprintf(fp, "\t\tif (strlen(%s)) { ser2(%s, strlen(%s)); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), v.name.c_str(), v.id);
 			} else if (v.type == DTI_TYPE_BYTES) {
-				fprintf(fp, "\t\tid = %u; ser(&id); ser2(%s, sizeof(%s));\n", v.id, v.name.c_str(), v.name.c_str());
+				fprintf(fp, "\t\tser2(%s, sizeof(%s)); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf);\n", v.name.c_str(), v.name.c_str(), v.id);
 			} else if (IsNumericType(v.type) && v.type >= DTI_TYPE_INT8) {
 				int size = 8 * (1 << (v.type - DTI_TYPE_INT8));
 				if (v.vector) {
-					fprintf(fp, "\t\tif (%s.size()) { id = %u; ser(&id); serv(%s, int%d); }\n", v.name.c_str(), v.id, v.name.c_str(), size);
+					fprintf(fp, "\t\tif (%s.size()) { serv(%s, int%d); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), size, v.id);
 				} else {
-					fprintf(fp, "\t\tif (%s) { id = %u; ser(&id); ser(&%s); }\n", v.name.c_str(), v.id, v.name.c_str());
+					fprintf(fp, "\t\tif (%s) { ser(&%s); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), v.id);
 				}
 			} else if (IsNumericType(v.type)) {
 				int size = 8 * (1 << (v.type - DTI_TYPE_UINT8));
 				if (v.vector) {
-					fprintf(fp, "\t\tif (%s.size()) { id = %u; ser(&id); serv(%s, uint%d); }\n", v.name.c_str(), v.id, v.name.c_str(), size);
+					fprintf(fp, "\t\tif (%s.size()) { serv(%s, uint%d); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), size, v.id);
 				} else {
-					fprintf(fp, "\t\tif (%s) { id = %u; ser(&id); ser(&%s); }\n", v.name.c_str(), v.id, v.name.c_str());
+					fprintf(fp, "\t\tif (%s) { ser(&%s); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.name.c_str(), v.id);
 				}
 			} else if (v.type == DTI_TYPE_CUSTOM) {
 				if (v.vector) {
-					fprintf(fp, "\t\tid = %u; ser(&id); serv2(%s, %s);\n", v.id, v.name.c_str(), v.custom_type.c_str());
+					fprintf(fp, "\t\tserv2(%s, %s); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf);\n", v.name.c_str(), v.custom_type.c_str(), v.id);
 				} else {
-					fprintf(fp, "\t\tid = %u; ser(&id); { string tmp = %s.GetSerialized(); ser(&tmp); }\n", v.id, v.name.c_str());
+					fprintf(fp, "\t\t{ string tmp = %s.GetSerialized(); ser(&tmp); dsd_entries[%u] = buffer_as_string(buf); buffer_clear(buf); }\n", v.name.c_str(), v.id);
 				}
 			} else {
 				printf("Internal error: we don't know how to handle variable %s :(\n", v.name.c_str());
 			}
 		}
-		fprintf(fp, "\t\tid = 0; ser(&id);\n");
+		fprintf(fp, "\t\tbuffer_free(buf);\n");
+		fprintf(fp, "\t\tdsl_free(buf);\n");
+		fprintf(fp, "\t\tbool ret = serializeEntries(serbuf);\n");
+		fprintf(fp, "\t\tdsd_entries.clear();\n");
+		fprintf(fp, "\t\treturn ret;\n");
 		fprintf(fp, "\t}\n");
 		fprintf(fp, "}\n");
 		fprintf(fp, "\n");

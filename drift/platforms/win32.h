@@ -206,7 +206,11 @@ typedef struct sockaddr_un
 #endif
 
 #if defined(ENABLE_SODIUM)
-	#pragma comment(lib, "libsodium.lib")
+	#if defined(DEBUG)
+		#pragma comment(lib, "libsodium_d.lib")
+	#else
+		#pragma comment(lib, "libsodium.lib")
+	#endif
 #endif
 
 //platform/cpu defines

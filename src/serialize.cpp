@@ -121,6 +121,20 @@ bool DSL_Serializable::FromCompressed(const string& str) {
 
 #endif
 
+bool DSL_Serializable_DSD::serializeEntries(DSL_BUFFER * buf) {
+	uint32 len;
+	for (auto& x : dsd_entries) {
+		buffer_append_int<uint8>(buf, x.first);
+#if SIZE_MAX > UINT32_MAX
+		if (x.second.length() > UINT32_MAX) { return false; }
+#endif
+		len = x.second.length();
+		if (!serialize_var(buf, &len, false)) { return false; }
+		if (!buffer_append(buf, x.second.c_str(), x.second.length())) { return false; }
+	}
+	return true;
+}
+
 struct DSL_SERIALIZE_INTINMEM {
 	union {
 		uint8_t u8;

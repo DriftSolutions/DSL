@@ -90,7 +90,7 @@ class DSL_API_CLASS Universal_Config2 {
 		//ConfigSection *LastScan[20];
 
 		void FreeSection(ConfigSection * Scan);
-		void WriteSection(FILE * fp, ConfigSection * sec, int level);
+		void WriteSection(stringstream& sstr, ConfigSection * sec, int level);
 		void WriteBinarySection(FILE * fp, ConfigSection * sec);
 		void PrintSection(ConfigSection * Scan, int level);
 		bool IsBool(const char * buf, bool * val = NULL);
@@ -105,10 +105,12 @@ class DSL_API_CLASS Universal_Config2 {
 		Universal_Config2();
 		~Universal_Config2();
 
-		bool LoadConfig(const char * filename, ConfigSection * Scan=NULL);
-		bool LoadConfig(FILE * fp, const char * filename, ConfigSection * Scan=NULL);
-		bool WriteConfig(const char * filename, ConfigSection * Start=NULL, bool Single=false);
-		bool WriteConfig(FILE * fp, ConfigSection * Start=NULL, bool Single=false);
+		bool LoadConfigFromString(const string config, const char * filename, ConfigSection * Scan = NULL);
+		bool LoadConfigFromFile(const char * filename, ConfigSection * Scan=NULL);
+		bool LoadConfigFromFile(FILE * fp, const char * filename, ConfigSection * Scan=NULL);
+		bool WriteConfigToString(string& str, ConfigSection * Start = NULL, bool Single = false);
+		bool WriteConfigToFile(const char * filename, ConfigSection * Start=NULL, bool Single=false);
+		bool WriteConfigToFile(FILE * fp, ConfigSection * Start=NULL, bool Single=false);
 
 		void FreeConfig();
 
@@ -117,21 +119,6 @@ class DSL_API_CLASS Universal_Config2 {
 		bool GetSectionValue(ConfigSection * sec, const char * name, ConfigValue& value);
 		bool SectionHasValue(ConfigSection * sec, const char * name);
 		void SetSectionValue(ConfigSection * sec, const char * name, const ConfigValue& val);
-
-		/*
-		ConfigValue GetValue(const char * sec, const char * name);
-		string GetValueString(const char * sec, const char * name);
-		int64 GetValueInt(const char * sec, const char * name);
-		bool GetValueBool(const char * sec, const char * name);
-		double GetValueFloat(const char * sec, const char * name);
-
-		void SetValue(const char * sec, const char * name, const ConfigValue& val);
-		void SetValueString(const char * sec, const char * name, const char * val);
-		void SetValueInt(const char * sec, const char * name, int64 val);
-		void SetValueBool(const char * ssec, const char * name, bool lval);
-		void SetValueFloat(const char * sec, const char * name, double val);
-		void SetValueBinary(const char * sec, const char * name, const uint8_t * val, size_t len);
-		*/
 
 		// advanced commands
 		ConfigSection * FindOrAddSection(ConfigSection * parent, const char * name);

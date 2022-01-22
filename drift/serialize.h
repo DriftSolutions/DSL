@@ -92,7 +92,7 @@ protected:
 				vec.push_back(tmp);
 			}
 		} else {
-			uint32 num = vec.size();
+			uint32 num = (uint32)vec.size();
 			ser(&num);
 			for (auto x = vec.begin(); x != vec.end(); x++) {
 				ser(&(*x));
@@ -115,6 +115,14 @@ public:
 	bool GetCompressed(DSL_BUFFER * buf, int compression_level = 5);
 	bool FromCompressed(DSL_BUFFER * buf);
 #endif
+};
+
+class DSL_API_CLASS DSL_Serializable_DSD : public DSL_Serializable {
+protected:
+	map<uint8, string> dsd_entries;
+	bool serializeEntries(DSL_BUFFER * buf);
+public:
+	virtual bool Serialize(DSL_BUFFER * buf, bool deserialize) = 0;
 };
 
 DSL_API bool DSL_CC dsl_serialize_int(DSL_BUFFER * buf, const void * pVal, size_t lSize);

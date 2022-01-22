@@ -15,29 +15,37 @@
 #include <drift/hmac.h>
 
 extern DSL_Mutex * dslMutex();
-vector<const HMAC_PROVIDER *> hmac_providers;
+
+typedef vector<const HMAC_PROVIDER*> hmacProviderList;
+hmacProviderList* dslHMACProviders() {
+	AutoMutexPtr(dslMutex());
+	static hmacProviderList hmac_providers;
+	return &hmac_providers;
+}
+
 void DSL_CC dsl_add_hmac_provider(const HMAC_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
-	hmac_providers.push_back(p);
+	dslHMACProviders()->push_back(p);
 }
 void DSL_CC dsl_remove_hmac_provider(const HMAC_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
-	for (auto x = hmac_providers.begin(); x != hmac_providers.end(); x++) {
+	hmacProviderList* hmac_providers = dslHMACProviders();
+	for (auto x = hmac_providers->begin(); x != hmac_providers->end(); x++) {
 		if (*x == p) {
-			hmac_providers.erase(x);
+			hmac_providers->erase(x);
 			break;
 		}
 	}
 }
 void DSL_CC dsl_get_hmac_providers(vector<const HMAC_PROVIDER *>& p) {
 	AutoMutexPtr(dslMutex());
-	p = hmac_providers;
+	p = *dslHMACProviders();
 }
 
 
 HASH_HMAC_CTX * DSL_CC hmac_init(const char * name, const uint8 *key, size_t length) {
-	//AutoMutexPtr(dslMutex());
-	for (auto x = hmac_providers.begin(); x != hmac_providers.end(); x++) {
+	hmacProviderList* hmac_providers = dslHMACProviders();
+	for (auto x = hmac_providers->begin(); x != hmac_providers->end(); x++) {
 		HASH_HMAC_CTX * ret = (*x)->hmac_init(name, key, length);
 		if (ret != NULL) {
 			ret->provider = *x;
@@ -136,7 +144,7 @@ DSL_API bool DSL_CC hmacfile_rw(const char * name, const uint8 *key, size_t keyl
 		}
 	}
 
-	int size = ctx->hashSize;
+	size_t size = ctx->hashSize;
 	unsigned char * hashtmp = (unsigned char *)dsl_malloc(ctx->hashSize);
 	bool ret2 = hmac_finish(ctx, hashtmp, size);
 	if (ret2) {

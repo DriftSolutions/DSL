@@ -1,5 +1,5 @@
 set MTYPE=NMake Makefiles JOM
-set MBUILD=jom -j 32
+set MBUILD=jom -j 128
 REM set MTYPE=NMake Makefiles
 REM set MBUILD=nmake
 

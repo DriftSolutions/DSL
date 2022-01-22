@@ -173,31 +173,47 @@ void Universal_Config2::PushScan(ConfigSection * section) {
 	scanStack.push_back(section);
 }
 
-bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * Scan) {
-	if (!fp) { return false; }
+/*
+bool LoadConfigFromString(const string config, ConfigSection * Scan = NULL);
+bool LoadConfigFromFile(const char * filename, ConfigSection * Scan = NULL);
+bool WriteConfigToString(string& str, ConfigSection * Start = NULL, bool Single = false);
+bool WriteConfigToFile(const char * filename, ConfigSection * Start = NULL, bool Single = false);
+bool WriteConfigToFile(FILE * fp, ConfigSection * Start = NULL, bool Single = false);
+*/
 
+bool Universal_Config2::LoadConfigFromString(const string config, const char * fn, ConfigSection * Scan) {
 	char buf[256];
-	//char * p=NULL;
-
-	int line=0;
-	bool long_comment=false;
-
+	int line = 0;
+	bool long_comment = false;
 	memset(buf, 0, sizeof(buf));
+	StrTokenizer st((char *)config.c_str(), '\n', true);
 
-	while (fgets(buf,sizeof(buf),fp)) {
-		line++;
-		strtrim(buf," \t\r\n "); // first, trim the string of unwanted chars
+	for (int line=1; line <= st.NumTok(); line++) {
+		sstrcpy(buf, st.stdGetSingleTok(line).c_str());
+		strtrim(buf, " \t\r\n "); // first, trim the string of unwanted chars
 		if (strlen(buf) < 2) {
 			// the minimum meaningful line would be 2 chars long, specifically };
 			continue;
 		}
 
-		str_replaceA(buf,sizeof(buf),"\t"," "); // turn tabs into spaces
+		str_replaceA(buf, sizeof(buf), "\t", " "); // turn tabs into spaces
 		while (strstr(buf, "  ")) {
-			str_replaceA(buf,sizeof(buf),"  "," "); // turn double-spaces into spaces
+			str_replaceA(buf, sizeof(buf), "  ", " "); // turn double-spaces into spaces
 		}
 
-//		printf("line: %s\n",buf);
+		//		printf("line: %s\n",buf);
+
+		if (long_comment) {
+			if (!strcmp(buf, "*/")) {
+				long_comment = false;
+			}
+			continue;
+		}
+
+		if (!strncmp(buf, "/*", 2)) {
+			long_comment = true;
+			continue;
+		}
 
 		if (stristr(buf, "#include")) {
 			char * p = stristr(buf, "#include");
@@ -206,8 +222,8 @@ bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * S
 				p++;
 				char *q = strchr(p, '\"');
 				if (q) {
-					q[0]=0;
-					if (LoadConfig(p, Scan)) {
+					q[0] = 0;
+					if (LoadConfigFromFile(p, Scan)) {
 						Scan = PopScan();
 					} else {
 						printf("ERROR: Error loading #included file '%s'\n", p);
@@ -224,31 +240,19 @@ bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * S
 			continue;
 		}
 
-		if (buf[0] == '#' || !strncmp(buf,"//",2)) {
+		if (buf[0] == '#' || !strncmp(buf, "//", 2)) {
 			continue;
 		}
 
-		if (!strncmp(buf,"/*",2)) {
-			long_comment = true;
-			continue;
-		}
-
-		if (long_comment) {
-			if (!strcmp(buf,"*/")) {
-				long_comment = false;
-			}
-			continue;
-		}
-
-		char *p = (char *)&buf+(strlen(buf) - 2); // will be " {" if beginning a section
-		if (!strcmp(p," {")) { // open a new section
-			p[0]=0;
+		char *p = (char *)&buf + (strlen(buf) - 2); // will be " {" if beginning a section
+		if (!strcmp(p, " {")) { // open a new section
+			p[0] = 0;
 			PushScan(Scan);
-			Scan = FindOrAddSection(Scan,buf);
+			Scan = FindOrAddSection(Scan, buf);
 			continue;
 		}
 
-		if (!strcmp(buf,"};")) { // close section
+		if (!strcmp(buf, "};")) { // close section
 			if (Scan != NULL) {
 				Scan = PopScan();
 			} else {
@@ -258,13 +262,13 @@ bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * S
 			continue;
 		}
 
-		StrTokenizer * tok = new StrTokenizer(buf,' ');
-		unsigned long num = tok->NumTok();
+		StrTokenizer tok(buf, ' ');
+		unsigned long num = tok.NumTok();
 		bool tmpbool = false;
 		if (num > 1) {
 			ConfigValue sVal;
-			char * name = tok->GetSingleTok(1);
-			char * value = tok->GetTok(2, num);
+			char * name = tok.GetSingleTok(1);
+			char * value = tok.GetTok(2, num);
 			if (IsFloat(value)) { // number
 				sVal.SetValue(atof(value));
 			} else if (IsBool(value, &tmpbool)) { // bool
@@ -277,14 +281,12 @@ bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * S
 			if (Scan) {
 				SetSectionValue(Scan, name, sVal);
 			}
-			tok->FreeString(name);
-			tok->FreeString(value);
-			delete tok;
+			tok.FreeString(name);
+			tok.FreeString(value);
 			continue;
 		}
-		delete tok;
 
-		printf("Unrecognized line at %s:%d -> %s\n",fn,line,buf);
+		printf("Unrecognized line at %s:%d -> %s\n", fn, line, buf);
 		// some unknown line here
 	}
 
@@ -292,44 +294,62 @@ bool Universal_Config2::LoadConfig(FILE * fp, const char * fn, ConfigSection * S
 	return true;
 }
 
-bool Universal_Config2::LoadConfig(const char * filename, ConfigSection * Scan) {
+
+bool Universal_Config2::LoadConfigFromFile(FILE * fp, const char * fn, ConfigSection * Scan) {
+	if (!fp) { return false; }
+
+	fseek64(fp, 0, SEEK_END);
+	int64 len = ftell64(fp);
+	if (len <= 0) { return false; }
+	fseek64(fp, 0, SEEK_SET);
+
+	bool ret = false;
+	char * tmp = (char *)dsl_malloc(len + 1);
+	if (fread(tmp, len, 1, fp) == 1) {
+		ret = LoadConfigFromString(tmp, fn, Scan);
+	}
+	dsl_free(tmp);
+	return ret;
+}
+
+bool Universal_Config2::LoadConfigFromFile(const char * filename, ConfigSection * Scan) {
 	FILE * fp = fopen(filename, "rb");
 	if (!fp) { return false; }
-	bool ret = LoadConfig(fp, filename, Scan);
+	bool ret = LoadConfigFromFile(fp, filename, Scan);
 	fclose(fp);
 	return ret;
 }
 
-void Universal_Config2::WriteSection(FILE * fp, ConfigSection * sec, int level) {
+void Universal_Config2::WriteSection(stringstream& sstr, ConfigSection * sec, int level) {
 	char * pref = (char *)dsl_malloc(level+1);
 	for(int i=0; i<level; i++) { pref[i] = '\t'; }
 	pref[level]=0;
 
 	char buf[1024];
-	sprintf(buf,"%s%s {\n",pref,sec->name);
-	fwrite(buf,strlen(buf),1,fp);
+	sprintf(buf,"%s%s {\n", pref, sec->name);
+	sstr << buf;
 
 	for (ConfigSection::sectionList::iterator x = sec->sections.begin(); x != sec->sections.end(); x++) {
-		WriteSection(fp,&x->second,level+1);
+		WriteSection(sstr, &x->second, level+1);
 	}
 
 	for (ConfigSection::valueList::iterator x = sec->values.begin(); x != sec->values.end(); x++) {
 		switch (x->second.Type) {
 			case DS_TYPE_INT:
 				sprintf(buf,"\t%s%s " I64FMT "\n",pref,x->first.c_str(),x->second.Int);
-				fwrite(buf,strlen(buf),1,fp);
+				sstr << buf;
 				break;
 			case DS_TYPE_STRING:
 				sprintf(buf,"\t%s%s %s\n",pref,x->first.c_str(),x->second.sString.c_str());
-				fwrite(buf,strlen(buf),1,fp);
+				sstr << buf;
 				break;
 			case DS_TYPE_FLOAT:
 				sprintf(buf,"\t%s%s %f\n",pref,x->first.c_str(),x->second.Float);
-				fwrite(buf,strlen(buf),1,fp);
+				sstr << buf;
 				break;
 			case DS_TYPE_BOOL:
 				sprintf(buf,"\t%s%s %s\n",pref,x->first.c_str(),(x->second.Int > 0) ? "true" : "false");
-				fwrite(buf,strlen(buf),1,fp);
+				sstr << buf;
 				break;
 			default:
 				break;
@@ -337,30 +357,41 @@ void Universal_Config2::WriteSection(FILE * fp, ConfigSection * sec, int level) 
 	};
 
 	sprintf(buf,"%s};\n",pref);
-	fwrite(buf,strlen(buf),1,fp);
+	sstr << buf;
 	dsl_free(pref);
 }
 
-bool Universal_Config2::WriteConfig(const char * filename, ConfigSection * Start, bool Single) {
+bool Universal_Config2::WriteConfigToFile(const char * filename, ConfigSection * Start, bool Single) {
 	FILE * fp = fopen(filename,"wb");
 	if (!fp) { return false; }
-	bool ret = WriteConfig(fp, Start, Single);
+	bool ret = WriteConfigToFile(fp, Start, Single);
 	fclose(fp);
 	return ret;
 }
 
-bool Universal_Config2::WriteConfig(FILE * fp, ConfigSection * Start, bool Single) {
+bool Universal_Config2::WriteConfigToFile(FILE * fp, ConfigSection * Start, bool Single) {
+	if (!fp) { return false; }
+	string str;
+	if (WriteConfigToString(str, Start, Single) && fwrite(str.c_str(), str.length(), 1, fp) == 1) {
+		return true;
+	}
+	return false;
+}
+
+bool Universal_Config2::WriteConfigToString(string& str, ConfigSection * Start, bool Single) {
+	stringstream sstr;
 	if (Start == NULL) {
 		for (ConfigSection::sectionList::iterator x = sections.begin(); x != sections.end(); x++) {
-			WriteSection(fp,&x->second,0);
-			fwrite("\n",1,1,fp);
+			WriteSection(sstr, &x->second, 0);
+			sstr << "\n";
 			if (Single) {
 				break;
 			}
 		}
 	} else {
-		WriteSection(fp,Start,0);
+		WriteSection(sstr, Start, 0);
 	}
+	str = sstr.str();
 	return true;
 }
 

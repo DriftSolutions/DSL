@@ -13,32 +13,43 @@
 #include <drift/hash.h>
 #include <drift/Mutex.h>
 
-vector<const HASH_PROVIDER *> hash_providers { &dsl_native_hashers };
+typedef vector<const HASH_PROVIDER*> hashProviderList;
+hashProviderList * dslHashProviders() {
+	AutoMutexPtr(dslMutex());
+	static hashProviderList hash_providers { &dsl_native_hashers };
+	return &hash_providers;
+}
 
 extern DSL_Mutex * dslMutex();
 void DSL_CC dsl_add_hash_provider(const HASH_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
-	//hash_providers.push_back(p);
+	//dslHashProviders()->push_back(p);
 	/* 3rd party providers will probably be more optimized than our generic native ones, so put them 1st */
-	hash_providers.insert(hash_providers.begin(), p);
+	hashProviderList* hash_providers = dslHashProviders();
+	hash_providers->insert(hash_providers->begin(), p);
 }
 void DSL_CC dsl_remove_hash_provider(const HASH_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
-	for (auto x = hash_providers.begin(); x != hash_providers.end(); x++) {
+	hashProviderList * hash_providers = dslHashProviders();
+	for (auto x = hash_providers->begin(); x != hash_providers->end(); x++) {
 		if (*x == p) {
-			hash_providers.erase(x);
+			hash_providers->erase(x);
+#ifdef DEBUG
+			printf("Removed hash provider %s -> %zu\n", p->name, hash_providers->size());
+#endif
 			break;
 		}
 	}
 }
 void DSL_CC dsl_get_hash_providers(vector<const HASH_PROVIDER *>& p) {
 	AutoMutexPtr(dslMutex());
-	p = hash_providers;
+	p = *dslHashProviders();
 }
 
 HASH_CTX * DSL_CC hash_init(const char * name) {
 	//AutoMutexPtr(dslMutex());
-	for (auto x = hash_providers.begin(); x != hash_providers.end(); x++) {
+	hashProviderList* hash_providers = dslHashProviders();
+	for (auto x = hash_providers->begin(); x != hash_providers->end(); x++) {
 		HASH_CTX * ret = (*x)->hash_init(name);
 		if (ret != NULL) {
 			ret->provider = *x;
@@ -140,7 +151,7 @@ DSL_API bool DSL_CC hashfile_rw(const char * name, DSL_FILE * fp, char * out, si
 	while (left) {
 		int64 toRead = (left >= sizeof(buf)) ? sizeof(buf):left;
 		if (fp->read(buf, toRead, fp) == toRead) {
-			hash_update(ctx,(uint8 *)&buf,toRead);
+			hash_update(ctx,(uint8 *)&buf, (size_t)toRead);
 			left -= toRead;
 		} else {
 			ret = false;

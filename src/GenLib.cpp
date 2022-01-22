@@ -236,7 +236,7 @@ void DSL_CC PrintData(FILE * fp, const uint8 * ptr, size_t len) {
 	for (size_t beg = 0; beg < len; beg += 16) {
 		size_t tostep = ((len - beg) >= 16) ? 16 : (len - beg);
 
-		fprintf(fp, "%08xh: ", beg);
+		fprintf(fp, "%08zxh: ", beg);
 
 		for (step = 0; step < tostep; step++) {
 			fprintf(fp, "%02X ", ptr[beg + step] & 0xFF);
@@ -592,7 +592,7 @@ char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize) {
 	return out;
 }
 
-int DSL_CC str_replaceA(char *Str, unsigned long BufSize, const char *FindStr, const char *ReplStr) {
+int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr) {
 	char *p = NULL;
 	int ret = 0;
 	size_t OldLen = strlen(FindStr);
@@ -612,7 +612,7 @@ int DSL_CC str_replaceA(char *Str, unsigned long BufSize, const char *FindStr, c
 }
 
 #if !defined(FREEBSD)
-int DSL_CC str_replaceW(wchar_t * Str, unsigned long BufSize, wchar_t *FindStr, wchar_t *ReplStr) {
+int DSL_CC str_replaceW(wchar_t * Str, size_t BufSize, wchar_t *FindStr, wchar_t *ReplStr) {
 	wchar_t * p, *End, *Begin;
 	size_t len=0;
 	wchar_t fmt[32];
@@ -626,7 +626,7 @@ int DSL_CC str_replaceW(wchar_t * Str, unsigned long BufSize, wchar_t *FindStr, 
 		End = dsl_wcsdup(p+OldLen);
 		Begin = dsl_wcsdup(Str);
 		len = p - Str;
-		snwprintf(fmt, 32, L"%%.%ds%%s%%s", len);
+		snwprintf(fmt, 32, L"%%.%zus%%s%%s", len);
 		snwprintf(Str, BufSize, fmt, Begin, ReplStr, End);
 		dsl_free(End);
 		dsl_free(Begin);

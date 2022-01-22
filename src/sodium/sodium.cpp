@@ -13,14 +13,16 @@
 #include <drift/sodium.h>
 
 HASH_CTX * dsl_sodium_hash_init(const char * name) {
-	if (stricmp(name, "blake2b")) { return NULL; }
+	bool is256 = (stricmp(name, "blake2b") == 0 || stricmp(name, "blake2b-256") == 0 || stricmp(name, "blake2b256") == 0);
+	bool is512 = (stricmp(name, "blake2b-512") == 0 || stricmp(name, "blake2b512") == 0);
+	if (!is256 && !is512) { return NULL; }
 	crypto_generichash_state * ctx = (crypto_generichash_state *)sodium_malloc(crypto_generichash_statebytes());
 	if (ctx == NULL) { return NULL; }
-	crypto_generichash_init(ctx, NULL, 0, crypto_generichash_BYTES);
+	crypto_generichash_init(ctx, NULL, 0, is512 ? 64 : 32);
 	HASH_CTX * ret = dsl_new(HASH_CTX);
 	memset(ret, 0, sizeof(HASH_CTX));
 	ret->pptr1 = (void *)ctx;
-	ret->hashSize = crypto_generichash_BYTES;
+	ret->hashSize = is512 ? 64 : 32;
 	ret->blockSize = 1;
 	return ret;
 }
@@ -33,7 +35,7 @@ void dsl_sodium_hash_update(HASH_CTX *ctx, const uint8 *data, size_t len) {
 bool dsl_sodium_hash_finish(HASH_CTX *ctx, uint8 * out, size_t outlen) {
 	crypto_generichash_state * pctx = (crypto_generichash_state *)ctx->pptr1;
 
-	crypto_generichash_final(pctx, out, outlen);
+	crypto_generichash_final(pctx, out, min(ctx->hashSize, outlen));
 
 	sodium_free(pctx);
 	dsl_free(ctx);
