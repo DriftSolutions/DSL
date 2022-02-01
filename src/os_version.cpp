@@ -66,9 +66,11 @@ bool DSL_CC Is64Bit() {
 #endif
 }
 
+#ifdef DSL_HAVE_CPUID
 DSL_API void DSL_CC linux_cpuid(int cpuInfo[4], int function_id) {
 	__cpuid(function_id, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
 }
+#endif
 
 #endif
 
