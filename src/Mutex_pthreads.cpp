@@ -63,7 +63,7 @@ bool DSL_Mutex_pthreads::Lock(int timeo) {
 			abs_time.tv_nsec -= 1000000000LL;
 		}
 		if (abs_time.tv_nsec < 0) {
-			printf("Timed mutex lock nsec < 0! (%p, %p, %llu, %llu)\n", this, &hMutex, abs_time.tv_secm abs_time.tv_nsec);
+			printf("Timed mutex lock nsec < 0! (%p, %p, %llu, %llu)\n", this, &hMutex, abs_time.tv_sec, abs_time.tv_nsec);
 			abs_time.tv_nsec = 0;
 		}
 		int n = pthread_mutex_timedlock(&hMutex, &abs_time);
