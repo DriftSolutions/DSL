@@ -54,42 +54,44 @@ bool DSL_Mutex_pthreads::Lock(int timeo) {
 	int64 timeout = timeo;
 	struct timespec abs_time;
 	memset(&abs_time, 0, sizeof(abs_time));
-	clock_gettime(CLOCK_REALTIME, &abs_time);
-	abs_time.tv_sec += (timeout / 1000);
-	timeout -= (timeout / 1000);
-	abs_time.tv_nsec += timeout * 1000000;
-	while (abs_time.tv_nsec >= 1000000000) {
-		abs_time.tv_sec++;
-		abs_time.tv_nsec -= 1000000000;
-	}
-	if (abs_time.tv_nsec < 0) {
-		printf("Timed mutex lock nsec < 0! (%p, %p)\n", this, &hMutex);
-		abs_time.tv_nsec = 0;
-	}
-	int n = pthread_mutex_timedlock(&hMutex, &abs_time);
-	if (n != 0) {
-		if (timeout > 1000) {
-			printf("Error locking mutex! (%p, %p, %d, %s)\n", this, &hMutex, n, strerror(n));
-			printf("" I64FMT " / " I64FMT "\n", abs_time.tv_sec, abs_time.tv_nsec);
+	if (clock_gettime(CLOCK_REALTIME, &abs_time) == 0) {
+		abs_time.tv_sec += (timeout / 1000);
+		timeout -= (timeout / 1000);
+		abs_time.tv_nsec += timeout * 1000000;
+		while (abs_time.tv_nsec >= 1000000000LL) {
+			abs_time.tv_sec++;
+			abs_time.tv_nsec -= 1000000000LL;
 		}
-		return false;
-	}
-	/*
-	int left = timeout;
-	int amIn = pthread_mutex_trylock(&hMutex);
-	while (amIn != 0) {
-		if (left > 0) {
-			safe_sleep(100, true);
-			left -= 100;
-			amIn = pthread_mutex_trylock(&hMutex);
-		} else {
+		if (abs_time.tv_nsec < 0) {
+			printf("Timed mutex lock nsec < 0! (%p, %p, %llu, %llu)\n", this, &hMutex, abs_time.tv_secm abs_time.tv_nsec);
+			abs_time.tv_nsec = 0;
+		}
+		int n = pthread_mutex_timedlock(&hMutex, &abs_time);
+		if (n != 0) {
 			if (timeout > 1000) {
-				printf("Error locking mutex! (%p, %p, %s)\n", this, &hMutex, strerror(errno));
+				printf("Error locking mutex! (%p, %p, %d, %s)\n", this, &hMutex, n, strerror(n));
+				printf("" I64FMT " / " I64FMT "\n", abs_time.tv_sec, abs_time.tv_nsec);
 			}
 			return false;
 		}
+	} else {
+		//fallback in case clock_gettime fails
+		int left = timeout;
+		int amIn = pthread_mutex_trylock(&hMutex);
+		while (amIn != 0) {
+			if (left > 0) {
+				safe_sleep(100, true);
+				left -= 100;
+				amIn = pthread_mutex_trylock(&hMutex);
+			} else {
+				if (timeout > 1000) {
+					printf("Error locking mutex! (%p, %p, %s)\n", this, &hMutex, strerror(errno));
+				}
+				return false;
+			}
+		}
 	}
-	*/
+
 	LockingThreadID = GetCurrentThreadId();
 	refcnt++;
 	if (refcnt <= 0) { refcnt = 1; }
