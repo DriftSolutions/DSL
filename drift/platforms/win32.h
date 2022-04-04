@@ -1,12 +1,16 @@
 //@AUTOHEADER@BEGIN@
 /***********************************************************************\
 |                    Drift Standard Libraries v1.01                     |
-|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
+|            Copyright 2010-2022 Drift Solutions / Indy Sams            |
 | Docs and more information available at https://www.driftsolutions.dev |
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
 \***********************************************************************/
 //@AUTOHEADER@END@
+
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#error "MSVC 2013 or higher is required."
+#endif
 
 // int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 #if defined(COMCTL32_V6)
@@ -71,6 +75,11 @@
 #define LIBNAMESODIUM "dsl" PART1 "-sodium" PART2 LIBSUFFIX ".lib"
 #pragma message( "Will automatically link with " LIBNAMESODIUM "" )
 #pragma comment(lib, LIBNAMESODIUM)
+#endif
+#if defined(ENABLE_LIBEVENT) && !defined(DSL_LIBEVENT_EXPORTS)
+#define LIBNAMELIBEVENT "dsl" PART1 "-libevent" PART2 LIBSUFFIX ".lib"
+#pragma message( "Will automatically link with " LIBNAMELIBEVENT "" )
+#pragma comment(lib, LIBNAMELIBEVENT)
 #endif
 
 #if defined(DSL_DLL)
@@ -210,6 +219,14 @@ typedef struct sockaddr_un
 		#pragma comment(lib, "libsodium_d.lib")
 	#else
 		#pragma comment(lib, "libsodium.lib")
+	#endif
+#endif
+
+#if defined(ENABLE_LIBEVENT)
+	#if defined(DEBUG)
+		#pragma comment(lib, "event_d.lib")
+	#else
+		#pragma comment(lib, "event.lib")
 	#endif
 #endif
 

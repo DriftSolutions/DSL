@@ -62,6 +62,10 @@
 #include <drift/sodium.h>
 #endif
 
+#if defined(ENABLE_LIBEVENT)
+#include <drift/libevent.h>
+#endif
+
 #ifdef MEMLEAK
 #include <drift/memleak.h>
 #endif

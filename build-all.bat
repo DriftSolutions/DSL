@@ -28,3 +28,8 @@ mkdir lib
 copy dsl-*.lib lib
 copy dsl-*.pdb lib
 copy dsl-*.dll lib
+
+IF [%1]==[] GOTO EOF
+copy lib\* "%1"
+
+:EOF

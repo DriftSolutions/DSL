@@ -22,15 +22,23 @@ struct DSL_SOCKET_IO {
 };
 */
 
-void DSL_CC DFD_ZERO(DSL_SOCKET_LIST * x) { x->num = 0; }
-void DSL_CC DFD_SET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock) { x->socks[x->num++] = sock; }
+void DSL_CC DFD_ZERO(DSL_SOCKET_LIST * x) {
+	 x->socks.clear();
+}
+void DSL_CC DFD_SET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock) {
+	x->socks.insert(sock);
+}
 bool DSL_CC DFD_ISSET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock) {
-	for (uint32 i=0; i < x->num; i++) {
-		if (x->socks[i] == sock) {
-			return true;
-		}
+	return (x->socks.find(sock) != x->socks.end());
+}
+void DSL_CC DFD_CLR(DSL_SOCKET_LIST * x, DSL_SOCKET * sock) {
+	auto it = x->socks.find(sock);
+	if (it != x->socks.end()) {
+		x->socks.erase(it);
 	}
-	return false;
+}
+void DSL_CC DFD_COPY(DSL_SOCKET_LIST * const in, DSL_SOCKET_LIST * out) {
+	out->socks = in->socks;
 }
 
 void DSL_Sockets3_Base::Silent(bool bSilent) {
@@ -854,47 +862,48 @@ int DSL_Sockets3_Base::Select_List(DSL_SOCKET_LIST * list_r, DSL_SOCKET_LIST * l
 	FD_ZERO(&fd2);
 	SOCKET high = 0;
 	DSL_SOCKET_LIST tmp, tmp2;
-	uint32 i;
+
 	if (list_r) {
-		memcpy(&tmp, list_r, sizeof(DSL_SOCKET_LIST));
-		for (i = 0; i < list_r->num; i++) {
-			if (list_r->socks[i]->sock > high) {
-				high = list_r->socks[i]->sock;
+		DFD_COPY(list_r, &tmp);
+		for (auto x = list_r->socks.begin(); x != list_r->socks.end(); x++) {
+			if ((*x)->sock > high) {
+				high = (*x)->sock;
 			}
-			FD_SET(list_r->socks[i]->sock, &fd);
+			FD_SET((*x)->sock, &fd);
 		}
 		DFD_ZERO(list_r);
-	} else {
-		DFD_ZERO(&tmp);
 	}
+
 	if (list_w) {
-		memcpy(&tmp2, list_w, sizeof(DSL_SOCKET_LIST));
-		for (i = 0; i < list_w->num; i++) {
-			if (list_w->socks[i]->sock > high) {
-				high = list_w->socks[i]->sock;
+		DFD_COPY(list_w, &tmp2);
+		for (auto x = list_w->socks.begin(); x != list_w->socks.end(); x++) {
+			if ((*x)->sock > high) {
+				high = (*x)->sock;
 			}
-			FD_SET(list_w->socks[i]->sock, &fd2);
+			FD_SET((*x)->sock, &fd2);
 		}
 		DFD_ZERO(list_w);
-	} else {
-		DFD_ZERO(&tmp2);
 	}
-	int ret = select(high+1,list_r ? &fd : NULL,list_w ? &fd2 : NULL,NULL,timeo);
+
+	int ret = select(high+1, list_r ? &fd : NULL, list_w ? &fd2 : NULL, NULL, timeo);
 	if (ret < 0) { pUpdateError(NULL); }
+
 	if (list_r) {
-		for (i = 0; i < tmp.num; i++) {
-			if (FD_ISSET(tmp.socks[i]->sock, &fd)) {
-				DFD_SET(list_r, tmp.socks[i]);
+		for (auto x = tmp.socks.begin(); x != tmp.socks.end(); x++) {
+			if (FD_ISSET((*x)->sock, &fd)) {
+				DFD_SET(list_r, *x);
 			}
 		}
 	}
+
 	if (list_w) {
-		for (i = 0; i < tmp2.num; i++) {
-			if (FD_ISSET(tmp2.socks[i]->sock, &fd2)) {
-				DFD_SET(list_w, tmp2.socks[i]);
+		for (auto x = tmp2.socks.begin(); x != tmp2.socks.end(); x++) {
+			if (FD_ISSET((*x)->sock, &fd2)) {
+				DFD_SET(list_w, *x);
 			}
 		}
 	}
+
 	return ret;
 }
 
@@ -906,27 +915,34 @@ int DSL_Sockets3_Base::Select_List(DSL_SOCKET_LIST * list_r, DSL_SOCKET_LIST * l
 	return Select_List(list_r, list_w, &timeo);
 }
 
-int DSL_Sockets3_Base::Select_Read_List(DSL_SOCKET_LIST * list, timeval * timeo) {
+int DSL_Sockets3_Base::Select_Read_List(DSL_SOCKET_LIST * list_r, timeval * timeo) {
 	fd_set fd;
 	FD_ZERO(&fd);
-	SOCKET high=0;
+	SOCKET high = 0;
 	DSL_SOCKET_LIST tmp;
-	memcpy(&tmp, list, sizeof(DSL_SOCKET_LIST));
-	uint32 i;
-	for (i=0; i < list->num; i++) {
-		if (list->socks[i]->sock > high) {
-			high = list->socks[i]->sock;
+
+	if (list_r) {
+		tmp.socks = list_r->socks;
+		for (auto x = list_r->socks.begin(); x != list_r->socks.end(); x++) {
+			if ((*x)->sock > high) {
+				high = (*x)->sock;
+			}
+			FD_SET((*x)->sock, &fd);
 		}
-		FD_SET(list->socks[i]->sock, &fd);
+		DFD_ZERO(list_r);
 	}
-	DFD_ZERO(list);
-	int ret = select(high+1,&fd,NULL,NULL,timeo);
+
+	int ret = select(high+1, list_r ? &fd : NULL, NULL, NULL, timeo);
 	if (ret < 0) { pUpdateError(NULL); }
-	for (i=0; i < tmp.num; i++) {
-		if (FD_ISSET(tmp.socks[i]->sock, &fd)) {
-			DFD_SET(list, tmp.socks[i]);
+
+	if (list_r) {
+		for (auto x = tmp.socks.begin(); x != tmp.socks.end(); x++) {
+			if (FD_ISSET((*x)->sock, &fd)) {
+				DFD_SET(list_r, *x);
+			}
 		}
 	}
+
 	return ret;
 }
 

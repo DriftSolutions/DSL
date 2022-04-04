@@ -51,14 +51,18 @@ public:
 };
 typedef DSL_SOCKET D_SOCKET;
 
-struct DSL_SOCKET_LIST {
-	uint32 num;
-	D_SOCKET * socks[256];
+class DSL_API_CLASS DSL_SOCKET_LIST {
+#ifndef DOXYGEN_SKIP
+public:
+	set<D_SOCKET *> socks;
+#endif
 };
 
 DSL_API void DSL_CC DFD_ZERO(DSL_SOCKET_LIST * x);
 DSL_API void DSL_CC DFD_SET(DSL_SOCKET_LIST * x, DSL_SOCKET * sock);
 DSL_API bool DSL_CC DFD_ISSET(DSL_SOCKET_LIST * list, DSL_SOCKET * sock);
+DSL_API void DSL_CC DFD_CLR(DSL_SOCKET_LIST * x, DSL_SOCKET * sock);
+DSL_API void DSL_CC DFD_COPY(DSL_SOCKET_LIST * const in, DSL_SOCKET_LIST * out);
 
 enum DS3_SSL_METHOD {
 	DS3_SSL_METHOD_TLS		= 0,	///< Attempt highest TLS version, falling back to lower versions to 1.0
@@ -75,7 +79,11 @@ enum DS3_SSL_METHOD {
 
 class DSL_API_CLASS DSL_Sockets3_Base {
 #ifndef DOXYGEN_SKIP
+	friend class DSL_Sockets_Events;
+
 	protected:
+		DSL_Mutex hMutex;
+
 		char bError[512];
 		int bErrNo;
 		bool silent;
@@ -92,7 +100,6 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 		virtual int pSelect_Read(DSL_SOCKET * sock, timeval * timeo);
 
 	private:
-		DSL_Mutex hMutex;
 		typedef std::set<DSL_SOCKET *> knownSocketList;
 		knownSocketList sockets;
 		bool pUpdateAddrInfo(DSL_SOCKET * sock);
