@@ -78,6 +78,7 @@ DSL_SOCKET_LIBEVENT * DSL_Sockets_Events::Add(DSL_SOCKET * sock, dsl_sockets_eve
 	}
 	LockMutex(socks->hMutex);
 	DSL_SOCKET_LIBEVENT * s = (DSL_SOCKET_LIBEVENT *)dsl_new(DSL_SOCKET_LIBEVENT);
+	memset(s, 0, sizeof(DSL_SOCKET_LIBEVENT));
 	s->sock = sock;
 	s->read_cb = pread_cb;
 	s->write_cb = pwrite_cb;
@@ -170,6 +171,25 @@ void DSL_Sockets_Events::DisableWrite(DSL_SOCKET_LIBEVENT * s) {
 	assert(s != NULL);
 	assert(s->evwrite != NULL);
 	event_del(s->evwrite);
+}
+
+DSL_SOCKET_LIBEVENT * DSL_Sockets_Events::AddTimer(dsl_sockets_event_callback cb, bool persist, void * puser_ptr) {
+	assert(cb != NULL);
+	LockMutex(socks->hMutex);
+	DSL_SOCKET_LIBEVENT * s = (DSL_SOCKET_LIBEVENT *)dsl_new(DSL_SOCKET_LIBEVENT);
+	memset(s, 0, sizeof(DSL_SOCKET_LIBEVENT));
+	s->read_cb = cb;
+	s->user_ptr = puser_ptr;
+
+	s->evread = event_new(evbase, -1, persist ? EV_PERSIST : 0, ev_read_cb, s);
+	sockets.insert(s);
+	return s;
+}
+
+// use EnableRecv/DisableRecv to enable/disable timer
+void DSL_Sockets_Events::FreeTimer(DSL_SOCKET_LIBEVENT * timer) {
+	assert(timer != NULL);
+	Remove(timer, false);
 }
 
 #endif // ENABLE_LIBEVENT

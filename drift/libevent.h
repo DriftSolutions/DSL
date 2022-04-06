@@ -55,8 +55,9 @@ class DSL_LIBEVENT_API_CLASS DSL_Sockets_Events {
 	public:
 		DSL_Sockets_Events(DSL_Sockets3_Base * pSocks);
 		~DSL_Sockets_Events();
+		event_base * GetEventBase() { return evbase; }
 
-		int LoopWithFlags(int flags);
+		int LoopWithFlags(int flags=0); // can be 0, EVLOOP_ONCE and/or EVLOOP_NONBLOCK
 		int LoopWithTimeout(int timeout);
 		void LoopBreak();
 
@@ -68,6 +69,9 @@ class DSL_LIBEVENT_API_CLASS DSL_Sockets_Events {
 		void DisableRecv(DSL_SOCKET_LIBEVENT * s);
 		void DisableWrite(DSL_SOCKET_LIBEVENT * s);
 
+		DSL_SOCKET_LIBEVENT * AddTimer(dsl_sockets_event_callback cb, bool persist = true, void * user_ptr = NULL);
+		// use EnableRecv/DisableRecv to enable/disable timer
+		void FreeTimer(DSL_SOCKET_LIBEVENT * timer);
 };
 
 #endif // __DRIFT_LIBEVENT_H__
