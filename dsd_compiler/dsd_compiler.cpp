@@ -146,8 +146,8 @@ public:
 	}
 };
 
-inline bool get_token(vector<DSD_Token>& tokens, int i, DSD_Token& cur) {
-	if (i < 0 || i >= tokens.size()) {
+inline bool get_token(vector<DSD_Token>& tokens, size_t i, DSD_Token& cur) {
+	if (i >= tokens.size()) {
 		return false;
 	}
 	cur = tokens[i];
@@ -226,7 +226,7 @@ int main(int argc, const char * argv[]) {
 	DSD_Definition def;
 	DSD_Variable var;
 	DSD_Token cur;
-	int i = 0;
+	size_t i = 0;
 	while (get_token(tokens, i++, cur)) {
 		if (def.name.length() == 0) {
 			if (cur.id == DTI_DEF) {
