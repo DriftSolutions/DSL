@@ -146,8 +146,8 @@ public:
 		#define DSL_CURL_API_CLASS __declspec(dllimport)
 	#endif
 #else
-	#define DSL_CURL_API
-	#define DSL_CURL_API_CLASS
+	#define DSL_CURL_API DSL_API_VIS
+	#define DSL_CURL_API_CLASS DSL_API_VIS
 #endif
 
 #ifndef DOXYGEN_SKIP

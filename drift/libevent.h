@@ -24,8 +24,8 @@
 		#define DSL_LIBEVENT_API_CLASS __declspec(dllimport)
 	#endif
 #else
-	#define DSL_LIBEVENT_API
-	#define DSL_LIBEVENT_API_CLASS
+	#define DSL_LIBEVENT_API DSL_API_VIS
+	#define DSL_LIBEVENT_API_CLASS DSL_API_VIS
 #endif
 
 struct DSL_SOCKET_LIBEVENT;

@@ -23,8 +23,8 @@
 		#define DSL_MYSQL_API_CLASS __declspec(dllimport)
 	#endif
 #else
-	#define DSL_MYSQL_API
-	#define DSL_MYSQL_API_CLASS
+	#define DSL_MYSQL_API DSL_API_VIS
+	#define DSL_MYSQL_API_CLASS DSL_API_VIS
 #endif
 
 class DSL_MYSQL_API_CLASS DB_MySQL: public SQLConx {

@@ -23,8 +23,8 @@
 		#define DSL_SQLITE_API_CLASS __declspec(dllimport)
 	#endif
 #else
-	#define DSL_SQLITE_API
-	#define DSL_SQLITE_API_CLASS
+	#define DSL_SQLITE_API DSL_API_VIS
+	#define DSL_SQLITE_API_CLASS DSL_API_VIS
 #endif
 
 class DSL_SQLITE_API_CLASS SQLite_Result {

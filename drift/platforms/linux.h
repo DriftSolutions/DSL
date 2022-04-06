@@ -9,12 +9,13 @@
 //@AUTOHEADER@END@
 
 #if __GNUC__ >= 4 && (defined(DSL_SHARED) || defined(DSL_DLL)) && defined(HAVE_VIS)
-#define DSL_API __attribute__ ((visibility("default")))
-#define DSL_API_CLASS __attribute__ ((visibility("default")))
+#define DSL_API_VIS __attribute__ ((visibility("default")))
 #else
-#define DSL_API
-#define DSL_API_CLASS
+#define DSL_API_VIS
 #endif
+
+#define DSL_API DSL_API_VIS
+#define DSL_API_CLASS DSL_API_VIS
 #define DSL_CC
 
 #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))

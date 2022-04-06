@@ -82,6 +82,7 @@
 #pragma comment(lib, LIBNAMELIBEVENT)
 #endif
 
+#define DSL_API_VIS
 #if defined(DSL_DLL)
 	#if defined(DSL_EXPORTS)
 		#define DSL_API extern "C" __declspec(dllexport)
