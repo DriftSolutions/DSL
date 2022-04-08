@@ -34,7 +34,7 @@ public:
 
 	DS_EncNonce();
 	void SetNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	void Generate();
 	ENC_NONCE_INT_TYPE GetIncrement();
@@ -73,7 +73,7 @@ public:
 	~DS_EncSharedKey();
 
 	void SetNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	bool Calculate(DS_EncPrivKey& privkey, DS_EncPubKey& pubkey);
 	bool Encrypt(DS_EncNonce& nonce, DSL_BUFFER * buf);
@@ -99,9 +99,9 @@ public:
 
 	DS_EncPubKey();
 
-	string GetString() { return bin2hex(key, sizeof(key)); }
+	string GetString() const { return bin2hex(key, sizeof(key)); }
 	void SetNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	bool SetFromHexString(string str);
 	bool SetFromBinaryData(const uint8_t * pdata, size_t len);
@@ -133,9 +133,9 @@ public:
 	DS_EncPrivKey();
 	~DS_EncPrivKey();
 
-	string GetString() { return bin2hex(key, sizeof(key)); }
+	string GetString() const { return bin2hex(key, sizeof(key)); }
 	void SetNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	bool Encrypt(DS_EncPubKey& recpt_key, DS_EncNonce& nonce, DSL_BUFFER * buf);
 	bool Decrypt(DS_EncPubKey& sender_key, DS_EncNonce& nonce, DSL_BUFFER * buf);

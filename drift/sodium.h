@@ -13,6 +13,7 @@
 
 #include <drift/hash.h>
 #include <drift/Buffer.h>
+#include <drift/GenLib.h>
 
 #if defined(DSL_DLL) && defined(WIN32)
 	#if defined(DSL_SODIUM_EXPORTS)

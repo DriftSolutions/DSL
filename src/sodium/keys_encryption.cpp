@@ -27,7 +27,7 @@ void DS_EncNonce::SetNull() {
 	memset(data, 0, sizeof(data));
 }
 
-bool DS_EncNonce::IsValid() {
+bool DS_EncNonce::IsValid() const {
 	if (sodium_is_zero(data, sizeof(data)) == 1) {
 		return false;
 	}
@@ -93,7 +93,7 @@ void DS_EncSharedKey::SetNull() {
 	memset(data, 0, sizeof(data));
 }
 
-bool DS_EncSharedKey::IsValid() {
+bool DS_EncSharedKey::IsValid() const {
 	if (sodium_is_zero(data, sizeof(data)) == 1) {
 		return false;
 	}
@@ -164,7 +164,7 @@ void DS_EncPubKey::SetNull() {
 	sodium_memzero(key, sizeof(key));
 }
 
-bool DS_EncPubKey::IsValid() {
+bool DS_EncPubKey::IsValid() const {
 	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
@@ -221,7 +221,7 @@ void DS_EncPrivKey::SetNull() {
 	pubkey.SetNull();
 }
 
-bool DS_EncPrivKey::IsValid() {
+bool DS_EncPrivKey::IsValid() const {
 	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
