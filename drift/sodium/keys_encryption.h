@@ -99,7 +99,7 @@ public:
 
 	DS_EncPubKey();
 
-	string GetString();
+	string GetString() { return bin2hex(key, sizeof(key)); }
 	void SetNull();
 	bool IsValid();
 
@@ -133,7 +133,7 @@ public:
 	DS_EncPrivKey();
 	~DS_EncPrivKey();
 
-	string GetString();
+	string GetString() { return bin2hex(key, sizeof(key)); }
 	void SetNull();
 	bool IsValid();
 
