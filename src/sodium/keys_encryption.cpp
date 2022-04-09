@@ -231,7 +231,7 @@ bool DS_EncPrivKey::IsValid() const {
 	return true;
 }
 
-bool DS_EncPrivKey::Encrypt(DS_EncPubKey& recpt_key, DS_EncNonce& nonce, DSL_BUFFER * buf) {
+bool DS_EncPrivKey::Encrypt(const DS_EncPubKey& recpt_key, const DS_EncNonce& nonce, DSL_BUFFER * buf) {
 	DSL_BUFFER tmp;
 	buffer_init(&tmp);
 	buffer_set(&tmp, buf->data, buf->len);
@@ -244,7 +244,7 @@ bool DS_EncPrivKey::Encrypt(DS_EncPubKey& recpt_key, DS_EncNonce& nonce, DSL_BUF
 	return false;
 }
 
-bool DS_EncPrivKey::Decrypt(DS_EncPubKey& sender_key, DS_EncNonce& nonce, DSL_BUFFER * buf) {
+bool DS_EncPrivKey::Decrypt(const DS_EncPubKey& sender_key, const DS_EncNonce& nonce, DSL_BUFFER * buf) {
 	DSL_BUFFER tmp;
 	buffer_init(&tmp);
 	buffer_set(&tmp, buf->data, buf->len);

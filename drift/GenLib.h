@@ -36,7 +36,7 @@ DSL_API_CLASS char * DSL_CC bin2hex(const uint8_t * in, size_t inlen, char * out
 DSL_API_CLASS string DSL_CC bin2hex(const uint8_t * in, size_t inlen);
 
 /**
- * This function takes binary data and converts it to a hex string.
+ * This function takes a hex string and converts it to binary data.
  * @param instr a pointer to the hex-encoded data (should be a multiple of 2)
  * @param inlen length of string instr (in the version without inlen strlen() is run on instr)
  * @param outsize the length of the output buffer, should be (inlen/2)

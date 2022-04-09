@@ -137,8 +137,8 @@ public:
 	void SetNull();
 	bool IsValid() const;
 
-	bool Encrypt(DS_EncPubKey& recpt_key, DS_EncNonce& nonce, DSL_BUFFER * buf);
-	bool Decrypt(DS_EncPubKey& sender_key, DS_EncNonce& nonce, DSL_BUFFER * buf);
+	bool Encrypt(const DS_EncPubKey& recpt_key, const DS_EncNonce& nonce, DSL_BUFFER * buf);
+	bool Decrypt(const DS_EncPubKey& sender_key, const DS_EncNonce& nonce, DSL_BUFFER * buf);
 	bool Generate();
 
 	bool SetFromHexString(string str);
