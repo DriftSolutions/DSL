@@ -3,7 +3,9 @@ set MBUILD=jom -j 128
 REM set MTYPE=NMake Makefiles
 REM set MBUILD=nmake
 
-del /s /q CMakeCache.txt CMakeFiles
+del /s /q CMakeCache.txt CMakeFiles lib
+mkdir lib
+
 cmake -G "%MTYPE%" -DCMAKE_BUILD_TYPE=Debug ..
 %MBUILD%
 @echo off
@@ -23,13 +25,11 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 @echo on
 
-del /s /q lib
-mkdir lib
 copy dsl-*.lib lib
 copy dsl-*.pdb lib
 copy dsl-*.dll lib
 
 IF [%1]==[] GOTO EOF
-copy lib\* "%1"
+copy lib\*.* "%1"
 
 :EOF

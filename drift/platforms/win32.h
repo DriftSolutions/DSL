@@ -38,47 +38,47 @@
 
 #ifndef DSL_EXPORTS
 #define LIBNAME "dsl" PART1 "-core" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAME "" )
+//#pragma message( "Will automatically link with " LIBNAME "" )
 #pragma comment(lib, LIBNAME)
 #endif
 #if defined(ENABLE_CURL) && !defined(DSL_CURL_EXPORTS)
 #define LIBNAMECURL "dsl" PART1 "-curl" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMECURL "" )
+//#pragma message( "Will automatically link with " LIBNAMECURL "" )
 #pragma comment(lib, LIBNAMECURL)
 #endif
 #if defined(ENABLE_SQLITE) && !defined(DSL_SQLITE_EXPORTS)
 #define LIBNAMESQLITE "dsl" PART1 "-sqlite" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMESQLITE "" )
+//#pragma message( "Will automatically link with " LIBNAMESQLITE "" )
 #pragma comment(lib, LIBNAMESQLITE)
 #endif
 #if defined(ENABLE_MYSQL) && !defined(DSL_MYSQL_EXPORTS)
 #define LIBNAMEMYSQL "dsl" PART1 "-mysql" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMEMYSQL "" )
+//#pragma message( "Will automatically link with " LIBNAMEMYSQL "" )
 #pragma comment(lib, LIBNAMEMYSQL)
 #endif
 #if defined(ENABLE_PHYSFS) && !defined(DSL_PHYSFS_EXPORTS)
 #define LIBNAMEPHYSFS "dsl" PART1 "-physfs" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMEPHYSFS "" )
+//#pragma message( "Will automatically link with " LIBNAMEPHYSFS "" )
 #pragma comment(lib, LIBNAMEPHYSFS)
 #endif
 #if defined(ENABLE_OPENSSL) && !defined(DSL_OPENSSL_EXPORTS)
 #define LIBNAMEOPENSSL "dsl" PART1 "-openssl" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMEOPENSSL "" )
+//#pragma message( "Will automatically link with " LIBNAMEOPENSSL "" )
 #pragma comment(lib, LIBNAMEOPENSSL)
 #endif
 #if defined(ENABLE_GNUTLS) && !defined(DSL_GNUTLS_EXPORTS)
 #define LIBNAMEGNUTLS "dsl" PART1 "-gnutls" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMEGNUTLS "" )
+//#pragma message( "Will automatically link with " LIBNAMEGNUTLS "" )
 #pragma comment(lib, LIBNAMEGNUTLS)
 #endif
 #if defined(ENABLE_SODIUM) && !defined(DSL_SODIUM_EXPORTS)
 #define LIBNAMESODIUM "dsl" PART1 "-sodium" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMESODIUM "" )
+//#pragma message( "Will automatically link with " LIBNAMESODIUM "" )
 #pragma comment(lib, LIBNAMESODIUM)
 #endif
 #if defined(ENABLE_LIBEVENT) && !defined(DSL_LIBEVENT_EXPORTS)
 #define LIBNAMELIBEVENT "dsl" PART1 "-libevent" PART2 LIBSUFFIX ".lib"
-#pragma message( "Will automatically link with " LIBNAMELIBEVENT "" )
+//#pragma message( "Will automatically link with " LIBNAMELIBEVENT "" )
 #pragma comment(lib, LIBNAMELIBEVENT)
 #endif
 
