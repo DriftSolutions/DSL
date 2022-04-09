@@ -86,7 +86,7 @@ bool DSL_CC buffer_prepend(DSL_BUFFER * buf, const char * ptr, int64 len) {
 
 	buf->data = (char *)dsl_realloc(buf->data, buf->len + len);
 	memmove(buf->data + len, buf->data, buf->len);
-	memcpy(buf->data, ptr, buf->len);
+	memcpy(buf->data, ptr, len);
 	buf->len += len;
 
 	if (buf->hMutex) { buf->hMutex->Release(); }
