@@ -82,7 +82,7 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 	friend class DSL_Sockets_Events;
 
 	protected:
-		DSL_Mutex hMutex;
+		DSL_Mutex_Base * hMutex = NULL;
 
 		char bError[512];
 		int bErrNo;
@@ -100,6 +100,7 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 		virtual int pSelect_Read(DSL_SOCKET * sock, timeval * timeo);
 
 	private:
+		bool free_mutex = false;
 		typedef std::set<DSL_SOCKET *> knownSocketList;
 		knownSocketList sockets;
 		bool pUpdateAddrInfo(DSL_SOCKET * sock);
@@ -108,7 +109,7 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 #endif
 
 	public:
-		DSL_Sockets3_Base();
+		DSL_Sockets3_Base(DSL_Mutex_Base * mutex = NULL);
 		virtual ~DSL_Sockets3_Base();
 
 		virtual bool IsSupported(unsigned int flag); ///< This lets you know if a feature is supported

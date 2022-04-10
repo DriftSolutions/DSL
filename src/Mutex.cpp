@@ -13,6 +13,17 @@
 #include <drift/Threading.h>
 
 /*
+DSL_MutexLocker::DSL_MutexLocker(DSL_Mutex_Base * mutex) {
+	hMutex = mutex;
+	LockMutexPtr(mutex);
+}
+DSL_MutexLocker::~DSL_MutexLocker() {
+	RelMutexPtr(hMutex);
+}
+*/
+
+
+/*
 #if defined(WIN32)
 DSL_MutexLocker::DSL_MutexLocker(DSL_Mutex_Win32Mutex * mutex, const char * fn, int line) {
 	hMutexCS = NULL;
@@ -34,13 +45,6 @@ DSL_MutexLocker::~DSL_MutexLocker() {
 }
 #else
 */
-DSL_MutexLocker::DSL_MutexLocker(DSL_Mutex_Base * mutex) {
-	hMutex = mutex;
-	LockMutexPtr(mutex);
-}
-DSL_MutexLocker::~DSL_MutexLocker() {
-	RelMutexPtr(hMutex);
-}
 //#endif
 
 /*

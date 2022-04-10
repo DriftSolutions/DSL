@@ -45,8 +45,15 @@ void DSL_Sockets3_Base::Silent(bool bSilent) {
 	silent = bSilent;
 }
 
-DSL_Sockets3_Base::DSL_Sockets3_Base() {
+DSL_Sockets3_Base::DSL_Sockets3_Base(DSL_Mutex_Base * mutex) {
 	dsl_init();
+	if (mutex != NULL) {
+		free_mutex = false;
+		hMutex = mutex;
+	} else {
+		hMutex = new DSL_Mutex();
+		free_mutex = true;
+	}
 #ifdef ENABLE_ZLIB
 	avail_flags |= DS3_FLAG_ZIP;
 	enabled_flags |= DS3_FLAG_ZIP;
@@ -58,16 +65,18 @@ DSL_Sockets3_Base::DSL_Sockets3_Base() {
 #else
 	silent = true;
 #endif
-	//hMutex.Release();
 }
 
 DSL_Sockets3_Base::~DSL_Sockets3_Base() {
-	hMutex.Lock();
+	hMutex->Lock();
 	for (knownSocketList::const_iterator i = sockets.begin(); i != sockets.end(); i++) {
 		if (!silent) { printf("WARNING: DSL_SOCKET 0x%p (%s:%d) was not closed before DSL_Sockets3 was deleted!\n", *i, (*i)->remote_ip, (*i)->remote_port); }
 		//Close(sockets[i]);
 	}
-	hMutex.Release();
+	hMutex->Release();
+	if (free_mutex) {
+		delete hMutex;
+	}
 	dsl_cleanup();
 }
 
@@ -136,7 +145,7 @@ bool DSL_Sockets3_Base::pUpdateAddrInfo(DSL_SOCKET * sock) {
 }
 
 bool DSL_Sockets3_Base::IsKnownSocket(DSL_SOCKET * sock) {
-	AutoMutex(hMutex);
+	AutoMutexPtr(hMutex);
 	if (sock != NULL) {
 		knownSocketList::const_iterator i = sockets.find(sock);
 		if (i != sockets.end()) {
@@ -178,9 +187,9 @@ DSL_SOCKET * DSL_Sockets3_Base::Create(int family, int type, int proto, uint32 f
 #endif
 	}
 
-	hMutex.Lock();
+	hMutex->Lock();
 	sockets.insert(ret);
-	hMutex.Release();
+	hMutex->Release();
 	return ret;
 }
 
@@ -219,9 +228,9 @@ DSL_SOCKET * DSL_Sockets3_Base::Accept(DSL_SOCKET * s, sockaddr *addr, socklen_t
 		return NULL;
 	}
 
-	hMutex.Lock();
+	hMutex->Lock();
 	sockets.insert(ret);
-	hMutex.Release();
+	hMutex->Release();
 
 	pUpdateAddrInfo(ret);
 
@@ -378,12 +387,12 @@ bool DSL_Sockets3_Base::Listen(DSL_SOCKET * sock, int backlog) {
 int DSL_Sockets3_Base::Close(DSL_SOCKET * sock) {
 	if (sock == NULL) { return -1; }
 
-	hMutex.Lock();
+	hMutex->Lock();
 	knownSocketList::iterator x = sockets.find(sock);
 	if (x != sockets.end()) {
 		sockets.erase(x);
 	}
-	hMutex.Release();
+	hMutex->Release();
 
 	if (sock->flags & DS3_FLAG_SSL) {
 		DSL_Sockets3_SSL * ssl = dynamic_cast<DSL_Sockets3_SSL *>(this);

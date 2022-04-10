@@ -76,7 +76,7 @@ DSL_SOCKET_LIBEVENT * DSL_Sockets_Events::Add(DSL_SOCKET * sock, dsl_sockets_eve
 		assert(0);
 		return NULL;
 	}
-	LockMutex(socks->hMutex);
+	AutoMutexPtr(socks->hMutex);
 	DSL_SOCKET_LIBEVENT * s = (DSL_SOCKET_LIBEVENT *)dsl_new(DSL_SOCKET_LIBEVENT);
 	memset(s, 0, sizeof(DSL_SOCKET_LIBEVENT));
 	s->sock = sock;
@@ -112,7 +112,7 @@ DSL_SOCKET_LIBEVENT * DSL_Sockets_Events::Add(DSL_SOCKET * sock, dsl_sockets_eve
 
 void DSL_Sockets_Events::Remove(DSL_SOCKET_LIBEVENT * sock, bool close) {
 	assert(sock != NULL);
-	LockMutex(socks->hMutex);
+	AutoMutexPtr(socks->hMutex);
 	auto x = sockets.find(sock);
 	if (x != sockets.end()) {
 		if (sock->evread != NULL) {
@@ -175,13 +175,13 @@ void DSL_Sockets_Events::DisableWrite(DSL_SOCKET_LIBEVENT * s) {
 
 DSL_SOCKET_LIBEVENT * DSL_Sockets_Events::AddTimer(dsl_sockets_event_callback cb, bool persist, void * puser_ptr) {
 	assert(cb != NULL);
-	LockMutex(socks->hMutex);
 	DSL_SOCKET_LIBEVENT * s = (DSL_SOCKET_LIBEVENT *)dsl_new(DSL_SOCKET_LIBEVENT);
 	memset(s, 0, sizeof(DSL_SOCKET_LIBEVENT));
 	s->read_cb = cb;
 	s->user_ptr = puser_ptr;
 
 	s->evread = event_new(evbase, -1, persist ? EV_PERSIST : 0, ev_read_cb, s);
+	AutoMutexPtr(socks->hMutex);
 	sockets.insert(s);
 	return s;
 }

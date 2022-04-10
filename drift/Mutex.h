@@ -44,14 +44,6 @@ public:
 
 #ifndef DOXYGEN_SKIP
 
-class DSL_API_CLASS DSL_MutexLocker {
-private:
-	DSL_Mutex_Base * hMutex;
-public:
-	DSL_MutexLocker(DSL_Mutex_Base * mutex);
-	~DSL_MutexLocker();
-};
-
 #if defined(WIN32) || defined(XBOX)
 
 class DSL_API_CLASS DSL_Mutex_Win32CS : public DSL_Mutex_Base {
@@ -168,8 +160,50 @@ class DSL_API_CLASS DSL_Mutex_pthreads : public DSL_Mutex_Base {
 /**
  * Mutex locker class for automatic locking/unlocking in a scope.
  */
+class DSL_MutexLocker {
+private:
+#ifdef DEBUG_MUTEX
+	string fn;
+	int line;
+#endif
+	DSL_Mutex_Base * hMutex;
+public:
+#ifdef DEBUG_MUTEX
+	DSL_MutexLocker(DSL_Mutex_Base * mutex, string pfn = __FILE__, int pline = __LINE__) {
+		hMutex = mutex;
+		fn = pfn;
+		line = pline;
+		OutputDebugString("DSL_Mutex::Lock()\n");
+		printf("DSL_Mutex::Lock(%s, %d)\n", fn.c_str(), line);
+		hMutex->Lock();
+		OutputDebugString("DSL_Mutex::Locked()\n");
+		printf("DSL_Mutex::Locked(%s, %d)\n", fn.c_str(), line);
+	}
+	~DSL_MutexLocker() {
+		OutputDebugString("DSL_Mutex::Release()\n");
+		printf("DSL_Mutex::Release(%s, %d)\n", fn.c_str(), line);
+		hMutex->Release();
+		printf("DSL_Mutex::Released(%s, %d)\n", fn.c_str(), line);
+		OutputDebugString("DSL_Mutex::Released()\n");
+	}
+#else
+	DSL_MutexLocker(DSL_Mutex_Base * mutex) {
+		hMutex = mutex;
+		LockMutexPtr(mutex);
+	}
+	~DSL_MutexLocker() {
+		RelMutexPtr(hMutex);
+	}
+#endif
+};
+
+#ifdef DEBUG_MUTEX
+#define AutoMutex(x) DSL_MutexLocker MAKE_UNIQUE_NAME (&x, __FILE__, __LINE__)
+#define AutoMutexPtr(x) DSL_MutexLocker MAKE_UNIQUE_NAME (x, __FILE__, __LINE__)
+#else
 #define AutoMutex(x) DSL_MutexLocker MAKE_UNIQUE_NAME (&x)
 #define AutoMutexPtr(x) DSL_MutexLocker MAKE_UNIQUE_NAME (x)
+#endif
 
 /**@}*/
 
