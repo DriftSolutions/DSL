@@ -25,10 +25,10 @@ public:
 
 	DS_SigPubKey();
 
-	string GetString();
+	string GetString() const;
 	const char * c_str();
 	void SetNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	bool SetFromHexString(string str);
 	bool SetFromBinaryData(const uint8_t * pdata, size_t len);
@@ -60,10 +60,10 @@ public:
 	DS_SigPrivKey();
 	~DS_SigPrivKey();
 
-	string GetString();
+	string GetString() const;
 	const char * c_str();
 	void SetNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	bool Generate();
 
@@ -97,11 +97,11 @@ public:
 	bool CheckSignature(const uint8_t * msg, size_t msglen);
 	bool SignData(DS_SigPrivKey& key, const uint8_t * msg, size_t msglen);
 
-	string GetString();
+	string GetString() const;
 	const char * c_str();
 	void SetNull();
 	bool IsNull();
-	bool IsValid();
+	bool IsValid() const;
 
 	/* Sets pubkey and signature hash */
 	bool SetFromHexString(string str);

@@ -205,12 +205,14 @@ DSL_API size_t DSL_CC wcscnt(const wchar_t * ptr); // returns number of bytes ta
  * Clamps a given value to the range of vMin to vMax (inclusive)<br>
  * Example: clamp<uint16>(10, 0, 15) to clamp a value of 10 to a range of 0-15.
  */
+#if defined(__cplusplus) && __cplusplus < 201703L
 template <typename T>
 T clamp(T v, T vMin, T vMax) {
 	if (v < vMin) { return vMin; }
 	if (v > vMax) { return vMax; }
 	return v;
 }
+#endif
 
 /**
  * String tokenizer class, similar to strtok but only using one character as a delimiter. This was inspired by mIRC back in the day so the tokens are base 1 instead of base 0 for their indexes.

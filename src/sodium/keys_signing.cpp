@@ -22,14 +22,14 @@ void DS_SigPubKey::SetNull() {
 	memset(key, 0, sizeof(key));
 }
 
-bool DS_SigPubKey::IsValid() {
+bool DS_SigPubKey::IsValid() const {
 	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
 	return true;
 }
 
-string DS_SigPubKey::GetString() {
+string DS_SigPubKey::GetString() const {
 	char key_str[(sizeof(key) * 2) + 1];
 	sodium_bin2hex(key_str, sizeof(key_str), key, sizeof(key));
 	return key_str;
@@ -79,7 +79,7 @@ DS_SigPrivKey::~DS_SigPrivKey() {
 	}
 }
 
-string DS_SigPrivKey::GetString() {
+string DS_SigPrivKey::GetString() const {
 	char key_str[(sizeof(key) * 2) + 1];
 	sodium_bin2hex(key_str, sizeof(key_str), key, sizeof(key));
 	return key_str;
@@ -91,7 +91,7 @@ void DS_SigPrivKey::SetNull() {
 	memset(key, 0, sizeof(key));
 	pubkey.SetNull();
 }
-bool DS_SigPrivKey::IsValid() {
+bool DS_SigPrivKey::IsValid() const {
 	if (sodium_is_zero(key, sizeof(key)) == 1) {
 		return false;
 	}
@@ -158,7 +158,7 @@ bool DS_Signature::CheckSignature(const uint8_t * msg, size_t msglen) {
 	if (!pubkey.IsValid()) {
 		return false;
 	}
-	return (crypto_sign_verify_detached(hash, msg, msglen, &pubkey.key[1]) == 0);
+	return (crypto_sign_verify_detached(hash, msg, msglen, pubkey.key) == 0);
 }
 
 bool DS_Signature::SignData(DS_SigPrivKey& key, const uint8_t * msg, size_t msglen) {
@@ -173,7 +173,7 @@ bool DS_Signature::SignData(DS_SigPrivKey& key, const uint8_t * msg, size_t msgl
 	return SetSigFromBinaryData(hash, sizeof(hash));
 }
 
-string DS_Signature::GetString() {
+string DS_Signature::GetString() const {
 	char key_str[(sizeof(hash) * 2) + 1];
 	sodium_bin2hex(key_str, sizeof(key_str), hash, sizeof(hash));
 	//bin2hex(key, sizeof(key), key_str, sizeof(key_str));
@@ -189,7 +189,7 @@ bool DS_Signature::IsNull() {
 	return (sodium_is_zero(hash, sizeof(hash)) == 1);
 	//return (memcmp(hash, sig_null_bytes, sizeof(hash)) == 0);
 }
-bool DS_Signature::IsValid() {
+bool DS_Signature::IsValid() const {
 	return !(sodium_is_zero(hash, sizeof(hash)) == 1);
 }
 
