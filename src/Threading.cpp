@@ -130,17 +130,19 @@ DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread,void * Parm, const c
 	return ret;
 }
 
-bool DSL_CC DSL_StartThreadNoRecord(ThreadProto Thread,void * Parm) {
+bool DSL_CC DSL_StartThreadNoRecord(ThreadProto Thread,void * Parm, const char * Desc) {
 #if defined(WIN32)
 	unsigned int ThreadID=0;
 	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, Thread, Parm, 0, &ThreadID);
 	if (hThread != 0) {
+		DSL_SetThreadName(ThreadID, Desc);
 		CloseHandle(hThread);
 		return true;
 	}
 #else
 	pthread_t a_thread;
 	if (pthread_create(&a_thread, NULL, Thread, Parm) == 0) {
+		DSL_SetThreadName(a_thread, Desc);
 		pthread_detach(a_thread); // tells OS that it can reclaim used memory after thread exits
 		return true;
 	}

@@ -46,18 +46,14 @@ struct DSL_THREAD_INFO {
 #endif
 };
 
-#if !defined(NO_CPLUSPLUS) || defined(DOXYGEN_SKIP)
 /**
  * Starts a thread. Declare and define your thread with DSL_DEFINE_THREAD(Name)
  */
-DSL_API DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread, void * Parm, const char * desc = NULL, int32 id = -1);
-#else
-DSL_API DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread, void * Parm, const char * desc, int32 id);
-#endif
+DSL_API DSL_THREAD_INFO * DSL_CC DSL_StartThread(ThreadProto Thread, void * Parm, const char * Desc = NULL, int32 id = -1);
 /**
  * Starts a thread with no tracking structure.
  */
-DSL_API bool DSL_CC DSL_StartThreadNoRecord(ThreadProto Thread, void * Parm);
+DSL_API bool DSL_CC DSL_StartThreadNoRecord(ThreadProto Thread, void * Parm, const char * Desc = NULL);
 
 DSL_API uint32 DSL_CC DSL_NumThreads(); ///< Number of active threads (does not count threads started with DSL_StartThreadNoRecord)
 DSL_API uint32 DSL_CC DSL_NumThreadsWithID(int id); ///< Number of active threads with matching id #
