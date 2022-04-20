@@ -138,6 +138,7 @@ DSL_API wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr);
  * @sa dsl_free
  */
 DSL_API char * DSL_CC dsl_mprintf(const char * fmt, ...);
+DSL_API_CLASS string mprintf(const string fmt, ...);
 /**
  * Returns a dynamically allocated string using printf formatting, free with dsl_free.
  * @sa dsl_free

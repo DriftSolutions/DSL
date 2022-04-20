@@ -171,7 +171,7 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 #if !defined(WIN32)
 	size_t left = len;
 	uint8 *p = buf;
-#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 25))	
+#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 25))
 	while (left > 0 && tries++ < 10) {
 		int grn = getrandom(p, left, GRND_NONBLOCK);
 		if (grn > 0) {
@@ -256,6 +256,15 @@ char * DSL_CC dsl_mprintf(const char * fmt, ...) {
 	va_start(va, fmt);
 	char * ret = dsl_vmprintf(fmt, va);
 	va_end(va);
+	return ret;
+}
+string mprintf(const string fmt, ...) {
+	va_list va;
+	va_start(va, fmt);
+	char * tmp = dsl_vmprintf(fmt.c_str(), va);
+	va_end(va);
+	string ret = tmp;
+	dsl_free(tmp);
 	return ret;
 }
 

@@ -306,6 +306,7 @@ bool Universal_Config2::LoadConfigFromFile(FILE * fp, const char * fn, ConfigSec
 	bool ret = false;
 	char * tmp = (char *)dsl_malloc(len + 1);
 	if (fread(tmp, len, 1, fp) == 1) {
+		tmp[len] = 0;
 		ret = LoadConfigFromString(tmp, fn, Scan);
 	}
 	dsl_free(tmp);
