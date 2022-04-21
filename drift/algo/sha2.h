@@ -34,40 +34,50 @@
 #ifndef SHA2_H
 #define SHA2_H
 
-#define SHA256_RESULTLEN (256 / 8)
-#define SHA256_BLOCK_SIZE (512 / 8)
+#define SHA256_DIGEST_SIZE ( 256 / 8)
+#define SHA512_DIGEST_SIZE ( 512 / 8)
 
-#define SHA512_RESULTLEN (512 / 8)
-#define SHA512_BLOCK_SIZE (1024 / 8)
+#define SHA256_BLOCK_SIZE  ( 512 / 8)
+#define SHA512_BLOCK_SIZE  (1024 / 8)
 
-struct sha256_ctx {
-	size_t tot_len;
-	size_t len;
-	unsigned char block[2 * SHA256_BLOCK_SIZE];
-	uint32_t h[8];
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct sha512_ctx {
-	size_t tot_len;
-	size_t len;
-	unsigned char block[2 * SHA512_BLOCK_SIZE];
-	uint64_t h[8];
-};
+typedef struct {
+    unsigned int tot_len;
+    unsigned int len;
+    unsigned char block[2 * SHA256_BLOCK_SIZE];
+    uint32 h[8];
+} sha256_ctx;
 
-void sha256_init(struct sha256_ctx *ctx);
-void sha256_loop(struct sha256_ctx *ctx, const void *data, size_t len);
-void sha256_result(struct sha256_ctx *ctx,
-		   unsigned char digest[SHA256_RESULTLEN]);
+typedef struct {
+    unsigned int tot_len;
+    unsigned int len;
+    unsigned char block[2 * SHA512_BLOCK_SIZE];
+    uint64 h[8];
+} sha512_ctx;
 
-void sha256_get_digest(const void *data, size_t size,
-		       unsigned char digest[SHA256_RESULTLEN]);
+typedef sha512_ctx sha384_ctx;
+typedef sha256_ctx sha224_ctx;
 
-void sha512_init(struct sha512_ctx *ctx);
-void sha512_loop(struct sha512_ctx *ctx, const void *data, size_t len);
-void sha512_result(struct sha512_ctx *ctx,
-		   unsigned char digest[SHA512_RESULTLEN]);
+void sha256_init(sha256_ctx * ctx);
+void sha256_update(sha256_ctx *ctx, const unsigned char *message,
+                   unsigned int len);
+void sha256_final(sha256_ctx *ctx, unsigned char *digest);
+void sha256(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
 
-void sha512_get_digest(const void *data, size_t size,
-		       unsigned char digest[SHA512_RESULTLEN]);
+void sha512_init(sha512_ctx *ctx);
+void sha512_update(sha512_ctx *ctx, const unsigned char *message,
+                   unsigned int len);
+void sha512_final(sha512_ctx *ctx, unsigned char *digest);
+void sha512(const unsigned char *message, unsigned int len,
+            unsigned char *digest);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !SHA2_H */
+

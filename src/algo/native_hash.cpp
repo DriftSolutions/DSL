@@ -54,10 +54,10 @@ bool native_sha256_init(HASH_CTX * ctx) {
 }
 
 void native_sha256_update(HASH_CTX * ctx, const uint8 *input, size_t length) {
-	sha256_loop((sha256_ctx *)ctx->pptr1, input, length);
+	sha256_update((sha256_ctx *)ctx->pptr1, input, length);
 }
 bool native_sha256_finish(HASH_CTX * ctx, uint8 * out) {
-	sha256_result((sha256_ctx *)ctx->pptr1, out);
+	sha256_final((sha256_ctx *)ctx->pptr1, out);
 	dsl_free(ctx->pptr1);
 	return true;
 }
@@ -80,10 +80,10 @@ bool native_sha512_init(HASH_CTX * ctx) {
 }
 
 void native_sha512_update(HASH_CTX * ctx, const uint8 *input, size_t length) {
-	sha512_loop((sha512_ctx *)ctx->pptr1, input, length);
+	sha512_update((sha512_ctx *)ctx->pptr1, input, length);
 }
 bool native_sha512_finish(HASH_CTX * ctx, uint8 * out) {
-	sha512_result((sha512_ctx *)ctx->pptr1, out);
+	sha512_final((sha512_ctx *)ctx->pptr1, out);
 	dsl_free(ctx->pptr1);
 	return true;
 }

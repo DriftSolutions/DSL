@@ -19,13 +19,14 @@ extern DSL_Mutex * dslMutex();
 typedef vector<const HMAC_PROVIDER*> hmacProviderList;
 hmacProviderList* dslHMACProviders() {
 	AutoMutexPtr(dslMutex());
-	static hmacProviderList hmac_providers;
+	static hmacProviderList hmac_providers { &dsl_native_hmacers };
 	return &hmac_providers;
 }
 
 void DSL_CC dsl_add_hmac_provider(const HMAC_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());
-	dslHMACProviders()->push_back(p);
+	hmacProviderList* hmac_providers = dslHMACProviders();
+	hmac_providers->insert(hmac_providers->begin(), p);
 }
 void DSL_CC dsl_remove_hmac_provider(const HMAC_PROVIDER * p) {
 	AutoMutexPtr(dslMutex());

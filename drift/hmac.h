@@ -22,12 +22,14 @@
  */
 
 struct HMAC_PROVIDER;
+struct HMAC_NATIVE;
 struct HASH_HMAC_CTX {
 	size_t hashSize;
 
 #ifndef DOXYGEN_SKIP
 	const HMAC_PROVIDER * provider;
 	void *pptr1;
+	const HMAC_NATIVE * impl;
 #endif
 };
 
@@ -61,10 +63,20 @@ struct HMAC_PROVIDER {
 	bool(*hmac_finish)(HASH_HMAC_CTX *ctx, uint8 * out, size_t outlen);
 };
 
+struct HMAC_NATIVE {
+	int hashSize;
+
+	bool(*init)(HASH_HMAC_CTX * ctx, const uint8 *key, size_t length);
+	void(*update)(HASH_HMAC_CTX * ctx, const uint8 *input, size_t length);
+	bool(*finish)(HASH_HMAC_CTX * ctx, uint8 * out);
+};
+
 DSL_API void DSL_CC dsl_add_hmac_provider(const HMAC_PROVIDER * p);
 DSL_API void DSL_CC dsl_remove_hmac_provider(const HMAC_PROVIDER * p);
 DSL_API void DSL_CC dsl_get_hmac_providers(vector<const HMAC_PROVIDER *>& p);
 
+DSL_API void DSL_CC dsl_add_native_hmac(const char * name, const HMAC_NATIVE * p); /* This should be called directly after dsl_init() and before any other DSL functions. The pointer must remain valid until after dsl_cleanup() is called. */
+extern const HMAC_PROVIDER dsl_native_hmacers;
 #endif // DOXYGEN_SKIP
 
 #endif // _DSL_HMAC_H_
