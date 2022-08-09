@@ -65,20 +65,19 @@ bool physfs_eof(DSL_FILE * fp) {
 
 void physfs_close(DSL_FILE * fp) {
 	PHYSFS_file * o_fp = (PHYSFS_file *)fp->handle;
+	bool autoclose = true;
 	if (fp->p_extra) {
 		TP_RWOPT * opt = (TP_RWOPT *)fp->p_extra;
-		if (!opt->autoclose) {
-			delete fp;
-			delete opt;
-			return;
-		}
+		autoclose = opt->autoclose;
 		delete opt;
 	}
+	if (autoclose) {
+		PHYSFS_close(o_fp);
+	}
 	delete fp;
-	PHYSFS_close(o_fp);
 }
 
-DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode) {
+DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, const char * mode) {
 	PHYSFS_file * fp = NULL;
 	if (strstr(mode, "a")) {
 		fp = PHYSFS_openAppend(fn);
@@ -117,10 +116,12 @@ DSL_FILE * DSL_CC RW_ConvertPhysFS(PHYSFS_file * fp, bool autoclose) {
 	ret->flush = physfs_flush;
 	ret->eof = physfs_eof;
 
-	TP_RWOPT * opt = new TP_RWOPT;
-	memset(opt,0,sizeof(TP_RWOPT));
-	opt->autoclose = autoclose;
-	ret->p_extra = opt;
+	if (!autoclose) {
+		TP_RWOPT * opt = new TP_RWOPT;
+		memset(opt,0,sizeof(TP_RWOPT));
+		opt->autoclose = autoclose;
+		ret->p_extra = opt;
+	}
 
 	return ret;
 };

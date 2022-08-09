@@ -109,7 +109,7 @@ DSL_API DSL_FILE * DSL_CC RW_ConvertMemory(uint8 * buf, int64 size);
  * @param mode The mode. PHYSFS_openRead if "r" is in the string, PHYSFS_openWrite if "w" is in the string, PHYSFS_openAppend if "a" is in the string.
  * @return A handle on success, NULL on failure.
  */
-DSL_PHYSFS_API DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, char * mode);
+DSL_PHYSFS_API DSL_FILE * DSL_CC RW_OpenPhysFS(const char * fn, const char * mode);
 /**
  * Opens a file handle from a PHYSFS_file handle.
  * @param fp The PHYSFS_file handle to convert.
