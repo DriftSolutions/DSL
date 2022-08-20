@@ -87,7 +87,7 @@ bool DB_MySQL::Connect() {
 			query += dbname;
 			mysql_real_query(sql, query.c_str(), query.length());
 			if (mysql_select_db(sql, dbname.c_str()) == 0) {
-				sql_printf("Created database '%s'\n", dbname);
+				sql_printf("Created database '%s'\n", dbname.c_str());
 			} else {
 				sql_printf("Error connecting to MySQL: could not select or create and select DB!\n");
 				mysql_close(sql);
