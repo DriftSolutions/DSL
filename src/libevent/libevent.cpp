@@ -96,7 +96,7 @@ DSL_SOCKET_LIBEVENT * DSL_Sockets_Events::Add(DSL_SOCKET * sock, dsl_sockets_eve
 		s->evread = NULL;
 	}
 
-	if (pread_cb != NULL || pconnect_cb != NULL) {
+	if (pwrite_cb != NULL || pconnect_cb != NULL) {
 		short flags = EV_WRITE;
 		if (persist_write) {
 			flags |= EV_PERSIST;
