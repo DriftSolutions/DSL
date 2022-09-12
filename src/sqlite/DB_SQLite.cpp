@@ -66,7 +66,11 @@ bool DB_SQLite::IsOpen() {
 	return (handle != NULL);
 }
 
-bool DB_SQLite::Open(string fn) {
+bool DB_SQLite::Open(const string& fn) {
+	return OpenV2(fn, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE  | SQLITE_OPEN_FULLMUTEX);
+}
+
+bool DB_SQLite::OpenV2(const string& fn, int flags, const string& vfs) {
 	Close();
 
 	if (sqlite3_threadsafe() == 0) {
@@ -74,7 +78,7 @@ bool DB_SQLite::Open(string fn) {
 		return false;
 	}
 
-	if (sqlite3_open(fn.c_str(), &handle) != SQLITE_OK) {
+	if (sqlite3_open_v2(fn.c_str(), &handle, flags, vfs.length() ? vfs.c_str() : NULL) != SQLITE_OK) {
 		sql_printf("Error opening SQLite DB: %s\n", GetErrorString().c_str());
 		if (handle) {
 			sqlite3_close(handle);
@@ -103,7 +107,7 @@ uint32_t DB_SQLite::GetQueryCount() {
 	return query_count;
 }
 
-std::string DB_SQLite::GetErrorString() {
+string DB_SQLite::GetErrorString() {
 	if (handle == NULL) { return "Unknown error"; }
 	return sqlite3_errmsg(handle);
 }
@@ -124,7 +128,7 @@ int db_sqlite3_cb(void * ptr, int ncols, char ** values, char ** cols) {
 	return 0;
 }
 
-bool DB_SQLite::NoResultQuery(std::string query) {
+bool DB_SQLite::NoResultQuery(const string& query) {
 	if (!handle) {
 		sql_printf("sql error: you don't have an SQLite DB open!\n");
 		return NULL;
@@ -155,7 +159,7 @@ bool DB_SQLite::NoResultQuery(std::string query) {
 	return false;
 }
 
-SQLite_Result * DB_SQLite::Query(std::string query) {
+SQLite_Result * DB_SQLite::Query(const string& query) {
 	if (!handle) {
 		sql_printf("sql error: you don't have an SQLite DB open!\n");
 		return NULL;
@@ -210,7 +214,7 @@ bool DB_SQLite::FreeResult(SQLite_Result *result) {
 	return true;
 }
 
-std::string DB_SQLite::EscapeString(std::string str) {
+string DB_SQLite::EscapeString(const string& str) {
 	char * tmp = sqlite3_mprintf("%q", str.c_str());
 	string ret = tmp;
 	sqlite3_free(tmp);

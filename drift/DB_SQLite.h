@@ -38,15 +38,16 @@ public:
 	DB_SQLite();
 	~DB_SQLite();
 
-	bool Open(std::string filename);
+	bool Open(const string& filename);
+	bool OpenV2(const string& filename, int flags, const string& vfs="");
 	bool IsOpen();
 	void Close();
 
-	std::string GetErrorString();
+	string GetErrorString();
 	int GetError();
 
-	bool NoResultQuery(std::string query);
-	SQLite_Result * Query(std::string query);
+	bool NoResultQuery(const string& query);
+	SQLite_Result * Query(const string& query);
 	size_t NumRows(SQLite_Result *result);
 	bool FetchRow(SQLite_Result *result, SC_Row& retRow);
 	bool FreeResult(SQLite_Result *result);
@@ -56,8 +57,8 @@ public:
 	int AffectedRows();
 	uint32_t GetQueryCount();
 
-	std::string EscapeString(std::string str);
-	std::string MPrintf(const char * str, ...);
+	string EscapeString(const string& str);
+	string MPrintf(const char * str, ...);
 	sqlite3 * GetHandle();
 
 	SQLConxMulti * MultiStart();
