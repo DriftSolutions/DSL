@@ -24,7 +24,7 @@ void SC_Row::Reset() {
 	NumFields = 0;
 }
 
-string SC_Row::Get(string fieldname, string sDefault) {
+string SC_Row::Get(const string& fieldname, const string& sDefault) {
 	auto x = Values.find(fieldname);
 	if (x != Values.end()) {
 		return x->second;
@@ -36,9 +36,8 @@ SQLConxMulti::~SQLConxMulti() {
 	queries.clear();
 }
 
-void SQLConxMulti::Query(std::string query) {
-	query += ";";
-	queries.push_back(query);
+void SQLConxMulti::Query(const string& query) {
+	queries.push_back(query + ";");
 }
 
 size_t SQLConxMulti::Count() {

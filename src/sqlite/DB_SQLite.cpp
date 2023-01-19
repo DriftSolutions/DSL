@@ -113,7 +113,7 @@ string DB_SQLite::GetErrorString() {
 }
 
 int DB_SQLite::GetError() {
-	if (handle == NULL) { return 0; }
+	if (handle == NULL) { return SQLITE_ERROR; }
 	return sqlite3_errcode(handle);
 }
 

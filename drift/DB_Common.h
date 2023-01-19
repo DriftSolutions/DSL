@@ -14,28 +14,28 @@
 class DSL_API_CLASS SC_Row {
 public:
 	map<string, string> Values;
-	uint32_t NumFields;
+	size_t NumFields;
 
 	SC_Row();
 	~SC_Row();
 	void Reset();
 
-	string Get(string fieldname, string sDefault = "");
+	string Get(const string& fieldname, const string& sDefault = "");
 };
 
 class DSL_API_CLASS SQLConxMulti {
 public:
 	~SQLConxMulti();
 
-	void Query(std::string query);
+	void Query(const string& query);
 	size_t Count();
 
-	std::vector<std::string> queries;
+	vector<string> queries;
 };
 
 class DSL_API_CLASS SQLConx {
 public:
-	typedef	int(*sql_printf_type)(const char * fmt, ...);
+	typedef	int (*sql_printf_type)(const char * fmt, ...);
 	void SetOutput(sql_printf_type pprintf = NULL);
 
 	virtual SQLConxMulti * MultiStart() = 0;

@@ -90,30 +90,21 @@ private:
 
 public:
 	uint8_t hash[SIG_SIZE_BYTES];
-	DS_SigPubKey pubkey;
 
 	DS_Signature();
 
-	bool CheckSignature(const uint8_t * msg, size_t msglen);
+	bool CheckSignature(const DS_SigPubKey& pubkey, const uint8_t * msg, size_t msglen);
 	bool SignData(DS_SigPrivKey& key, const uint8_t * msg, size_t msglen);
 
 	string GetString() const;
-	const char * c_str();
 	void SetNull();
 	bool IsNull();
 	bool IsValid() const;
 
-	/* Sets pubkey and signature hash */
+	/* Sets signature hash */
 	bool SetFromHexString(string str);
-	/* Sets pubkey and signature hash */
-	bool SetFromBinaryData(const uint8_t * p_hash, size_t len);
 	/* Sets just the signature hash */
-	bool SetSigFromBinaryData(const uint8_t * p_hash, size_t len);
-
-	/*
-	void FromSerialized(const PacketSignature& psig);
-	PacketSignature GetSerialized();
-	*/
+	bool SetFromBinaryData(const uint8_t * p_hash, size_t len);
 
 	bool operator == (const DS_Signature &b) const {
 		return (sodium_memcmp(hash, b.hash, SIG_SIZE_BYTES) == 0) ? true : false;

@@ -34,7 +34,6 @@ string DS_SigPubKey::GetString() const {
 	sodium_bin2hex(key_str, sizeof(key_str), key, sizeof(key));
 	return key_str;
 }
-const char * DS_SigPubKey::c_str() { return GetString().c_str(); }
 
 bool DS_SigPubKey::SetFromHexString(string str) {
 	if (str.length() == SIG_PUBKEY_SIZE_BYTES * 2 && strspn(str.c_str(), "abcdef0123456789") == str.length()) {
@@ -154,7 +153,7 @@ DS_Signature::DS_Signature() {
 	SetNull();
 }
 
-bool DS_Signature::CheckSignature(const uint8_t * msg, size_t msglen) {
+bool DS_Signature::CheckSignature(const DS_SigPubKey& pubkey, const uint8_t * msg, size_t msglen) {
 	if (!pubkey.IsValid()) {
 		return false;
 	}
@@ -162,15 +161,14 @@ bool DS_Signature::CheckSignature(const uint8_t * msg, size_t msglen) {
 }
 
 bool DS_Signature::SignData(DS_SigPrivKey& key, const uint8_t * msg, size_t msglen) {
-	uint8_t hash[SIG_SIZE_BYTES] = { 0 };
+	SetNull();
 	if (!key.IsValid()) {
 		return false;
 	}
 	if (crypto_sign_detached(hash, NULL, msg, msglen, key.key) != 0) {
 		return false;
 	}
-	pubkey = key.pubkey;
-	return SetSigFromBinaryData(hash, sizeof(hash));
+	return IsValid();
 }
 
 string DS_Signature::GetString() const {
@@ -179,11 +177,9 @@ string DS_Signature::GetString() const {
 	//bin2hex(key, sizeof(key), key_str, sizeof(key_str));
 	return key_str;
 }
-const char * DS_Signature::c_str() { return GetString().c_str(); }
 
 void DS_Signature::SetNull() {
 	memset(hash, 0, SIG_SIZE_BYTES);
-	pubkey.SetNull();
 }
 bool DS_Signature::IsNull() {
 	return (sodium_is_zero(hash, sizeof(hash)) == 1);
@@ -194,24 +190,14 @@ bool DS_Signature::IsValid() const {
 }
 
 bool DS_Signature::SetFromHexString(string str) {
-	if (str.length() == (SIG_PUBKEY_SIZE_BYTES + SIG_SIZE_BYTES) * 2 && strspn(str.c_str(), "abcdef0123456789") == str.length()) {
-		uint8_t buf[SIG_PUBKEY_SIZE_BYTES + SIG_SIZE_BYTES];
-		hex2bin(str.c_str(), buf, sizeof(buf));
-		return SetFromBinaryData(buf, sizeof(buf));
+	if (str.length() == SIG_SIZE_BYTES * 2 && strspn(str.c_str(), "abcdef0123456789") == str.length()) {
+		return (hex2bin(str.c_str(), hash, sizeof(SIG_SIZE_BYTES)) && IsValid());
 	}
 	SetNull();
 	return false;
 }
+
 bool DS_Signature::SetFromBinaryData(const uint8_t * p_hash, size_t len) {
-	if (len == SIG_PUBKEY_SIZE_BYTES + SIG_SIZE_BYTES) {
-		if (pubkey.SetFromBinaryData(p_hash, SIG_PUBKEY_SIZE_BYTES)) {
-			return SetSigFromBinaryData(p_hash + SIG_PUBKEY_SIZE_BYTES, SIG_SIZE_BYTES);
-		}
-	}
-	SetNull();
-	return false;
-}
-bool DS_Signature::SetSigFromBinaryData(const uint8_t * p_hash, size_t len) {
 	if (len == SIG_SIZE_BYTES) {
 		memcpy(hash, p_hash, SIG_SIZE_BYTES);
 		return IsValid();

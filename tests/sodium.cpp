@@ -62,6 +62,11 @@ int main(int argc, char * argv[]) {
 		if (sig.SignData(sigkey, (const uint8_t *)str.c_str(), str.length())) {
 			if (stricmp(sig.GetString().c_str(), correctsig.c_str()) == 0) {
 				printf("[sodium] Signing success!\n");
+				if (sig.CheckSignature(sigkey.pubkey, (const uint8_t *)str.c_str(), str.length())) {
+					printf("[sodium] Signature verification success!\n");
+				} else {
+					printf("[sodium] Signature verification failed!\n");
+				}
 			} else {
 				printf("[sodium]: Signature error! Got %s, should be %s\n", sig.GetString().c_str(), correctsig.c_str());
 			}

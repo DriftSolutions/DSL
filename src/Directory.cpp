@@ -44,13 +44,10 @@ Directory::~Directory() {
 
 bool Directory::Open(const char * dir) {
 	this->Close();
-	if (dir[0] == 0) { return false; }
+	if (dir == NULL || dir[0] == 0) { return false; }
 	this->mDir = new char[strlen(dir)+16];
 	strcpy(mDir, dir);
 #if defined(WIN32)
-//	if (mDir[strlen(mDir)-1] != PATH_SEP) { strcat(mDir, PATH_SEPS); }
-//	strcat(mDir,"*");
-
 	int bufSize = int(strlen(dir)) + 16;
 	wchar_t * wbuf = new wchar_t[bufSize];
 	int n = MultiByteToWideChar(CP_UTF8, 0, dir, -1, wbuf, bufSize);
@@ -79,7 +76,7 @@ bool Directory::Open(const char * dir) {
 
 bool Directory::Open(const wchar_t * dir) {
 	this->Close();
-	if (wcslen(dir) == 0) { return false; }
+	if (dir == NULL || wcslen(dir) == 0) { return false; }
 	this->wDir = new wchar_t[wcslen(dir)+16];
 	wcscpy(wDir, dir);
 #if defined(WIN32)

@@ -279,7 +279,9 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define F_OK 0x00
 
 //crt fixups
-#define snprintf _snprintf
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#define snprintf sprintf_s
+#endif
 #define wfopen _wfopen
 #define getcwd _getcwd
 #define snwprintf _snwprintf
