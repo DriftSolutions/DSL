@@ -156,9 +156,13 @@ typedef struct sockaddr_un
 } SOCKADDR_UN, *PSOCKADDR_UN;
 #endif
 
+extern "C" BOOLEAN NTAPI SystemFunction036(PVOID, ULONG);
+#define RtlGenRandom SystemFunction036
+
 //libs
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "advapi32.lib")
 
 #if defined(ENABLE_GNUTLS)
 #pragma comment(lib, "libgnutls-30.lib")

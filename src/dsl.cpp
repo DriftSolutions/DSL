@@ -42,11 +42,6 @@ void DSL_CC dsl_register_lib(DSL_LIBRARY_FUNCTIONS funcs) {
 DSL_Library_Registerer::~DSL_Library_Registerer() {}
 void DSL_Library_Registerer::EnsureLinked() {}
 
-#if defined(WIN32)
-typedef BOOLEAN (APIENTRY *RtlGenRandomType)(PVOID RandomBuffer, ULONG RandomBufferLength);
-RtlGenRandomType RGR = NULL;
-#endif
-
 bool DSL_CC dsl_init() {
 	AutoMutexPtr(dslMutex());
 	dsl_init_count++;
@@ -63,16 +58,6 @@ bool DSL_CC dsl_init() {
 	if (WSAStartup(MAKEWORD(2,2),&wsd) != 0) {
 		printf("DSL: Error initializing Winsock!\n");
 		return false;
-	}
-
-	if (RGR == NULL) {
-		HMODULE hRGR = LoadLibrary("advapi32.dll");
-		if (hRGR) {
-			RGR = (RtlGenRandomType)GetProcAddress(hRGR, "SystemFunction036");
-			if (RGR == NULL) {
-				FreeLibrary(hRGR);
-			}
-		}
 	}
 #endif
 
@@ -216,11 +201,9 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 		return true;
 	}
 #else
-	if (RGR != NULL) {
-		while (tries++ < 10) {
-			if (RGR(buf, len)) {
-				return true;
-			}
+	while (tries++ < 10) {
+		if (RtlGenRandom(buf, len)) {
+			return true;
 		}
 	}
 #endif
