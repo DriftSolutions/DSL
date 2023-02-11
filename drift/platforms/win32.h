@@ -308,9 +308,7 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define tell64 _telli64
 #define ftruncate _chsize_s
 #define dsl_mkdir(x,y) _mkdir(x)
-#ifndef _CRT_INTERNAL_NONSTDC_NAMES
-#define getpid() GetCurrentProcessId()
-#endif
+#define dsl_getpid() GetCurrentProcessId()
 
 #define tcslen _tcslen
 #define tcscpy _tcscpy

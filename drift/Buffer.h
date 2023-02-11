@@ -13,6 +13,9 @@
 
 #include <drift/Mutex.h>
 
+#define DSL_BUFFER_USE_VECTOR
+/* Other CRT's untested at this point but under MSVC 2022 vector is 18-25% faster in tests */
+
 /**
  * \defgroup buffer Data Buffer
  */
@@ -31,6 +34,9 @@ struct DSL_BUFFER {
 		uint8 * udata;
 	};
 	int64 len;
+#ifdef DSL_BUFFER_USE_VECTOR
+	vector<uint8> * vec;
+#endif
 };
 
 DSL_API void DSL_CC buffer_init(DSL_BUFFER * buf, bool useMutex = false); ///< Initialize the buffer, optionally with a mutex protecting it. If you don't use the mutex you need to either synchronize access yourself or only use it from a single thread.

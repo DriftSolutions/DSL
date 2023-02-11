@@ -107,6 +107,7 @@ typedef void * (*ThreadProto)(void *);
 #define dsl_mkdir(x,y) mkdir(x, y)
 //#define lseek64 lseek64
 #define tell64(x) lseek64(x, 0, SEEK_CUR)
+#define dsl_getpid() getpid()
 
 /**@}*/
 

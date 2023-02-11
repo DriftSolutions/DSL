@@ -28,6 +28,7 @@ IF %ERRORLEVEL% NEQ 0 (
 copy dsl-*.lib lib
 copy dsl-*.pdb lib
 copy dsl-*.dll lib
+REM del /q dsl-*.lib dsl-*.pdb dsl-*.dll
 
 IF [%1]==[] GOTO EOF
 copy lib\*.* "%1"
