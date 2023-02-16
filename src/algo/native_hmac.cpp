@@ -72,7 +72,7 @@ public:
 	const HMAC_NATIVE * algo;
 };
 
-vector<HMAC_MAP> algos {
+vector<HMAC_MAP> hmac_algos {
 	{ "sha256", &hash_hmac_sha256 },
 	{ "sha-256", &hash_hmac_sha256 },
 	{ "sha512", &hash_hmac_sha512 },
@@ -83,17 +83,17 @@ void DSL_CC dsl_add_native_hmac(const char * name, const HMAC_NATIVE * p) {
 	HMAC_MAP m;
 	m.name = name;
 	m.algo = p;
-	algos.push_back(m);
+	hmac_algos.push_back(m);
 }
 
 HASH_HMAC_CTX * dsl_native_hmac_init(const char * name, const uint8 *key, size_t length) {
 	HASH_HMAC_CTX * ret = dsl_new(HASH_HMAC_CTX);
 	memset(ret, 0, sizeof(HASH_HMAC_CTX));
-	for (int i = 0; i < algos.size(); i++) {
-		if (!stricmp(name, algos[i].name.c_str())) {
-			ret->hashSize = algos[i].algo->hashSize;
-			ret->impl = algos[i].algo;
-			if (algos[i].algo->init(ret, key, length)) {
+	for (int i = 0; i < hmac_algos.size(); i++) {
+		if (!stricmp(name, hmac_algos[i].name.c_str())) {
+			ret->hashSize = hmac_algos[i].algo->hashSize;
+			ret->impl = hmac_algos[i].algo;
+			if (hmac_algos[i].algo->init(ret, key, length)) {
 				return ret;
 			}
 			break;

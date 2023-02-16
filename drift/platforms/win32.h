@@ -304,6 +304,7 @@ typedef unsigned (__stdcall *ThreadProto)(void *);
 #define S_ISEXEC(x) (x & _S_IEXEC)
 #define S_ISLNK(x) (0)
 #define stat64 _stati64
+#define fstat64 _fstati64
 #define lseek64 _lseeki64
 #define tell64 _telli64
 #define ftruncate _chsize_s
