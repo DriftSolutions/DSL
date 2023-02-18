@@ -13,7 +13,7 @@
 
 #include <drift/Mutex.h>
 
-#define DSL_BUFFER_USE_VECTOR
+//#define DSL_BUFFER_USE_VECTOR
 /* Other CRT's untested at this point but under MSVC 2022 vector is 18-25% faster in tests */
 
 /**

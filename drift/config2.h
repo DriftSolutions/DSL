@@ -51,25 +51,40 @@ public:
 
 // case-independent (ci) string less_than
 // returns true if s1 < s2
-struct uc_less : binary_function<string, string, bool> {
+#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+struct uc_less {
+	// case-independent (ci) compare_less binary function
+	struct nocase_compare {
+		bool operator() (const unsigned char& c1, const unsigned char& c2) const {
+			return tolower(c1) < tolower(c2);
+		}
+	};
+	bool operator() (const std::string & s1, const std::string & s2) const {
+		return std::lexicographical_compare
+		(s1.begin(), s1.end(),   // source range
+			s2.begin(), s2.end(),   // dest range
+			nocase_compare());  // comparison
+	}
+ };
+#else
+struct uc_less {
 
-  // case-independent (ci) compare_less binary function
-  struct nocase_compare : public binary_function<unsigned char,unsigned char,bool>
-    {
-    bool operator() (const unsigned char& c1, const unsigned char& c2) const
-      { return tolower (c1) < tolower (c2); }
-    };
+	// case-independent (ci) compare_less binary function
+	struct nocase_compare : public binary_function<unsigned char, unsigned char, bool> {
+		bool operator() (const unsigned char& c1, const unsigned char& c2) const {
+			return tolower(c1) < tolower(c2);
+		}
+	};
 
-  bool operator() (const string & s1, const string & s2) const
-    {
+	bool operator() (const string & s1, const string & s2) const {
 
-    return lexicographical_compare
-          (s1.begin (), s1.end (),   // source range
-           s2.begin (), s2.end (),   // dest range
-                nocase_compare ());  // comparison
-    }
+		return lexicographical_compare
+		(s1.begin(), s1.end(),   // source range
+			s2.begin(), s2.end(),   // dest range
+			nocase_compare());  // comparison
+	}
 }; // end of uc_less
-
+#endif
 
 class DSL_API_CLASS ConfigSection {
 public:
