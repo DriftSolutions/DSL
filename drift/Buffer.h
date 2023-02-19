@@ -1,7 +1,7 @@
 //@AUTOHEADER@BEGIN@
 /***********************************************************************\
 |                    Drift Standard Libraries v1.01                     |
-|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
+|            Copyright 2010-2023 Drift Solutions / Indy Sams            |
 | Docs and more information available at https://www.driftsolutions.dev |
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
@@ -13,7 +13,7 @@
 
 #include <drift/Mutex.h>
 
-//#define DSL_BUFFER_USE_VECTOR
+#define DSL_BUFFER_USE_VECTOR
 /* Other CRT's untested at this point but under MSVC 2022 vector is 18-25% faster in tests */
 
 /**

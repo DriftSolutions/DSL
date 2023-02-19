@@ -1,7 +1,7 @@
 //@AUTOHEADER@BEGIN@
 /***********************************************************************\
 |                    Drift Standard Libraries v1.01                     |
-|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
+|            Copyright 2010-2023 Drift Solutions / Indy Sams            |
 | Docs and more information available at https://www.driftsolutions.dev |
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
@@ -10,6 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/Buffer.h>
+#include <assert.h>
 
 #pragma warning(disable: 4244)
 
@@ -108,6 +109,7 @@ bool DSL_CC buffer_append(DSL_BUFFER * buf, const char * ptr, int64 len) {
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 
 	buf->vec->resize(buf->len + len);
+	assert(buf->vec->size() == buf->len + len);
 	buf->data = (char *)buf->vec->data();
 	memcpy(buf->data + buf->len, ptr, len);
 	buf->len += len;
