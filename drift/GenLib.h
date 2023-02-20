@@ -30,20 +30,36 @@ DSL_API_CLASS const wchar_t * DSL_CC nopathW(const wchar_t * filename); ///< Ret
  * This function takes binary data and converts it to a hex string.
  * @param data a pointer to the binary data
  * @param datalen the length of the binary data
- * @param out pointer to a char buffer to put the hex string in. out should have a minimum size of (inlen*2)+1
+ * @param out pointer to a char buffer to put the hex string in.
+ * @param outsize The size of the buffer pointed to by out. It should have a minimum size of (datalen*2)+1
  */
-DSL_API_CLASS char * DSL_CC bin2hex(const uint8_t * in, size_t inlen, char * out, size_t outsize);
-DSL_API_CLASS string DSL_CC bin2hex(const uint8_t * in, size_t inlen);
+DSL_API_CLASS char * DSL_CC bin2hex(const uint8_t * data, size_t datalen, char * out, size_t outsize);
+/**
+ * This function takes binary data and converts it to a hex string.
+ * @param data a pointer to the binary data
+ * @param datalen the length of the binary data
+ */
+DSL_API_CLASS string DSL_CC bin2hex(const uint8_t * data, size_t datalen);
 
 /**
  * This function takes a hex string and converts it to binary data.
  * @param instr a pointer to the hex-encoded data (should be a multiple of 2)
- * @param inlen length of string instr (in the version without inlen strlen() is run on instr)
+ * @param inlen length of string instr
  * @param outsize the length of the output buffer, should be (inlen/2)
  * @param out pointer to a buffer to put the binary data in string in.
  */
 DSL_API_CLASS bool DSL_CC hex2bin(const char * instr, size_t inlen, uint8 * out, size_t outsize);
+/**
+ * This function takes a hex string and converts it to binary data.
+ * @param instr a pointer to the hex-encoded data (should be a multiple of 2). Length is determined by doing a strlen() on the string.
+ * @param outsize the length of the output buffer, should be (inlen/2)
+ * @param out pointer to a buffer to put the binary data in string in.
+ */
 DSL_API_CLASS bool DSL_CC hex2bin(const char * instr, uint8 * out, size_t outsize);
+/**
+ * This function takes a hex string and converts it to binary data, putting it into a vector.
+ * @param instr a pointer to the hex-encoded data (should be a multiple of 2).
+ */
 DSL_API_CLASS bool DSL_CC hex2bin(const string instr, vector<uint8_t>& out);
 
 DSL_API void DSL_CC PrintData(FILE * fp, const uint8 * ptr, size_t len); ///< Prints binary data in a pretty format

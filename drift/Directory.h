@@ -47,8 +47,8 @@ private:
 
 public:
 	Directory();
-	Directory(const char * dir); ///< Constructor with directory path (ANSI/UTF-8)
-	Directory(const wchar_t * dir); ///< Constructor with directory path (Unicode)
+	Directory(const char * dir); ///< Constructor with directory path (ANSI/UTF-8). This constructor calls Open() with the dir you provide.
+	Directory(const wchar_t * dir); ///< Constructor with directory path (Unicode). This constructor calls Open() with the dir you provide.
 	~Directory();
 
 	bool Open(const char * dir); ///< Open directory (ANSI/UTF-8)

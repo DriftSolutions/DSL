@@ -124,8 +124,8 @@ DSL_API void dsl_cleanup();
 /**
  * Fills a buffer with random data.<br />
  * Windows: Uses RtlGenRandom if available.<br />
- * Linux: Uses the SYS_getrandom syscall if available, or /dev/urandom, or /dev/random (falling back in that order).<br />
- * Both: If all the above fails, falls back to rand() :(
+ * Linux: Uses getrandom(), the SYS_getrandom syscall if available, or /dev/urandom, or /dev/random (falling back in that order).<br />
+ * Both: If all the above fails, tries RDRAND and if that fails falls back to rand() :(
  */
 DSL_API bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len);
 
@@ -138,6 +138,9 @@ DSL_API wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr);
  * @sa dsl_free
  */
 DSL_API char * DSL_CC dsl_mprintf(const char * fmt, ...);
+/**
+ * Returns a string using printf formatting.
+ */
 DSL_API_CLASS string mprintf(const string fmt, ...);
 /**
  * Returns a dynamically allocated string using printf formatting, free with dsl_free.
@@ -149,11 +152,17 @@ DSL_API char * DSL_CC dsl_vmprintf(const char * fmt, va_list va);
  * @sa dsl_free
  */
 DSL_API wchar_t * DSL_CC dsl_wmprintf(const wchar_t * fmt, ...);
+/**
+ * Frees memory allocated by dsl_malloc/dsl_realloc and variousd other dsl_* functions.
+ */
 DSL_API void DSL_CC dsl_free(void * ptr);
 /**
  * Call dsl_free on a pointer if it's not NULL
  */
 #define dsl_freenn(ptr) if (ptr) { dsl_free(ptr); }
+/**
+ * Allocates memory for a struct using dsl_malloc.
+ */
 #define dsl_new(x) (x *)dsl_malloc(sizeof(x));
 
 /**@}*/

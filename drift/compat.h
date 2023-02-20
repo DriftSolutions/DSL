@@ -8,6 +8,7 @@
 \***********************************************************************/
 //@AUTOHEADER@END@
 
+#ifndef DSL_NO_COMPAT
 #ifndef _DSL_COMPAT_H_
 #define _DSL_COMPAT_H_
 
@@ -56,3 +57,4 @@
 #define TT_THREADEND DSL_THREADEND
 
 #endif // _DSL_COMPAT_H_
+#endif // DSL_NO_COMPAT
