@@ -121,9 +121,10 @@ DSL_API bool DSL_CC dsl_init();
  * @sa dsl_init
  */
 DSL_API void dsl_cleanup();
+
 /**
  * Fills a buffer with random data.<br />
- * Windows: Uses RtlGenRandom if available.<br />
+ * Windows: Uses RtlGenRandom if available. (It has been in Windows since XP so it essentially always is available.)<br />
  * Linux: Uses getrandom(), the SYS_getrandom syscall if available, or /dev/urandom, or /dev/random (falling back in that order).<br />
  * Both: If all the above fails, tries RDRAND and if that fails falls back to rand() :(
  */

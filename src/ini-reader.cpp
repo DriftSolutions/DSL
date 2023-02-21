@@ -144,6 +144,28 @@ DSL_API int64 DSL_CC Get_INI_Int_Memory(const char * cINIFile, const char *secti
 	return iDefault;
 }
 
+double DSL_CC Get_INI_Float(const char *path, const char *section, const char *item, double iDefault) {
+	AutoMutexPtr(iniMutex());
+
+	char ivalue[64];
+	char * ret = Get_INI_String(path, section, item, ivalue, sizeof(ivalue), NULL);
+	if (ret) {
+		return atof(ret);
+	}
+	return iDefault;
+}
+
+DSL_API double DSL_CC Get_INI_Float_Memory(const char * cINIFile, const char *section, const char *item, double iDefault) {
+	AutoMutexPtr(iniMutex());
+
+	char ivalue[64];
+	char * ret = Get_INI_String_Memory(cINIFile, section, item, ivalue, sizeof(ivalue), NULL);
+	if (ret) {
+		return atof(ret);
+	}
+	return iDefault;
+}
+
 int DSL_CC Write_INI_String(const char *pszPath, const char *pszSection, const char *pszItem, const char *pszValue) {
 	FILE * hFile = fopen(pszPath, "rb");
 	if (hFile == NULL) {
