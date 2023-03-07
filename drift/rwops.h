@@ -11,6 +11,8 @@
 #ifndef __RWOPS_H__
 #define __RWOPS_H__
 
+#include <drift/Buffer.h>
+
 /**
  * \defgroup rwops Abstract File/Memory Reading/Writing
  */
@@ -86,6 +88,18 @@ DSL_API DSL_FILE * DSL_CC RW_OpenMemory(int64 size);
  * @return A handle on success, NULL on failure.
  */
 DSL_API DSL_FILE * DSL_CC RW_ConvertMemory(uint8 * buf, int64 size);
+/**
+ * Creates a handle for a DSL_BUFFER.
+ * @param buf Optional, returns a pointer to the DSL_BUFFER that is created
+ * @return A handle on success, NULL on failure.
+ */
+DSL_API DSL_FILE * DSL_CC RW_OpenBuffer(DSL_BUFFER ** buf);
+/**
+ * Creates a handle for a user-supplied DSL_BUFFER.
+ * @param offset The position in the buffer to use as the file pointer/position (as in fseek.) Anything <0 is for the end of the buffer.
+ * @return A handle on success, NULL on failure.
+ */
+DSL_API DSL_FILE * DSL_CC RW_ConvertBuffer(DSL_BUFFER * buf, int64 offset = -1);
 
 #if defined(ENABLE_PHYSFS) || defined(DOXYGEN_SKIP)
 #include <physfs.h>

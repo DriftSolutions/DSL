@@ -182,9 +182,14 @@ public:
 	virtual void SetUserAgent(const char * ua);
 	virtual void FollowRedirects(bool follow);
 	virtual void ErrorOnRedirects(bool error);
+	virtual void SetProxy(const char * proxy); // See https://curl.se/libcurl/c/CURLOPT_PROXY.html
+	virtual CURLcode SetOptStr(CURLoption option, const char * p);
+	virtual CURLcode SetOptVoid(CURLoption option, void * p);
+	virtual CURLcode SetOptLong(CURLoption option, long p);
+	virtual CURLcode SetOptOff(CURLoption option, curl_off_t p);
 };
 
-DSL_API_CLASS string curl_escapestring(string str);
+DSL_CURL_API_CLASS string curl_escapestring(string str);
 
 #define DSL_Download DSL_Download_Curl
 #else

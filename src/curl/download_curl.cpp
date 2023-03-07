@@ -154,11 +154,7 @@ DSL_Download_Curl::~DSL_Download_Curl() {
 //DSL_Download_Errors DSL_Download::GetError() { return this->error; }
 
 void DSL_Download_Curl::SetTimeout(unsigned long millisec) {
-#if defined(CURLOPT_CONNECTTIMEOUT_MS)
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_CONNECTTIMEOUT_MS, millisec); }
-#else
-	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_CONNECTTIMEOUT, millisec/1000); }
-#endif
 }
 
 void DSL_Download_Curl::FollowRedirects(bool follow) {
@@ -171,6 +167,30 @@ void DSL_Download_Curl::ErrorOnRedirects(bool error) {
 
 void DSL_Download_Curl::SetUserAgent(const char * ua) {
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_USERAGENT, ua); }
+}
+
+void DSL_Download_Curl::SetProxy(const char * proxy) {
+	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_PROXY, proxy); }
+}
+
+CURLcode DSL_Download_Curl::SetOptStr(CURLoption option, const char * p) {
+	if (cHandle) { return curl_easy_setopt(cHandle, option, p); }
+	return CURLE_FAILED_INIT;
+}
+
+CURLcode DSL_Download_Curl::SetOptVoid(CURLoption option, void * p) {
+	if (cHandle) { return curl_easy_setopt(cHandle, option, p); }
+	return CURLE_FAILED_INIT;
+}
+
+CURLcode DSL_Download_Curl::SetOptLong(CURLoption option, long p) {
+	if (cHandle) { return curl_easy_setopt(cHandle, option, p); }
+	return CURLE_FAILED_INIT;
+}
+
+CURLcode DSL_Download_Curl::SetOptOff(CURLoption option, curl_off_t p) {
+	if (cHandle) { return curl_easy_setopt(cHandle, option, p); }
+	return CURLE_FAILED_INIT;
 }
 
 bool DSL_Download_Curl::Download(const char * SaveAs) {

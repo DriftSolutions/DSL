@@ -24,7 +24,7 @@ void SC_Row::Reset() {
 	NumFields = 0;
 }
 
-string SC_Row::Get(const string& fieldname, const string& sDefault) {
+string SC_Row::Get(const string& fieldname, const string& sDefault) const {
 	auto x = Values.find(fieldname);
 	if (x != Values.end()) {
 		return x->second;

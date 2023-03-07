@@ -20,7 +20,7 @@ public:
 	~SC_Row();
 	void Reset();
 
-	string Get(const string& fieldname, const string& sDefault = "");
+	string Get(const string& fieldname, const string& sDefault = "") const;
 };
 
 class DSL_API_CLASS SQLConxMulti {

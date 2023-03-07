@@ -1,7 +1,7 @@
 //@AUTOHEADER@BEGIN@
 /***********************************************************************\
 |                    Drift Standard Libraries v1.01                     |
-|            Copyright 2010-2020 Drift Solutions / Indy Sams            |
+|            Copyright 2010-2023 Drift Solutions / Indy Sams            |
 | Docs and more information available at https://www.driftsolutions.dev |
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
@@ -209,6 +209,143 @@ DSL_FILE * DSL_CC RW_ConvertMemory(uint8 * buf, int64 size) {
 	ret->eof = mem_eof;
 	ret->flush = mem_flush;
 	ret->close = mem_close;
+
+	return ret;
+}
+
+struct TP_BUFHANDLE {
+	DSL_BUFFER * buf;
+	bool bDelete;
+	int64 offset;
+};
+
+int64 buf_read(void * buf, int64 size, DSL_FILE * fp) {
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	if (size + mem->offset > mem->buf->len) {
+		size = mem->buf->len - mem->offset;
+	}
+	if (mem->offset >= mem->buf->len || size <= 0) { return 0; }
+
+	memcpy(buf, mem->buf->udata + mem->offset, size);
+	mem->offset += size;
+
+	return size;
+}
+
+int64 buf_write(void * buf, int64 size, DSL_FILE * fp) {
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+
+	if (size <= 0) { return 0; }
+
+	int64 newoff = mem->offset + size;
+	if (newoff > mem->buf->len) {
+		buffer_resize(mem->buf, newoff);
+	}
+
+	memcpy(mem->buf->udata + mem->offset, buf, size);
+	mem->offset = newoff;
+	return size;
+}
+
+bool buf_seek(DSL_FILE * fp, int64 pos, int mode) {
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	switch (mode) {
+		case SEEK_SET:
+			mem->offset = pos;
+			break;
+		case SEEK_CUR:
+			mem->offset += pos;
+			break;
+		case SEEK_END:
+			mem->offset = mem->buf->len + pos;
+			break;
+		default:
+			return false;
+			break;
+	}
+	if (mem->offset > mem->buf->len) {
+		mem->offset = mem->buf->len;
+	}
+	if (mem->offset < 0) {
+		mem->offset = 0;
+	}
+	return true;
+}
+
+void buf_close(DSL_FILE * fp) {
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	if (mem->bDelete) {
+		buffer_free(mem->buf);
+		delete mem->buf;
+	}
+	delete mem;
+	delete fp;
+}
+
+int64 buf_tell(DSL_FILE * fp) {
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	return mem->offset;
+}
+
+bool buf_eof(DSL_FILE * fp) {
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	return (mem->offset >= mem->buf->len);
+}
+
+bool buf_flush(DSL_FILE * fp) {
+	return true;
+}
+
+DSL_FILE * DSL_CC RW_OpenBuffer(DSL_BUFFER ** pbuf) {
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret, 0, sizeof(DSL_FILE));
+
+	TP_BUFHANDLE * mem = new TP_BUFHANDLE;
+	memset(mem, 0, sizeof(TP_BUFHANDLE));
+
+	DSL_BUFFER * buf = new DSL_BUFFER;
+	memset(buf, 0, sizeof(DSL_BUFFER));
+	buffer_init(buf);
+
+	mem->buf = buf;
+	if (pbuf != NULL) {
+		*pbuf = buf;
+	}
+	mem->bDelete = true;
+
+	ret->handle = mem;
+	ret->read = buf_read;
+	ret->write = buf_write;
+	ret->seek = buf_seek;
+	ret->tell = buf_tell;
+	ret->eof = buf_eof;
+	ret->flush = buf_flush;
+	ret->close = buf_close;
+
+	return ret;
+}
+
+DSL_FILE * DSL_CC RW_ConvertBuffer(DSL_BUFFER * buf, int64 offset) {
+	DSL_FILE * ret = new DSL_FILE;
+	memset(ret, 0, sizeof(DSL_FILE));
+	TP_BUFHANDLE * mem = new TP_BUFHANDLE;
+	memset(mem, 0, sizeof(TP_BUFHANDLE));
+
+	mem->buf = buf;
+	if (offset < 0) {
+		mem->offset = buf->len;
+	} else {
+		mem->offset = offset;
+	}
+
+	ret->handle = mem;
+	ret->read = buf_read;
+	ret->write = buf_write;
+	ret->seek = buf_seek;
+	ret->tell = buf_tell;
+	ret->eof = buf_eof;
+	ret->flush = buf_flush;
+	ret->close = buf_close;
 
 	return ret;
 }
