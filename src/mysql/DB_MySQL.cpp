@@ -34,14 +34,6 @@ DSL_LIBRARY_FUNCTIONS dsl_mysql_funcs = {
 };
 DSL_Library_Registerer dsl_mysql_autoreg(dsl_mysql_funcs);
 
-#ifdef _WIN32
-#define SC_STRCPY strncpy
-#define SC_STRICMP _stricmp
-#else
-#define SC_STRCPY strlcpy
-#define SC_STRICMP strcasecmp
-#endif
-
 DB_MySQL::DB_MySQL() {
 	sql_printf = printf;
 	query_count = 0;
@@ -55,7 +47,7 @@ DB_MySQL::~DB_MySQL() {
 }
 
 void DB_MySQL::Disconnect() {
-	if (sql) {
+	if (sql != NULL) {
 		mysql_close(sql);
 		sql = NULL;
 	}
@@ -85,7 +77,7 @@ bool DB_MySQL::Connect() {
 			//mysql_real_query(sql, dbname);
 			string query = "CREATE DATABASE ";
 			query += dbname;
-			mysql_real_query(sql, query.c_str(), query.length());
+			mysql_real_query(sql, query.c_str(), (unsigned long)query.length());
 			if (mysql_select_db(sql, dbname.c_str()) == 0) {
 				sql_printf("Created database '%s'\n", dbname.c_str());
 			} else {
@@ -102,18 +94,17 @@ bool DB_MySQL::Connect() {
 		string query = "SET NAMES '";
 		query += charset;
 		query += "'";
-		Query(query.c_str());
+		NoResultQuery(query.c_str());
 	}
 
 	sql_printf("Connected!\n");
 	sql_printf("MySQL Client Version: %s\n", mysql_get_client_info());
 	sql_printf("MySQL Server Version: %s\n", mysql_get_server_info(sql));
 	sql_printf("Connected to %s\n", mysql_get_host_info(sql));
-	//sql_printf("%s\n", mysql_info(sql));
 	return true;
 }
 
-bool DB_MySQL::Connect(std::string pHost, std::string pUser, std::string pPass, std::string pDBName, uint16_t lPort, std::string pCharset) {
+bool DB_MySQL::Connect(const string& pHost, const string& pUser, const string& pPass, const string& pDBName, uint16_t lPort, const string& pCharset) {
 	host = pHost;
 	user = pUser;
 	pass = pPass;
@@ -124,24 +115,13 @@ bool DB_MySQL::Connect(std::string pHost, std::string pUser, std::string pPass, 
 	return Connect();
 }
 
-int DB_MySQL::Ping() {
-	if (!sql) {
+bool DB_MySQL::Ping() {
+	if (sql == NULL) {
 		sql_printf("sql error: you are not connected to a MySQL server!\n");
 		sql_printf("Attempting auto-reconnect...\n");
-		if (Connect()) {
-			return mysql_ping(sql);
-		}
-		return -1;
+		return Connect();
 	}
-	int ret = mysql_ping(sql);
-	if (ret != 0) {//auto-attempt reconnect
-		sql_printf("Attempting auto-reconnect...\n");
-		if (Connect()) {
-			return mysql_ping(sql);
-		}
-		return ret;
-	}
-	return ret;
+	return (mysql_ping(sql) == 0);
 }
 
 uint32_t DB_MySQL::InsertID() {
@@ -156,12 +136,11 @@ uint64_t DB_MySQL::AffectedRows() {
 	return uint64_t(mysql_affected_rows(sql));
 }
 
-
 uint32_t DB_MySQL::GetQueryCount() {
 	return query_count;
 }
 
-std::string DB_MySQL::GetErrorString() {
+string DB_MySQL::GetErrorString() {
 	if (sql == NULL) { return "Unknown error"; }
 	return mysql_error(sql);
 }
@@ -171,8 +150,8 @@ unsigned int DB_MySQL::GetError() {
 	return mysql_errno(sql);
 }
 
-bool DB_MySQL::NoResultQuery(std::string query) {
-	if (!sql) {
+bool DB_MySQL::NoResultQuery(const string& query) {
+	if (sql == NULL) {
 		sql_printf("sql error: you are not connected to a MySQL server!\n");
 		if (!Connect()) {
 			return false;
@@ -180,7 +159,7 @@ bool DB_MySQL::NoResultQuery(std::string query) {
 	}
 
 	query_count++;
-	bool ret = (mysql_real_query(sql, query.c_str(), query.length()) == 0);
+	bool ret = (mysql_real_query(sql, query.c_str(), (unsigned long)query.length()) == 0);
 	if (!ret) {
 		sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
 		if (query.length() <= 4096) {
@@ -192,7 +171,7 @@ bool DB_MySQL::NoResultQuery(std::string query) {
 	return ret;
 }
 
-MYSQL_RES *DB_MySQL::Query(std::string query) {
+MYSQL_RES *DB_MySQL::Query(const string& query) {
 	if (!NoResultQuery(query)) {
 		return NULL;
 	}
@@ -231,7 +210,7 @@ bool DB_MySQL::FetchRow(MYSQL_RES *result, SC_Row& retRow) {
 }
 
 uint64_t DB_MySQL::NumRows(MYSQL_RES *result) {
-	if (!result) { return 0; }
+	if (result == NULL) { return 0; }
 	uint64_t ret = mysql_num_rows(result);
 	return ret;
 }
@@ -242,13 +221,13 @@ bool DB_MySQL::FreeResult(MYSQL_RES *result) {
 	return true;
 }
 
-std::string DB_MySQL::EscapeString(std::string str) {
-	std::string ret = "";
+string DB_MySQL::EscapeString(const string& str) {
+	string ret;
 	char * tmp = (char *)dsl_malloc((str.length() * 2) + 1);
-	if (sql) {
-		mysql_real_escape_string(sql, tmp, str.c_str(), str.length());
+	if (sql != NULL) {
+		mysql_real_escape_string(sql, tmp, str.c_str(), (unsigned long)str.length());
 	} else {
-		mysql_escape_string(tmp, str.c_str(), str.length());
+		mysql_escape_string(tmp, str.c_str(), (unsigned long)str.length());
 	}
 	ret = tmp;
 	dsl_free(tmp);
@@ -258,7 +237,7 @@ std::string DB_MySQL::EscapeString(std::string str) {
 MYSQL * DB_MySQL::GetHandle() { return sql; }
 
 SQLConxMulti * DB_MySQL::MultiStart() {
-	return new SQLConxMulti;
+	return new SQLConxMulti();
 }
 
 
@@ -269,7 +248,7 @@ bool DB_MySQL::MultiEnd(SQLConxMulti * scm) {
 }
 
 bool DB_MySQL::MultiSend(SQLConxMulti * scm) {
-	if (!sql) {
+	if (sql == NULL) {
 		sql_printf("sql error: you are not connected to a MySQL server!\n");
 		if (!Connect()) {
 			return false;
@@ -316,7 +295,7 @@ bool DB_MySQL::MultiSend(SQLConxMulti * scm) {
 		sql_printf("Batch cnt %d\n", cnt);
 #endif
 		query_count += cnt;
-		int status = mysql_real_query(sql, q.str().c_str(), q.str().length());
+		int status = mysql_real_query(sql, q.str().c_str(), (unsigned long)q.str().length());
 		/*
 		FILE * fp2 = fopen("query.txt", "ab");
 		if (fp2 != NULL) {
@@ -333,7 +312,7 @@ bool DB_MySQL::MultiSend(SQLConxMulti * scm) {
 		do {
 		  /* did current statement return data? */
 			MYSQL_RES * result = mysql_store_result(sql);
-			if (result) {
+			if (result != NULL) {
 				mysql_free_result(result);
 			} else {
 				/* no result set or error */

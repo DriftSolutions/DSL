@@ -108,7 +108,7 @@ int DSL_CC base64_encode(const void * str, size_t len, char * dest) {
     }
 
     *p = '\0';
-    return p - (uint8*)dest;
+    return (int)(p - (uint8*)dest);
 }
 
 #ifdef WORDS_BIGENDIAN   /* BIG ENDIAN -- SUN / IBM / MOTOROLA */

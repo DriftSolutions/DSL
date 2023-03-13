@@ -180,7 +180,7 @@ int DSL_CC Write_INI_String(const char *pszPath, const char *pszSection, const c
 		return 0;
 	}
 	fseek(hFile, 0, SEEK_END);
-	long len = ftell(hFile);
+	size_t len = (size_t)ftell(hFile);
 	fseek(hFile, 0, SEEK_SET);
 	char * cfile = (char *)dsl_malloc(len+1);
 	cfile[len] = 0;

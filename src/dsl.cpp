@@ -202,7 +202,7 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 	}
 #else
 	while (tries++ < 10) {
-		if (RtlGenRandom(buf, len)) {
+		if (RtlGenRandom(buf, (ULONG)len)) {
 			return true;
 		}
 	}

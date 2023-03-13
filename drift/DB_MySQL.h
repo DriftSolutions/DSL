@@ -32,16 +32,16 @@ public:
 	DB_MySQL();
 	~DB_MySQL();
 
-	bool Connect(std::string host, std::string user, std::string pass, std::string dbname, uint16_t port=0, std::string charset="");
+	bool Connect(const string& host, const string& user, const string& pass, const string& dbname, uint16_t port=0, const string& charset="");
 	bool Connect();
 	void Disconnect();
-	int Ping();
+	bool Ping();
 
-	std::string GetErrorString();
+	string GetErrorString();
 	unsigned int GetError();
 
-	bool NoResultQuery(std::string query);
-	MYSQL_RES *Query(std::string query);	
+	bool NoResultQuery(const string& query);
+	MYSQL_RES *Query(const string& query);	
 	uint64_t NumRows(MYSQL_RES *result);
 	bool FetchRow(MYSQL_RES *result, SC_Row& retRow);
 	bool FreeResult(MYSQL_RES *result);
@@ -51,7 +51,7 @@ public:
 	uint64_t AffectedRows();
 	uint32_t GetQueryCount();
 
-	std::string EscapeString(std::string str);
+	string EscapeString(const string& str);
 	MYSQL * GetHandle();
 
 	SQLConxMulti * MultiStart();
@@ -60,7 +60,7 @@ public:
 
 private:
 	MYSQL * sql;
-	std::string host, user, pass, dbname, charset;
+	string host, user, pass, dbname, charset;
 	uint16_t port;
 	uint32_t query_count = 0;
 };
