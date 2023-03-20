@@ -26,7 +26,7 @@
 #endif
 #endif
 
-#define base64_encode_buffer_size(x) ((4*(x/3))+1)
+#define base64_encode_buffer_size(n) ((((4 * (n)) / 3) + 3) & ~3)
 
 /**
  * Encodes binary data to a base64 string. outBuffer should be at least base64_encode_buffer_size(count) bytes long.

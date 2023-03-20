@@ -130,6 +130,13 @@ DSL_API void dsl_cleanup();
  */
 DSL_API bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len);
 
+template <typename T> T dsl_get_random(T min, T max) {
+	T range = max - min + 1;
+	T ret;
+	dsl_fill_random_buffer((uint8 *)&ret, sizeof(T));
+	return (ret % range) + min;
+}
+
 DSL_API void * DSL_CC dsl_malloc(size_t lSize);
 DSL_API void * DSL_CC dsl_realloc(void * ptr, size_t lSize);
 DSL_API char * DSL_CC dsl_strdup(const char * ptr);
