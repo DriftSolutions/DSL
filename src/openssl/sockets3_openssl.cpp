@@ -178,30 +178,32 @@ bool DSL_Sockets3_OpenSSL::EnableSSL(const char * cert, DS3_SSL_METHOD method) {
 	SSL_CTX_set_mode(ctx, SSL_CTX_get_mode(ctx) | SSL_MODE_AUTO_RETRY);
 	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3 | SSL_OP_NO_SSLv2);
 
-	if (SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM) <= 0) {
-		ERR_print_errors_fp(stderr);
-		strcpy(bError, "Error loading your certificate!");
-		bErrNo = 0x54530002;
-		SSL_CTX_free(ctx);
-		ctx = NULL;
-		return false;
-	}
-	if (SSL_CTX_use_PrivateKey_file(ctx, cert, SSL_FILETYPE_PEM) <= 0) {
-		ERR_print_errors_fp(stderr);
-		strcpy(bError, "Error loading your Private Key!");
-		bErrNo = 0x54530003;
-		SSL_CTX_free(ctx);
-		ctx = NULL;
-		return false;
-	}
+	if (cert != NULL) {
+		if (SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
+			strcpy(bError, "Error loading your certificate!");
+			bErrNo = 0x54530002;
+			SSL_CTX_free(ctx);
+			ctx = NULL;
+			return false;
+		}
+		if (SSL_CTX_use_PrivateKey_file(ctx, cert, SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
+			strcpy(bError, "Error loading your Private Key!");
+			bErrNo = 0x54530003;
+			SSL_CTX_free(ctx);
+			ctx = NULL;
+			return false;
+		}
 
-	if (!SSL_CTX_check_private_key(ctx)) {
-		ERR_print_errors_fp(stderr);
-		strcpy(bError, "Private key does not match the certificate public key!");
-		bErrNo = 0x54530004;
-		SSL_CTX_free(ctx);
-		ctx = NULL;
-		return false;
+		if (!SSL_CTX_check_private_key(ctx)) {
+			ERR_print_errors_fp(stderr);
+			strcpy(bError, "Private key does not match the certificate public key!");
+			bErrNo = 0x54530004;
+			SSL_CTX_free(ctx);
+			ctx = NULL;
+			return false;
+		}
 	}
 
 	enabled_flags |= DS3_FLAG_SSL;
@@ -376,7 +378,7 @@ X509 * DSL_Sockets3_OpenSSL::GetSSL_Cert(DSL_SOCKET * pSock) { /// Don't forget 
 #endif
 	if (sock->ssl) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000
-		ret = SSL_get1_peer_certificate(sock->ssl);		
+		ret = SSL_get1_peer_certificate(sock->ssl);
 #else
 		ret = SSL_get_peer_certificate(sock->ssl);
 #endif

@@ -808,8 +808,8 @@ int DSL_Sockets3_Base::RecvLine(DSL_SOCKET * sock, char * buf, int bufsize) {
 	if (n == 0) { return RL3_CLOSED; }
 
 	buf[n]=0;
-	char *p = strchr(buf,'\n');
-	if (p == NULL) { p = strchr(buf,'\r'); }
+	char *p = strchr(buf, '\n');
+	//if (p == NULL) { p = strchr(buf,'\r'); }
 	if (p != NULL) {
 		n = (p - buf) + 1;
 		memset(buf, 0, bufsize);
