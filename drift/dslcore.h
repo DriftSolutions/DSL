@@ -138,6 +138,11 @@ template <typename T> T dsl_get_random(T min, T max) {
 }
 
 DSL_API void * DSL_CC dsl_malloc(size_t lSize);
+/**
+ * Returns dynamically allocated memory that is zeroed for you.
+ * @sa dsl_free
+ */
+DSL_API void * DSL_CC dsl_zmalloc(size_t lSize);
 DSL_API void * DSL_CC dsl_realloc(void * ptr, size_t lSize);
 DSL_API char * DSL_CC dsl_strdup(const char * ptr);
 DSL_API wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr);
@@ -172,6 +177,10 @@ DSL_API void DSL_CC dsl_free(void * ptr);
  * Allocates memory for a struct using dsl_malloc.
  */
 #define dsl_new(x) (x *)dsl_malloc(sizeof(x));
+ /**
+  * Allocates zeroed memory for a struct using dsl_zmalloc.
+  */
+#define dsl_znew(x) (x *)dsl_zmalloc(sizeof(x));
 
 /**@}*/
 

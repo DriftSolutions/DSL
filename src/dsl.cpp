@@ -230,6 +230,7 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 #undef free
 
 void * DSL_CC dsl_malloc(size_t lSize) { return malloc(lSize); }
+void * DSL_CC dsl_zmalloc(size_t lSize) { return calloc(1, lSize); }
 void * DSL_CC dsl_realloc(void * ptr, size_t lSize) { return realloc(ptr, lSize); }
 char * DSL_CC dsl_strdup(const char * ptr) { return strdup(ptr); }
 wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr) { return wcsdup(ptr); }
