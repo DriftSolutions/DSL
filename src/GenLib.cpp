@@ -689,11 +689,7 @@ char * DSL_CC GetUserConfigFolderA(const char * name) {
 	strlcat(buf, name, sizeof(buf));
 	struct stat st;
 	if (stat(buf, &st) != 0) {
-#ifdef WIN32
-		mkdir(buf);
-#else
-		mkdir(buf, 0755);
-#endif
+		dsl_mkdir(buf, 0700);
 	}
 	strcat(buf, PATH_SEPS);
 	return dsl_strdup(buf);
@@ -746,6 +742,39 @@ wchar_t * DSL_CC GetUserConfigFileW(const wchar_t * name, const wchar_t * fn) {
 	return ret;
 }
 
+char * DSL_CC GetUserDocumentsFolderA(const char * name) {
+	char buf[MAX_PATH] = { 0 };
+#if defined(WIN32)
+	char * p = getenv("USERPROFILE");
+	if (p == NULL || *p == 0) {
+		GetModuleFileNameA(NULL, buf, sizeof(buf));
+		char * q = strrchr(buf, '\\');
+		if (q) {
+			*q = 0;
+		}
+	} else {
+		strlcpy(buf, p, sizeof(buf));
+	}
+#else
+	char * p = getenv("HOME");
+	if (p && *p) {
+		strlcpy(buf, p, sizeof(buf));
+	} else if (getcwd(buf, sizeof(buf)) == NULL) {
+		strcpy(buf, "./");
+	}
+#endif
+	if (buf[strlen(buf) - 1] != PATH_SEP) {
+		sstrcat(buf, PATH_SEPS);
+	}
+	sstrcat(buf, "Documents" PATH_SEPS "");
+	sstrcat(buf, name);
+	struct stat st;
+	if (stat(buf, &st) != 0) {
+		dsl_mkdir(buf, 0700);
+	}
+	strcat(buf, PATH_SEPS);
+	return dsl_strdup(buf);
+}
 
 #if !defined(WIN32)
 static timeval tv_start = {0,0};
@@ -911,6 +940,61 @@ struct tm * DSL_CC gmtime_r(const time_t * tme, struct tm * out) {
 	return out;
 }
 #endif
+
+inline bool _file_get_contents_begin(const string& fn, int64 maxSize, int64& len, FILE ** fp) {
+	*fp = fopen(fn.c_str(), "rb");
+	if (*fp == NULL) {
+		return false;
+	}
+	fseek64(*fp, 0, SEEK_END);
+	len = ftell64(*fp);
+	if (len > maxSize || len < 0) {
+		return false;
+	}
+	fseek64(*fp, 0, SEEK_SET);
+	return true;
+}
+
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize) {
+	FILE * fp;
+	int64 len;
+	if (!_file_get_contents_begin(fn, maxSize, len, &fp)) {
+		return false;
+	}
+
+	data.resize(len);
+	bool ret = (fread(data.data(), len, 1, fp) == 1);
+	fclose(fp);
+	return ret;
+}
+
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize) {
+	FILE * fp;
+	int64 len;
+	if (!_file_get_contents_begin(fn, maxSize, len, &fp)) {
+		return false;
+	}
+
+	data.resize(len);
+	bool ret = (fread(&data[0], len, 1, fp) == 1);
+	fclose(fp);
+	return ret;
+}
+
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& len, int64 maxSize) {
+	FILE * fp;
+	if (!_file_get_contents_begin(fn, maxSize, len, &fp)) {
+		return false;
+	}
+
+	*data = (uint8 *)dsl_malloc(len);
+	if (*data == NULL) {
+		return false;
+	}
+	bool ret = (fread(*data, len, 1, fp) == 1);
+	fclose(fp);
+	return ret;
+}
 
 /* Remaining functions past this line were borrowed from PhysicsFS */
 

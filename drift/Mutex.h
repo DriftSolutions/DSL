@@ -182,7 +182,9 @@ public:
 	~DSL_MutexLocker() {
 		OutputDebugString("DSL_Mutex::Release()\n");
 		printf("DSL_Mutex::Release(%s, %d)\n", fn.c_str(), line);
-		hMutex->Release();
+		if (hMutex->IsLockMine()) {
+			hMutex->Release();
+		}
 		printf("DSL_Mutex::Released(%s, %d)\n", fn.c_str(), line);
 		OutputDebugString("DSL_Mutex::Released()\n");
 	}
@@ -192,7 +194,9 @@ public:
 		LockMutexPtr(mutex);
 	}
 	~DSL_MutexLocker() {
-		RelMutexPtr(hMutex);
+		if (hMutex->IsLockMine()) {
+			RelMutexPtr(hMutex);
+		}
 	}
 #endif
 };

@@ -152,6 +152,9 @@ DSL_API int64 DSL_CC filesize(const char * fn); ///< Get the size in bytes of a 
 #if defined(WIN32) || defined(DOXYGEN_SKIP)
 DSL_API int DSL_CC truncate(const char * fn, int64 size); ///< Windows version of truncate()
 #endif
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize=UINT32_MAX);
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize=UINT32_MAX);
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& fileSize, int64 maxSize=UINT32_MAX);//free data with dsl_free()
 
 DSL_API_CLASS int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
 DSL_API_CLASS int DSL_CC str_replaceW(wchar_t *Str, size_t BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement
@@ -183,6 +186,15 @@ DSL_API char * DSL_CC GetUserConfigFileA(const char * name, const char * fn);
 DSL_API wchar_t * DSL_CC GetUserConfigFolderW(const wchar_t * name); ///< Unicode version of... @sa GetUserConfigFolderA
 DSL_API wchar_t * DSL_CC GetUserConfigFileW(const wchar_t * name, const wchar_t * fn); ///< Unicode version of... @sa GetUserConfigFileW
 
+/**
+ * Gets an appropriate directory to store user documents for the current user. The directory will be created for you.<br>
+ * Windows: %USERPROFILE%\Documents\name<br>
+ * Linux: /home/username/name/
+ * @return The path including trailing path separater. Free with dsl_free
+ * @sa dsl_free
+ */
+DSL_API char * DSL_CC GetUserDocumentsFolderA(const char * name);
+
 DSL_API char * DSL_CC tcstombsA(const char * str);
 DSL_API char * DSL_CC tcstombsW(const wchar_t * str);
 DSL_API wchar_t * DSL_CC tcstowcsW(const wchar_t * str);
@@ -204,6 +216,7 @@ DSL_API size_t DSL_CC wcscnt(const wchar_t * ptr); // returns number of bytes ta
 #define nopath nopathW
 #define GetUserConfigFolder GetUserConfigFolderW
 #define GetUserConfigFile GetUserConfigFileW
+#define GetUserDocumentsFolder #error Not implemented
 #else
 #define str_replace str_replaceA
 #define tchar2char tchar2charA
@@ -214,7 +227,21 @@ DSL_API size_t DSL_CC wcscnt(const wchar_t * ptr); // returns number of bytes ta
 #define nopath nopathA
 #define GetUserConfigFolder GetUserConfigFolderA
 #define GetUserConfigFile GetUserConfigFileA
+#define GetUserDocumentsFolder GetUserDocumentsFolderA
 #endif
+
+
+/**
+ * Cross multiplication
+ * Example: scale_ranges<uint16>(10, 0, 100, 0, 200) to adjust 10 from a range of 0-100 to a range of 0-200 which would be 20.
+ */
+template <typename T>
+T scale_ranges(T value, T srcmin, T srcmax, T destmin, T destmax) {
+	T in = value - srcmin;
+	T indiff = srcmax - srcmin;
+	T outdiff = destmax - destmin;
+	return ((in * outdiff) / indiff) + destmin;
+}
 
 #if !defined(NO_CPLUSPLUS) || defined(DOXYGEN_SKIP)
 /**

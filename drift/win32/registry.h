@@ -21,7 +21,7 @@ enum TR_VALUE_TYPE {
 //string will be Unicode if used with Unicode APIs, otherwise not
 struct TR_VALUE {
 	TR_VALUE_TYPE type;
-	unsigned long length;
+	DWORD length;
 	union {
 		wchar_t * valWStr;
 		char * valStr;
