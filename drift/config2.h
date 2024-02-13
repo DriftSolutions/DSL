@@ -43,6 +43,7 @@ public:
 	void SetValue(int64 val);
 	void SetValue(double val);
 	void SetValue(const char * val);
+	void SetValue(const string& val);
 	void SetValue(const uint8_t * val, size_t len);
 	void SetValue(bool val);
 

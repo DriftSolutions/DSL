@@ -599,6 +599,11 @@ void ConfigValue::SetValue(const char * val) {
 	Type = DS_TYPE_STRING;
 	sString = val;
 }
+void ConfigValue::SetValue(const string& val) {
+	Reset();
+	Type = DS_TYPE_STRING;
+	sString = val;
+}
 void ConfigValue::SetValue(const uint8_t * val, size_t len) {
 	Reset();
 	Type = DS_TYPE_BINARY;
