@@ -40,6 +40,8 @@ public:
 	virtual bool IsLockMine()=0;
 
 	virtual THREADIDTYPE LockingThread()=0;
+
+	virtual ~DSL_Mutex_Base(){}
 };
 
 #ifndef DOXYGEN_SKIP
@@ -54,7 +56,7 @@ class DSL_API_CLASS DSL_Mutex_Win32CS : public DSL_Mutex_Base {
 		CRITICAL_SECTION cs;
 	public:
 		DSL_Mutex_Win32CS(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT);
-		~DSL_Mutex_Win32CS();
+		virtual ~DSL_Mutex_Win32CS();
 
 		bool Lock(int timeout);
 		bool Lock();
@@ -77,7 +79,7 @@ class DSL_API_CLASS DSL_Mutex_Win32Mutex : public DSL_Mutex_Base {
 		HANDLE hMutex;
 	public:
 		DSL_Mutex_Win32Mutex(int timeout = DSL_DEFAULT_MUTEX_TIMEOUT, const char * name = NULL);
-		~DSL_Mutex_Win32Mutex();
+		virtual ~DSL_Mutex_Win32Mutex();
 
 		bool Lock(int timeout);
 		bool Lock();

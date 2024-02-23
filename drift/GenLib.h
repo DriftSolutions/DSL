@@ -82,7 +82,8 @@ DSL_API bool DSL_CC dsl_mkdir_r(const char * p, int mode); ///< Cross-platform r
 DSL_API bool DSL_CC strempty(const char * p); ///< Returns true if a string is empty (p == NULL || *p == 0)
 DSL_API int64 DSL_CC dsl_clamp(int64 value, int64 vMin, int64 vMax); ///< Clamps a given value to the range of vMin to vMax (inclusive)
 
-DSL_API char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize); ///< Escapes an argument for passing to shell functions, only escapes quotes atm so keep that in mind.
+DSL_API_CLASS char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize); ///< Escapes an argument for passing to shell functions, only escapes quotes atm so keep that in mind.
+DSL_API_CLASS string DSL_CC escapeshellarg(const string& str); ///< Escapes an argument for passing to shell functions, only escapes quotes atm so keep that in mind.
 
 #if defined(OPENBSD) || defined(FREEBSD)
 #define HAVE_STRLCPY
@@ -174,7 +175,8 @@ DSL_API char * DSL_CC tchar2charW(wchar_t * str);
  * @return The path including trailing path separater. Free with dsl_free
  * @sa dsl_free
  */
-DSL_API char * DSL_CC GetUserConfigFolderA(const char * name);
+DSL_API_CLASS char * DSL_CC GetUserConfigFolderA(const char * name);
+DSL_API_CLASS string DSL_CC GetUserConfigFolderA(const string& name);
 /**
  * Gets an appropriate filename to store config files/data for the current user. The directory will be created for you.<br>
  * Windows: %APPDATA%\name\fn<br>
@@ -182,7 +184,8 @@ DSL_API char * DSL_CC GetUserConfigFolderA(const char * name);
  * @return The path of the filename. Free with dsl_free
  * @sa dsl_free
  */
-DSL_API char * DSL_CC GetUserConfigFileA(const char * name, const char * fn);
+DSL_API_CLASS char * DSL_CC GetUserConfigFileA(const char * name, const char * fn);
+DSL_API_CLASS string DSL_CC GetUserConfigFileA(const string& name, const string& fn);
 DSL_API wchar_t * DSL_CC GetUserConfigFolderW(const wchar_t * name); ///< Unicode version of... @sa GetUserConfigFolderA
 DSL_API wchar_t * DSL_CC GetUserConfigFileW(const wchar_t * name, const wchar_t * fn); ///< Unicode version of... @sa GetUserConfigFileW
 

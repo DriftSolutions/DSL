@@ -592,6 +592,20 @@ char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize) {
 	return out;
 }
 
+string DSL_CC escapeshellarg(const string& str) {
+	string ret = "\"";
+	const char *p = str.c_str();
+	while (*p != 0) {
+		if (*p == '"') {
+			ret += '\\';
+		}
+		ret += *p;
+		p++;
+	}
+	ret += "\"";
+	return ret;
+}
+
 int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr) {
 	char *p = NULL;
 	int ret = 0;
@@ -670,23 +684,23 @@ char * DSL_CC GetUserConfigFolderA(const char * name) {
 			*q = 0;
 		}
 	} else {
-		strlcpy(buf, p, sizeof(buf));
+		sstrcpy(buf, p);
 	}
 #else
 	char * p = getenv("HOME");
 	if (p && *p) {
-		strlcpy(buf, p, sizeof(buf));
+		sstrcpy(buf, p);
 	} else if (getcwd(buf, sizeof(buf)) == NULL) {
 		strcpy(buf, "./");
 	}
 #endif
 	if (buf[strlen(buf)-1] != PATH_SEP) {
-		strlcat(buf, PATH_SEPS, sizeof(buf));
+		sstrcat(buf, PATH_SEPS);
 	}
 #if !defined(WIN32)
-	strlcat(buf, ".", sizeof(buf));
+	sstrcat(buf, ".");
 #endif
-	strlcat(buf, name, sizeof(buf));
+	sstrcat(buf, name);
 	struct stat st;
 	if (stat(buf, &st) != 0) {
 		dsl_mkdir(buf, 0700);
@@ -695,9 +709,23 @@ char * DSL_CC GetUserConfigFolderA(const char * name) {
 	return dsl_strdup(buf);
 }
 
+string DSL_CC GetUserConfigFolderA(const string& name) {
+	char * tmp = GetUserConfigFolderA(name.c_str());
+	string ret = tmp;
+	dsl_free(tmp);
+	return ret;
+}
+
 char * DSL_CC GetUserConfigFileA(const char * name, const char * fn) {
 	char * dir = GetUserConfigFolderA(name);
 	char * ret = dsl_mprintf("%s%s", dir, fn);
+	dsl_free(dir);
+	return ret;
+}
+
+string DSL_CC GetUserConfigFileA(const string& name, const string& fn) {
+	char * dir = GetUserConfigFolderA(name.c_str());
+	string ret = mprintf("%s%s", dir, fn.c_str());
 	dsl_free(dir);
 	return ret;
 }
