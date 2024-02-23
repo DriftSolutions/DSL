@@ -1,7 +1,7 @@
 //@AUTOHEADER@BEGIN@
 /***********************************************************************\
 |                    Drift Standard Libraries v1.01                     |
-|            Copyright 2010-2023 Drift Solutions / Indy Sams            |
+|            Copyright 2010-2024 Drift Solutions / Indy Sams            |
 | Docs and more information available at https://www.driftsolutions.dev |
 |          This file released under the 3-clause BSD license,           |
 |            see included DSL.LICENSE.TXT file for details.             |
@@ -20,24 +20,32 @@ enum DS_VALUE_TYPE {
 };
 */
 
+class ConfigSection;
+
 class DSL_API_CLASS ConfigValue {
-	friend class Universal_Config2;
+	friend class ConfigSection;
+private:
+	bool isBool(const char * buf, bool * val = NULL);
+	bool isInt(const char * text);
+	bool isFloat(const char * text);
+
 protected:
 	string sString;
 	union {
 		int64 Int;
 		double Float;
 	};
+
 public:
 	ConfigValue();
 	~ConfigValue();
 
 	DS_VALUE_TYPE Type;
 
-	int64 AsInt();
-	double AsFloat();
-	string AsString();
-	bool AsBool(); /* true if it is an int > 0, double >= 1.00, or the strings "true" or "on" */
+	int64 AsInt() const;
+	double AsFloat() const;
+	string AsString() const;
+	bool AsBool() const; /* true if it is an int > 0, double >= 1.00, or the strings "true" or "on" */
 
 	void SetValue(const ConfigValue& val);
 	void SetValue(int64 val);
@@ -48,6 +56,7 @@ public:
 	void SetValue(bool val);
 
 	void Reset();
+	void ParseString(const char * value);
 };
 
 // case-independent (ci) string less_than
@@ -88,59 +97,44 @@ struct uc_less {
 #endif
 
 class DSL_API_CLASS ConfigSection {
-public:
-	char name[64];
-	typedef std::map<string, ConfigValue, uc_less> valueList;
+private:
+	typedef map<string, ConfigValue *, uc_less> valueList;
+	typedef map<string, ConfigSection *, uc_less> sectionList;
+
 	valueList values;
-	typedef std::map<string, ConfigSection, uc_less> sectionList;
 	sectionList sections; // sub-sections
-};
 
-typedef std::vector<ConfigSection *> scanStackType2;
+	bool loadFromString(const char ** config, size_t& line, const char * fn);
 
-class DSL_API_CLASS Universal_Config2 {	
-	private:
-		ConfigSection::sectionList sections;
-
-		scanStackType2 scanStack;
-		//ConfigSection *LastScan[20];
-
-		void FreeSection(ConfigSection * Scan);
-		void WriteSection(stringstream& sstr, ConfigSection * sec, int level);
+	void writeSection(stringstream& sstr, int level, bool single = false) const;
+	void printSection(size_t level) const;
+	/*
+			void FreeSection(ConfigSection * Scan);
 		void WriteBinarySection(FILE * fp, ConfigSection * sec);
-		void PrintSection(ConfigSection * Scan, int level);
-		bool IsBool(const char * buf, bool * val = NULL);
-		bool IsInt(const char * text);
-		bool IsFloat(const char * text);
-		ConfigSection * GetSectionFromString(const char * sec, bool create=false);
+	*/
+public:
+	string name; 
 
-		ConfigSection * PopScan();
-		void PushScan(ConfigSection * section);
+	void Clear();
+	void PrintConfigTree() const;
 
-	public:
-		Universal_Config2();
-		~Universal_Config2();
+	bool LoadFromString(const string& config, const string& filename);
+	bool LoadFromFile(const string& filename);
+	bool LoadFromFile(FILE * fp, const string& filename);
+	string WriteToString() const;
+	bool WriteToFile(const string& filename) const;
+	bool WriteToFile(FILE * fp) const;
 
-		bool LoadConfigFromString(const string config, const char * filename, ConfigSection * Scan = NULL);
-		bool LoadConfigFromFile(const char * filename, ConfigSection * Scan=NULL);
-		bool LoadConfigFromFile(FILE * fp, const char * filename, ConfigSection * Scan=NULL);
-		bool WriteConfigToString(string& str, ConfigSection * Start = NULL, bool Single = false);
-		bool WriteConfigToFile(const char * filename, ConfigSection * Start=NULL, bool Single=false);
-		bool WriteConfigToFile(FILE * fp, ConfigSection * Start=NULL, bool Single=false);
+	ConfigSection * GetSection(const string& name);
+	const ConfigValue * GetValue(const string& name) const;
+	bool GetValue(const string& name, ConfigValue& value) const;
+	bool HasValue(const string& name) const;
+	void SetValue(const string& name, const ConfigValue& val);
 
-		void FreeConfig();
+	// advanced commands
+	ConfigSection * FindOrAddSection(const string& name);
 
-		ConfigSection * GetSection(ConfigSection * parent, const char * name);
-		ConfigValue GetSectionValue(ConfigSection * sec, const char * name);
-		bool GetSectionValue(ConfigSection * sec, const char * name, ConfigValue& value);
-		bool SectionHasValue(ConfigSection * sec, const char * name);
-		void SetSectionValue(ConfigSection * sec, const char * name, const ConfigValue& val);
-
-		// advanced commands
-		ConfigSection * FindOrAddSection(ConfigSection * parent, const char * name);
-
-		void ClearSection(ConfigSection * Scan);
-		void PrintConfigTree();
+	~ConfigSection();
 };
 
 #endif // __UNIVERSAL_CONFIG2_H__

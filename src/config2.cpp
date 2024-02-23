@@ -14,72 +14,87 @@
 #include <drift/GenLib.h>
 #include <math.h>
 
-Universal_Config2::Universal_Config2() {
+/*
+ConfigSection::ConfigSection() {
+}
+*/
+
+ConfigSection::~ConfigSection() {
+	Clear();
 }
 
-Universal_Config2::~Universal_Config2() {
-	FreeConfig();
-}
-
-void Universal_Config2::ClearSection(ConfigSection * Scan) {
+/*
+void ConfigSection::ClearSection(ConfigSection * Scan) {
 	Scan->values.clear();
 	Scan->sections.clear();
 }
 
-void Universal_Config2::FreeSection(ConfigSection * Scan) {
+void ConfigSection::FreeSection(ConfigSection * Scan) {
 	ClearSection(Scan);
 };
+*/
 
-void Universal_Config2::FreeConfig() {
+void ConfigSection::Clear() {
+	for (auto& x : sections) {
+		delete x.second;
+	}
 	sections.clear();
+	for (auto& x : values) {
+		delete x.second;
+	}
+	values.clear();
 }
 
-ConfigSection * Universal_Config2::GetSection(ConfigSection * parent, const char * name) {
-	if (parent == NULL) {
-		ConfigSection::sectionList::iterator x = sections.find(name);
-		if (x != sections.end()) {
-			return &x->second;
-		}
-	} else {
-		ConfigSection::sectionList::iterator x = parent->sections.find(name);
-		if (x != parent->sections.end()) {
-			return &x->second;
-		}
+ConfigSection * ConfigSection::GetSection(const string& name) {
+	auto x = sections.find(name);
+	if (x != sections.end()) {
+		return x->second;
 	}
 	return NULL;
 }
 
-bool Universal_Config2::SectionHasValue(ConfigSection * sec, const char * name) {
-	if (!sec) { return false; }
-	return (sec->values.find(name) != sec->values.end());
+bool ConfigSection::HasValue(const string& name) const {
+	return (values.count(name) > 0);
+	//return (values.find(name) != values.end());
 }
 
-ConfigValue Universal_Config2::GetSectionValue(ConfigSection * sec, const char * name) {
-	ConfigValue rnull;
-	if (!sec) { return rnull; }
-	ConfigSection::valueList::iterator x = sec->values.find(name);
-	if (x != sec->values.end()) {
+/*
+ConfigValue ConfigSection::GetValue(const string& name) {
+	auto x = values.find(name);
+	if (x != values.end()) {
+		return *x->second;
+	}
+	return ConfigValue();
+}
+*/
+
+const ConfigValue * ConfigSection::GetValue(const string& name) const {
+	auto x = values.find(name);
+	if (x != values.end()) {
 		return x->second;
 	}
-	return rnull;
+	return NULL;
 }
 
-bool Universal_Config2::GetSectionValue(ConfigSection * sec, const char * name, ConfigValue& value) {
-	if (!sec) { return false; }
-	ConfigSection::valueList::iterator x = sec->values.find(name);
-	if (x != sec->values.end()) {
-		value = x->second;
+bool ConfigSection::GetValue(const string& name, ConfigValue& value) const {
+	auto x = values.find(name);
+	if (x != values.end()) {
+		value = *x->second;
 		return true;
 	}
 	return false;
 }
 
-void Universal_Config2::SetSectionValue(ConfigSection * sec, const char * name, const ConfigValue& val) {
-	if (!sec) { return; }
-	sec->values[name] = val;
+void ConfigSection::SetValue(const string& name, const ConfigValue& val) {
+	auto x = values.find(name);
+	if (x != values.end()) {
+		*x->second = val;
+	} else {
+		values[name] = new ConfigValue(val);
+	}
 }
 
-bool Universal_Config2::IsBool(const char * buf, bool * val) {
+bool ConfigValue::isBool(const char * buf, bool * val) {
 	if (buf == NULL || buf[0] == 0) { return false; } // null/empty string
 
 	if (stricmp(buf, "true") == 0 || stricmp(buf, "on") == 0) {
@@ -94,17 +109,17 @@ bool Universal_Config2::IsBool(const char * buf, bool * val) {
 	return false;
 }
 
-bool Universal_Config2::IsInt(const char * buf) {
+bool ConfigValue::isInt(const char * buf) {
 	if (buf == NULL || buf[0] == 0) { return false; } // null/empty string
 
 	int64 l = atoi64(buf);
 	if (l == 0 && strcmp(buf,"0")) {
 		return false;
 	}
-	if (l == LLONG_MAX && stricmp(buf, "9223372036854775807")) {
+	if (l == INT64_MAX && stricmp(buf, "9223372036854775807")) {
 		return false;
 	}
-	if (l == LLONG_MIN && stricmp(buf, "-9223372036854775807") && stricmp(buf, "-9223372036854775808")) {
+	if (l == INT64_MIN && stricmp(buf, "-9223372036854775807") && stricmp(buf, "-9223372036854775808")) {
 		return false;
 	}
 
@@ -121,7 +136,7 @@ bool Universal_Config2::IsInt(const char * buf) {
 	return true;
 }
 
-bool Universal_Config2::IsFloat(const char * buf) {
+bool ConfigValue::isFloat(const char * buf) {
 	if (buf == NULL || buf[0] == 0) { return false; } // null/empty string
 
 	double l = atof(buf);
@@ -135,14 +150,17 @@ bool Universal_Config2::IsFloat(const char * buf) {
 	int periodCnt=0;
 	for(int i=0; buf[i] != 0; i++) {
 		if (buf[i] == '-' && i == 0 && buf[1] != 0) {
+			//Allow a negative sign in first position as long as more follows it
 			continue;
 		}
 		if (buf[i] == '.') {
+			// Allow one period
 			periodCnt++;
 			if (periodCnt == 1) { continue; }
 			return false;
 		}
-		if(buf[i] < 48 || buf[i] > 57) { // not a number
+		if (buf[i] < 48 || buf[i] > 57) {
+			// Not a number
 			return false;
 		}
 	}
@@ -150,46 +168,40 @@ bool Universal_Config2::IsFloat(const char * buf) {
 	return (periodCnt == 1) ? true:false;
 }
 
-ConfigSection * Universal_Config2::FindOrAddSection(ConfigSection * parent, const char * name) {
-	ConfigSection * ret = GetSection(parent,name);
-	if (!ret) {
-		if (!parent) {
-			strcpy(sections[name].name, name);
-		} else {
-			strcpy(parent->sections[name].name, name);
-		}
-		ret = GetSection(parent,name);
+ConfigSection * ConfigSection::FindOrAddSection(const string& name) {
+	ConfigSection * ret = GetSection(name);
+	if (ret != NULL) {		
+		return ret;
 	}
-	return ret;
+
+	auto * s = new ConfigSection();
+	s->name = name;
+	sections[name] = s;
+	return s;
 }
 
-ConfigSection * Universal_Config2::PopScan() {
-	ConfigSection * ret = scanStack.back(); // LastScan[0];
-	scanStack.pop_back();
-	return ret;
+bool ConfigSection::LoadFromString(const string& config, const string& fn) {
+	const char * p = config.c_str();
+	size_t line = 0;
+	return loadFromString(&p, line, fn.c_str());
 }
 
-void Universal_Config2::PushScan(ConfigSection * section) {
-	scanStack.push_back(section);
-}
-
-/*
-bool LoadConfigFromString(const string config, ConfigSection * Scan = NULL);
-bool LoadConfigFromFile(const char * filename, ConfigSection * Scan = NULL);
-bool WriteConfigToString(string& str, ConfigSection * Start = NULL, bool Single = false);
-bool WriteConfigToFile(const char * filename, ConfigSection * Start = NULL, bool Single = false);
-bool WriteConfigToFile(FILE * fp, ConfigSection * Start = NULL, bool Single = false);
-*/
-
-bool Universal_Config2::LoadConfigFromString(const string config, const char * fn, ConfigSection * Scan) {
-	char buf[256];
-	int line = 0;
+bool ConfigSection::loadFromString(const char ** pconfig, size_t& line, const char * fn) {
 	bool long_comment = false;
-	memset(buf, 0, sizeof(buf));
-	StrTokenizer st((char *)config.c_str(), '\n', true);
+	char buf[256] = { 0 };
 
-	for (int line=1; line <= st.NumTok(); line++) {
-		sstrcpy(buf, st.stdGetSingleTok(line).c_str());
+	const char * config = *pconfig;
+	while (*config != 0) {
+		const char * eol = strchr(config, '\n');
+		if (eol != NULL) {
+			size_t len = eol - config + 1;
+			strlcpy(buf, config, len);
+			config += len;
+		} else {
+			sstrcpy(buf, config);
+			config += strlen(config);
+		}
+		line++;
 		strtrim(buf, " \t\r\n "); // first, trim the string of unwanted chars
 		if (strlen(buf) < 2) {
 			// the minimum meaningful line would be 2 chars long, specifically };
@@ -201,7 +213,7 @@ bool Universal_Config2::LoadConfigFromString(const string config, const char * f
 			str_replaceA(buf, sizeof(buf), "  ", " "); // turn double-spaces into spaces
 		}
 
-		//		printf("line: %s\n",buf);
+		//printf("line: %s\n",buf);
 
 		if (long_comment) {
 			if (!strcmp(buf, "*/")) {
@@ -223,10 +235,16 @@ bool Universal_Config2::LoadConfigFromString(const string config, const char * f
 				char *q = strchr(p, '\"');
 				if (q) {
 					q[0] = 0;
-					if (LoadConfigFromFile(p, Scan)) {
-						Scan = PopScan();
+					string data;
+					if (file_get_contents(p, data)) {
+						const char * tmpc = data.c_str();
+						size_t tmpln = 0;
+						if (!loadFromString(&tmpc, tmpln, p)) {
+							printf("ERROR: Error loading #included file '%s'\n", p);
+							break;
+						}
 					} else {
-						printf("ERROR: Error loading #included file '%s'\n", p);
+						printf("ERROR: Error reading #included file '%s'\n", p);
 						break;
 					}
 				} else {
@@ -247,56 +265,47 @@ bool Universal_Config2::LoadConfigFromString(const string config, const char * f
 		char *p = (char *)&buf + (strlen(buf) - 2); // will be " {" if beginning a section
 		if (!strcmp(p, " {")) { // open a new section
 			p[0] = 0;
-			PushScan(Scan);
-			Scan = FindOrAddSection(Scan, buf);
-			continue;
-		}
-
-		if (!strcmp(buf, "};")) { // close section
-			if (Scan != NULL) {
-				Scan = PopScan();
-			} else {
-				printf("ERROR: You have one too many }; near line %d of %s\n", line, fn);
+			auto sub = FindOrAddSection(buf);
+			if (!sub->loadFromString(&config, line, fn)) {
 				break;
 			}
 			continue;
 		}
 
-		StrTokenizer tok(buf, ' ');
-		unsigned long num = tok.NumTok();
-		bool tmpbool = false;
-		if (num > 1) {
-			ConfigValue sVal;
-			char * name = tok.GetSingleTok(1);
-			char * value = tok.GetTok(2, num);
-			if (IsFloat(value)) { // number
-				sVal.SetValue(atof(value));
-			} else if (IsBool(value, &tmpbool)) { // bool
-				sVal.SetValue(tmpbool);
-			} else if (IsInt(value)) { // number
-				sVal.SetValue((int64)atoi64(value));
-			} else { // string
-				sVal.SetValue(value);
+		if (!strcmp(buf, "};")) { // close section
+			break;
+		}
+		
+		char * value = strchr(buf, ' ');
+		if (value == NULL) {
+			continue;
+		}
+		*value++ = 0;
+		strtrim(buf);
+		strtrim(value);
+		if (buf[0] && value[0]) {
+			auto x = values.find(buf);
+			if (x != values.end()) {
+				x->second->ParseString(value);
+			} else {
+				auto tmpv = new ConfigValue();
+				tmpv->ParseString(value);
+				values[buf] = tmpv;
 			}
-			if (Scan) {
-				SetSectionValue(Scan, name, sVal);
-			}
-			tok.FreeString(name);
-			tok.FreeString(value);
 			continue;
 		}
 
-		printf("Unrecognized line at %s:%d -> %s\n", fn, line, buf);
+		printf("Unrecognized line at %s:%zu -> %s\n", fn, line, buf);
 		// some unknown line here
 	}
 
-	PushScan(Scan);
+	*pconfig = config;
 	return true;
 }
 
 
-bool Universal_Config2::LoadConfigFromFile(FILE * fp, const char * fn, ConfigSection * Scan) {
-	if (!fp) { return false; }
+bool ConfigSection::LoadFromFile(FILE * fp, const string& fn) {
+	if (fp == NULL) { return false; }
 
 	fseek64(fp, 0, SEEK_END);
 	int64 len = ftell64(fp);
@@ -307,225 +316,117 @@ bool Universal_Config2::LoadConfigFromFile(FILE * fp, const char * fn, ConfigSec
 	char * tmp = (char *)dsl_malloc(len + 1);
 	if (fread(tmp, len, 1, fp) == 1) {
 		tmp[len] = 0;
-		ret = LoadConfigFromString(tmp, fn, Scan);
+		ret = LoadFromString(tmp, fn);
 	}
 	dsl_free(tmp);
 	return ret;
 }
 
-bool Universal_Config2::LoadConfigFromFile(const char * filename, ConfigSection * Scan) {
-	FILE * fp = fopen(filename, "rb");
-	if (!fp) { return false; }
-	bool ret = LoadConfigFromFile(fp, filename, Scan);
+bool ConfigSection::LoadFromFile(const string& filename) {
+	FILE * fp = fopen(filename.c_str(), "rb");
+	if (fp == NULL) { return false; }
+	bool ret = LoadFromFile(fp, filename);
 	fclose(fp);
 	return ret;
 }
 
-void Universal_Config2::WriteSection(stringstream& sstr, ConfigSection * sec, int level) {
+void ConfigSection::writeSection(stringstream& sstr, int level, bool single) const {
 	char * pref = (char *)dsl_malloc(level+1);
 	for(int i=0; i<level; i++) { pref[i] = '\t'; }
 	pref[level]=0;
 
-	char buf[1024];
-	sprintf(buf,"%s%s {\n", pref, sec->name);
-	sstr << buf;
+	sstr << pref << name << " {\n";
 
-	for (ConfigSection::sectionList::iterator x = sec->sections.begin(); x != sec->sections.end(); x++) {
-		WriteSection(sstr, &x->second, level+1);
+	if (!single) {
+		for (auto& x : sections) {
+			x.second->writeSection(sstr, level + 1);
+		}
 	}
 
-	for (ConfigSection::valueList::iterator x = sec->values.begin(); x != sec->values.end(); x++) {
-		switch (x->second.Type) {
-			case DS_TYPE_INT:
-				sprintf(buf,"\t%s%s " I64FMT "\n",pref,x->first.c_str(),x->second.Int);
-				sstr << buf;
-				break;
-			case DS_TYPE_STRING:
-				sprintf(buf,"\t%s%s %s\n",pref,x->first.c_str(),x->second.sString.c_str());
-				sstr << buf;
-				break;
-			case DS_TYPE_FLOAT:
-				sprintf(buf,"\t%s%s %f\n",pref,x->first.c_str(),x->second.Float);
-				sstr << buf;
-				break;
-			case DS_TYPE_BOOL:
-				sprintf(buf,"\t%s%s %s\n",pref,x->first.c_str(),(x->second.Int > 0) ? "true" : "false");
-				sstr << buf;
-				break;
-			default:
-				break;
-		}
+	for (auto& x : values) {
+		sstr << "\t" << pref << x.first << " " << x.second->AsString() << "\n";
 	};
 
-	sprintf(buf,"%s};\n",pref);
-	sstr << buf;
+	sstr << pref << "};\n";
 	dsl_free(pref);
 }
 
-bool Universal_Config2::WriteConfigToFile(const char * filename, ConfigSection * Start, bool Single) {
-	FILE * fp = fopen(filename,"wb");
-	if (!fp) { return false; }
-	bool ret = WriteConfigToFile(fp, Start, Single);
+bool ConfigSection::WriteToFile(const string& filename) const {
+	FILE * fp = fopen(filename.c_str(), "wb");
+	if (fp == NULL) { return false; }
+	bool ret = WriteToFile(fp);
 	fclose(fp);
 	return ret;
 }
 
-bool Universal_Config2::WriteConfigToFile(FILE * fp, ConfigSection * Start, bool Single) {
+bool ConfigSection::WriteToFile(FILE * fp) const {
 	if (!fp) { return false; }
-	string str;
-	if (WriteConfigToString(str, Start, Single) && fwrite(str.c_str(), str.length(), 1, fp) == 1) {
+	string str = WriteToString();
+	if (str.length() && fwrite(str.c_str(), str.length(), 1, fp) == 1) {
 		return true;
 	}
 	return false;
 }
 
-bool Universal_Config2::WriteConfigToString(string& str, ConfigSection * Start, bool Single) {
+string ConfigSection::WriteToString() const {
 	stringstream sstr;
-	if (Start == NULL) {
-		for (ConfigSection::sectionList::iterator x = sections.begin(); x != sections.end(); x++) {
-			WriteSection(sstr, &x->second, 0);
-			sstr << "\n";
-			if (Single) {
-				break;
-			}
-		}
-	} else {
-		WriteSection(sstr, Start, 0);
+	for (auto& x : sections) {
+		x.second->writeSection(sstr, 0);
 	}
-	str = sstr.str();
-	return true;
+	//writeSection(sstr, 0, single);
+	return sstr.str();
 }
 
-void Universal_Config2::PrintSection(ConfigSection * Scan, int level) {
-	char buf[32]={0};
-	for (int i=0; i < level; i++) {
-		strcat(buf,"\t");
-	}
+void ConfigSection::printSection(size_t level) const {
+	char * pref = (char *)dsl_malloc(level + 1);
+	for (int i = 0; i < level; i++) { pref[i] = '\t'; }
+	pref[level] = 0;
 
-	printf("%sSection: %s\n",buf,Scan->name);
-	strcat(buf,"\t");
-	for (ConfigSection::valueList::iterator x = Scan->values.begin(); x != Scan->values.end(); x++) {
-		switch(x->second.Type) {
+	printf("%sSection: %s\n", pref, name.c_str());
+	strcat(pref,"\t");
+	for (auto& x : values) {
+		switch(x.second->Type) {
 			case DS_TYPE_INT:
-				printf("%s[%s] = " I64FMT "\n",buf,x->first.c_str(),x->second.Int);
+				printf("%s[%s] = " I64FMT "\n", pref, x.first.c_str(), x.second->Int);
 				break;
 			case DS_TYPE_FLOAT:
-				printf("%s[%s] = %f\n",buf,x->first.c_str(),x->second.Float);
+				printf("%s[%s] = %f\n", pref, x.first.c_str(), x.second->Float);
 				break;
 			case DS_TYPE_STRING:
-				printf("%s[%s] = '%s'\n",buf,x->first.c_str(),x->second.sString.c_str());
+				printf("%s[%s] = '%s'\n", pref, x.first.c_str(), x.second->sString.c_str());
 				break;
 			case DS_TYPE_BINARY:
-				printf("%s[%s] = Binary Data\n", buf, x->first.c_str());
+				printf("%s[%s] = Binary Data\n", pref, x.first.c_str());
 				break;
 			case DS_TYPE_BOOL:
-				printf("%s[%s] = %s\n",buf,x->first.c_str(),(x->second.Int > 0) ? "true" : "false");
+				printf("%s[%s] = %s\n", pref, x.first.c_str(), (x.second->Int > 0) ? "true" : "false");
 				break;
 			default:
-				printf("%s[%s] = Unknown Entry Type\n",buf,x->first.c_str());
+				printf("%s[%s] = Unknown Entry Type\n", pref, x.first.c_str());
 				break;
 		}
 	}
 
-	for (ConfigSection::sectionList::iterator x = Scan->sections.begin(); x != Scan->sections.end(); x++) {
-		PrintSection(&x->second,level+1);
+	dsl_free(pref);
+
+	for (auto& x : sections) {
+		x.second->printSection(level+1);
 	}
 };
 
-void Universal_Config2::PrintConfigTree() {
-	for (ConfigSection::sectionList::iterator x = sections.begin(); x != sections.end(); x++) {
-		PrintSection(&x->second,0);
-	}
+void ConfigSection::PrintConfigTree() const {
+	printSection(0);
 }
-
-ConfigSection * Universal_Config2::GetSectionFromString(const char * sec, bool create) {
-	if (*sec == '/') { sec++; }
-	StrTokenizer st((char *)sec, '/');
-	ConfigSection * ret = NULL;
-
-	int num = st.NumTok();
-	for (int i=1; i <= num; i++) {
-		char * str = st.GetSingleTok(i);
-		if (strcmp(str, "")) {
-			ret = create ? FindOrAddSection(ret, str) : GetSection(ret, str);
-			st.FreeString(str);
-			if (!ret) { return NULL; }
-		}
-	}
-	return ret;
-}
-
-/*
-ConfigValue Universal_Config2::GetValue(const char * ssec, const char * name) {
-	ConfigSection * sec = GetSectionFromString(ssec);
-	if (sec) {
-		return GetSectionValue(sec, name);
-	}
-	ConfigValue rnull;
-	return rnull;
-}
-
-string Universal_Config2::GetValueString(const char * sec, const char * name) {
-	return GetValue(sec, name).AsString();
-}
-
-int64 Universal_Config2::GetValueInt(const char * sec, const char * name) {
-	return GetValue(sec, name).AsInt();
-}
-
-bool Universal_Config2::GetValueBool(const char * sec, const char * name) {
-	return GetValue(sec, name).AsBool();
-}
-
-double Universal_Config2::GetValueFloat(const char * sec, const char * name) {
-	return GetValue(sec, name).AsFloat();
-}
-
-void Universal_Config2::SetValue(const char * ssec, const char * name, const ConfigValue& val) {
-	ConfigSection * sec = GetSectionFromString(ssec, true);
-	SetSectionValue(sec, name, val);
-}
-void Universal_Config2::SetValueString(const char * ssec, const char * name, const char * str) {
-	ConfigSection * sec = GetSectionFromString(ssec, true);
-	ConfigValue val;
-	val.SetValue(str);
-	SetSectionValue(sec, name, val);
-}
-void Universal_Config2::SetValueInt(const char * ssec, const char * name, int64 lval) {
-	ConfigSection * sec = GetSectionFromString(ssec, true);
-	ConfigValue val;
-	val.SetValue(lval);
-	SetSectionValue(sec, name, val);
-}
-void Universal_Config2::SetValueBool(const char * ssec, const char * name, bool lval) {
-	ConfigSection * sec = GetSectionFromString(ssec, true);
-	ConfigValue val;
-	val.SetValue(lval);
-	SetSectionValue(sec, name, val);
-}
-void Universal_Config2::SetValueFloat(const char * ssec, const char * name, double lval) {
-	ConfigSection * sec = GetSectionFromString(ssec, true);
-	ConfigValue val;
-	val.SetValue(lval);
-	SetSectionValue(sec, name, val);
-}
-void Universal_Config2::SetValueBinary(const char * ssec, const char * name, const uint8_t * data, size_t len) {
-	ConfigSection * sec = GetSectionFromString(ssec, true);
-	ConfigValue val;
-	val.SetValue(data, len);
-	SetSectionValue(sec, name, val);
-}
-*/
 
 ConfigValue::ConfigValue() {
 	Type = DS_TYPE_UNKNOWN;
-	this->Int = 0;
+	Int = 0;
 }
 ConfigValue::~ConfigValue() {
 	Reset();
 }
 
-bool ConfigValue::AsBool() {
+bool ConfigValue::AsBool() const {
 	//true if it is an int > 0, double >= 1.00, or the strings "true" or "on"
 	if (Type == DS_TYPE_STRING) {
 		if (stricmp(sString.c_str(), "true") == 0 || stricmp(sString.c_str(), "on") == 0) {
@@ -538,7 +439,7 @@ bool ConfigValue::AsBool() {
 	}
 	return false;
 }
-int64 ConfigValue::AsInt() {
+int64 ConfigValue::AsInt() const {
 	if (Type == DS_TYPE_STRING || Type == DS_TYPE_BINARY) {
 		return atoi64(sString.c_str());
 	} else if (Type == DS_TYPE_FLOAT) {
@@ -548,7 +449,7 @@ int64 ConfigValue::AsInt() {
 	}
 	return 0;
 }
-double ConfigValue::AsFloat() {
+double ConfigValue::AsFloat() const {
 	if (Type == DS_TYPE_STRING || Type == DS_TYPE_BINARY) {
 		return atof(sString.c_str());
 	} else if (Type == DS_TYPE_FLOAT) {
@@ -558,17 +459,13 @@ double ConfigValue::AsFloat() {
 	}
 	return 0;
 }
-string ConfigValue::AsString() {
+string ConfigValue::AsString() const {
 	if (Type == DS_TYPE_STRING || Type == DS_TYPE_BINARY) {
 		return sString;
 	} else if (Type == DS_TYPE_INT) {
-		char buf[64];
-		snprintf(buf, sizeof(buf), I64FMT, Int);
-		return buf;
+		return mprintf("%lld", Int);
 	} else if (Type == DS_TYPE_FLOAT) {
-		char buf[64];
-		snprintf(buf, sizeof(buf), "%f", Float);
-		return buf;
+		return mprintf("%f", Float);
 	} else if (Type == DS_TYPE_BOOL) {
 		return (Int > 0) ? "true" : "false";
 	}
@@ -607,13 +504,25 @@ void ConfigValue::SetValue(const string& val) {
 void ConfigValue::SetValue(const uint8_t * val, size_t len) {
 	Reset();
 	Type = DS_TYPE_BINARY;
-	string s(val, val + len);
-	sString = s;
+	sString.assign((const char *)val, len);
 }
 void ConfigValue::SetValue(bool val) {
 	Reset();
 	Type = DS_TYPE_BOOL;
 	Int = val;
+}
+
+void ConfigValue::ParseString(const char * value) {
+	bool tmpbool = false;
+	if (isFloat(value)) { // number
+		SetValue(atof(value));
+	} else if (isBool(value, &tmpbool)) { // bool
+		SetValue(tmpbool);
+	} else if (isInt(value)) { // number
+		SetValue((int64)atoi64(value));
+	} else { // string
+		SetValue(value);
+	}
 }
 
 /*
