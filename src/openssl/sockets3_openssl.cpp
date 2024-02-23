@@ -367,6 +367,8 @@ void DSL_Sockets3_OpenSSL::pCloseSSL(DSL_SOCKET * pSock) {
 		RelMutexPtr(sslSockMutex());
 #endif
 	}
+
+	delete sock;
 }
 
 X509 * DSL_Sockets3_OpenSSL::GetSSL_Cert(DSL_SOCKET * pSock) { /// Don't forget to free with X509_free

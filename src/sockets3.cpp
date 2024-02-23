@@ -394,21 +394,24 @@ int DSL_Sockets3_Base::Close(DSL_SOCKET * sock) {
 	}
 	hMutex->Release();
 
+	SOCKET s = sock->sock;
+
 	if (sock->flags & DS3_FLAG_SSL) {
 		DSL_Sockets3_SSL * ssl = dynamic_cast<DSL_Sockets3_SSL *>(this);
 		if (ssl) {
 			ssl->pCloseSSL(sock);
+		} else {
+			delete sock;
 		}
+	} else {
+		delete sock;
 	}
 
 #if defined(WIN32)
-	int ret = closesocket(sock->sock);
+	return closesocket(s);
 #else
-	int ret = close(sock->sock);
+	return close(s);
 #endif
-	pUpdateError(sock);
-	delete sock;
-	return ret;
 }
 
 int DSL_Sockets3_Base::GetFamilyHint(const char * host, int port) {

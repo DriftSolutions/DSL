@@ -231,6 +231,8 @@ void DSL_Sockets3_GnuTLS::pCloseSSL(DSL_SOCKET * pSock) {
 		gnutls_deinit(sock->gtls);
 		sock->gtls = NULL;
 	}
+
+	delete sock;
 }
 
 gnutls_session_t DSL_Sockets3_GnuTLS::GetSSL_CTX() {
