@@ -378,7 +378,7 @@ string ConfigSection::WriteToString() const {
 }
 
 void ConfigSection::printSection(size_t level) const {
-	char * pref = (char *)dsl_malloc(level + 1);
+	char * pref = (char *)dsl_malloc(level + 2);
 	for (int i = 0; i < level; i++) { pref[i] = '\t'; }
 	pref[level] = 0;
 
