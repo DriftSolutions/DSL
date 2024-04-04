@@ -265,30 +265,30 @@ T clamp(T v, T vMin, T vMax) {
  */
 class DSL_API_CLASS StrTokenizer {
 private:
-	bool b_strdup;
-	char * string;
-	int sep;
-	char sep_str[2];
+	bool b_strdup = false;
+	char * string = NULL;
+	char sep = 0;
+	char sep_str[2] = { 0,0 };
 
-	unsigned int num_tokens;
-	char ** tokens;
+	size_t num_tokens = 0;
+	char ** tokens = NULL;
 public:
 	/**
 	 * @param str The string to split up
 	 * @param separater The character to split at
 	 * @param do_strdup If true we will strdup the string and operate on our own copy. If false the original string you pass will be modified.
 	 */
-	StrTokenizer(char * str, int separater, bool do_strdup=true);
+	StrTokenizer(char * str, char separater, bool do_strdup=true);
 	~StrTokenizer();
 
-	unsigned int NumTok();
+	size_t NumTok();
 
-	char * GetTok(unsigned int first, unsigned int last);
-	char * GetSingleTok(unsigned int num);
+	char * GetTok(size_t first, size_t last);
+	char * GetSingleTok(size_t num);
 	void FreeString(char * buf); ///< You must call this on any string returned by GetTok/GetSingleTok
 
-	std::string stdGetTok(unsigned int first, unsigned int last);
-	std::string stdGetSingleTok(unsigned int num);
+	std::string stdGetTok(size_t first, size_t last);
+	std::string stdGetSingleTok(size_t num);
 };
 #endif
 

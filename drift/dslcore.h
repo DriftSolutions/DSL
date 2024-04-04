@@ -101,7 +101,7 @@ using namespace std;
 #define DSL_OPTION_SQLITE		0x00000040
 #define DSL_OPTION_SODIUM		0x00000080
 #define DSL_OPTION_OPENSSL		0x00000100
-#define DSL_OPTION_GNUTLS			0x00000200
+#define DSL_OPTION_GNUTLS		0x00000200
 
 typedef struct {
 	int major, minor;
@@ -127,9 +127,13 @@ DSL_API void dsl_cleanup();
  * Windows: Uses RtlGenRandom if available. (It has been in Windows since XP so it essentially always is available.)<br />
  * Linux: Uses getrandom(), the SYS_getrandom syscall if available, or /dev/urandom, or /dev/random (falling back in that order).<br />
  * Both: If all the above fails, tries RDRAND and if that fails falls back to rand() :(
+ * @param secure_only If true it won't fall back to rand() if everything else fails (which should rarely if ever happen.)
  */
-DSL_API bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len);
+DSL_API bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only = false);
 
+/**
+ * Gets a random number between min and max (inclusive.) Uses dsl_fill_random_buffer for random data.
+ */
 template <typename T> T dsl_get_random(T min, T max) {
 	T range = max - min + 1;
 	T ret;
@@ -143,6 +147,14 @@ DSL_API void * DSL_CC dsl_malloc(size_t lSize);
  * @sa dsl_free
  */
 DSL_API void * DSL_CC dsl_zmalloc(size_t lSize);
+/**
+ * Allocates memory for a struct using dsl_malloc.
+ */
+#define dsl_new(x) (x *)dsl_malloc(sizeof(x));
+/**
+ * Allocates zeroed memory for a struct using dsl_zmalloc.
+ */
+#define dsl_znew(x) (x *)dsl_zmalloc(sizeof(x));
 DSL_API void * DSL_CC dsl_realloc(void * ptr, size_t lSize);
 DSL_API char * DSL_CC dsl_strdup(const char * ptr);
 DSL_API wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr);
@@ -166,21 +178,13 @@ DSL_API char * DSL_CC dsl_vmprintf(const char * fmt, va_list va);
  */
 DSL_API wchar_t * DSL_CC dsl_wmprintf(const wchar_t * fmt, ...);
 /**
- * Frees memory allocated by dsl_malloc/dsl_realloc and variousd other dsl_* functions.
+ * Frees memory allocated by dsl_malloc/dsl_realloc and various other dsl_* functions.
  */
 DSL_API void DSL_CC dsl_free(void * ptr);
 /**
  * Call dsl_free on a pointer if it's not NULL
  */
 #define dsl_freenn(ptr) if (ptr) { dsl_free(ptr); }
-/**
- * Allocates memory for a struct using dsl_malloc.
- */
-#define dsl_new(x) (x *)dsl_malloc(sizeof(x));
- /**
-  * Allocates zeroed memory for a struct using dsl_zmalloc.
-  */
-#define dsl_znew(x) (x *)dsl_zmalloc(sizeof(x));
 
 /**@}*/
 
@@ -193,6 +197,7 @@ typedef struct {
 	void (*cleanup)();
 	void * pReserved; /* reserved for future use */
 } DSL_LIBRARY_FUNCTIONS;
+
 DSL_API void DSL_CC dsl_register_lib(DSL_LIBRARY_FUNCTIONS funcs);
 #if !defined(NO_CPLUSPLUS)
 class DSL_API_CLASS DSL_Library_Registerer {
@@ -217,7 +222,6 @@ public:
 #define strdup #error
 #define wcsdup #error
 #define free #error
-#define freenn #error
 #endif
 
 #endif // DOXYGEN_SKIP

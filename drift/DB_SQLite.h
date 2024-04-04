@@ -58,7 +58,7 @@ public:
 	uint32_t GetQueryCount();
 
 	string EscapeString(const string& str);
-	string MPrintf(const char * str, ...);
+	string MPrintf(const char * str, ...); // sqlite3 extensions: %q escape, %Q escape and put quotes around entire thing
 	sqlite3 * GetHandle();
 
 	SQLConxMulti * MultiStart();

@@ -150,7 +150,7 @@ const char * DSL_CC dsl_get_version_string() {
 
 bool DSL_CC dsl_rdrand(uint8 * buf, size_t len);
 
-bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
+bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only) {
 	int tries = 0;
 
 #if !defined(WIN32)
@@ -215,9 +215,12 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len) {
 	}
 #endif
 
-	// crappy fallback
-	for (unsigned int i=0; i < len; i++) {
-		buf[i] = rand()%256;
+	if (!secure_only) {
+		// crappy fallback
+		for (unsigned int i = 0; i < len; i++) {
+			buf[i] = rand() % 256;
+		}
+		return true;
 	}
 
 	return false;

@@ -27,7 +27,7 @@ time_t filetime_2_time_t(FILETIME ft) {
 }
 #endif
 
-StrTokenizer::StrTokenizer(char * str, int separater, bool do_strdup) {
+StrTokenizer::StrTokenizer(char * str, char separater, bool do_strdup) {
 	b_strdup = do_strdup;
 	if (b_strdup) {
 	 	string = dsl_strdup(str);
@@ -35,27 +35,27 @@ StrTokenizer::StrTokenizer(char * str, int separater, bool do_strdup) {
 		string = str;
 	}
 	sep = separater;
-	sprintf(sep_str,"%c",sep);
+	sep_str[0] = sep;
 
 	bool ends_in_sep = false;
-	if (string[strlen(string)-1] == sep) {
+	if (string[strlen(string) - 1] == sep) {
 		ends_in_sep = true;
 	}
 
-	num_tokens=0;
+	num_tokens = 0;
 	tokens = NULL;
 	char * p2 = NULL;
-	char * p = strtok_r(string,sep_str,&p2);
+	char * p = strtok_r(string, sep_str, &p2);
 	while (p) {
 		num_tokens++;
-		tokens = (char **)dsl_realloc(tokens, sizeof(char *)*num_tokens);
-		tokens[num_tokens-1] = p;
-		p = strtok_r(NULL,sep_str,&p2);
+		tokens = (char **)dsl_realloc(tokens, sizeof(char *) * num_tokens);
+		tokens[num_tokens - 1] = p;
+		p = strtok_r(NULL, sep_str, &p2);
 	}
 	if (ends_in_sep) {
 		num_tokens++;
-		tokens = (char **)dsl_realloc(tokens, sizeof(char *)*num_tokens);
-		tokens[num_tokens-1] = p2;
+		tokens = (char **)dsl_realloc(tokens, sizeof(char *) * num_tokens);
+		tokens[num_tokens - 1] = p2;
 	}
 
 	//printf("numtok: %u\n", num_tokens);
@@ -68,67 +68,49 @@ StrTokenizer::~StrTokenizer() {
 	dsl_freenn(tokens);
 }
 
-unsigned int StrTokenizer::NumTok() {
+size_t StrTokenizer::NumTok() {
 	return num_tokens;
-	/*
-	unsigned int ret=0;
-
-	char * tmp = dsl_strdup(string);
-	char * p2 = NULL;
-	char * p = strtok_r(tmp,sep_str,&p2);
-	while (p) {
-		ret++;
-		p = strtok_r(NULL,sep_str,&p2);
-	}
-	dsl_free(tmp);
-	if (string[strlen(string)-1] == sep) {
-		ret++;
-	}
-
-	//printf("numtok: %u\n",ret);
-	return ret;
-	*/
 }
 
-char * StrTokenizer::GetTok(unsigned int first, unsigned int last) {
+char * StrTokenizer::GetTok(size_t first, size_t last) {
 
 	size_t lSize=1;
 	char * ret = (char *)dsl_malloc(lSize);
 	ret[0]=0;
 
-	if (first < 1) { first = 1; }
-	if (last > num_tokens) { last = num_tokens; }
-	for (unsigned int i=(first-1); i < last; i++) {
+	first = clamp<size_t>(first, 1, num_tokens);
+	last = clamp<size_t>(last, 1, num_tokens);
+	for (size_t i = (first - 1); i < last; i++) {
 		if (lSize > 1) {
 			lSize += strlen(tokens[i]) + 1; // string + separater
-			ret = (char *)dsl_realloc(ret,lSize);
-			strcat(ret,sep_str);
-			strcat(ret,tokens[i]);
+			ret = (char *)dsl_realloc(ret, lSize);
+			strlcat(ret, sep_str, lSize);
+			strlcat(ret, tokens[i], lSize);
 		} else {
 			lSize += strlen(tokens[i]);
-			ret = (char *)dsl_realloc(ret,lSize);
-			strcpy(ret,tokens[i]);
+			ret = (char *)dsl_realloc(ret, lSize);
+			strlcpy(ret, tokens[i], lSize);
 		}
 	}
 
 	return ret;
 }
 
-char * StrTokenizer::GetSingleTok(unsigned int num) {
-	return GetTok(num,num);
+char * StrTokenizer::GetSingleTok(size_t num) {
+	return GetTok(num, num);
 };
 
 void StrTokenizer::FreeString(char * buf) {
 	dsl_free(buf);
 }
 
-std::string StrTokenizer::stdGetTok(unsigned int first, unsigned int last) {
+std::string StrTokenizer::stdGetTok(size_t first, size_t last) {
 	//size_t num=0;
-	std::string ret="";
+	std::string ret;
 
-	if (first < 1) { first = 1; }
-	if (last > num_tokens) { last = num_tokens; }
-	for (unsigned int i=(first-1); i < last; i++) {
+	first = clamp<size_t>(first, 1, num_tokens);
+	last = clamp<size_t>(last, 1, num_tokens);
+	for (size_t i = (first - 1); i < last; i++) {
 		if (ret.length()) {
 			ret += sep_str;
 			ret += tokens[i];
@@ -140,8 +122,8 @@ std::string StrTokenizer::stdGetTok(unsigned int first, unsigned int last) {
 	return ret;
 }
 
-std::string StrTokenizer::stdGetSingleTok(unsigned int num) {
-	return stdGetTok(num,num);
+std::string StrTokenizer::stdGetSingleTok(size_t num) {
+	return stdGetTok(num, num);
 };
 
 char * DSL_CC bin2hex(const uint8_t * data, size_t datalen, char * out, size_t outsize) {
@@ -650,7 +632,6 @@ int DSL_CC str_replaceW(wchar_t * Str, size_t BufSize, wchar_t *FindStr, wchar_t
 }
 #endif
 
-#if !defined(NO_CPLUSPLUS)
 string DSL_CC str_replaceA(string str, string FindStr, string ReplStr) {
 	size_t pos;
 	while ((pos = str.find(FindStr)) != str.npos) {
@@ -668,7 +649,6 @@ wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr) {
 	return str;
 }
 #endif // FREEBSD
-#endif // NO_CPLUSPLUS
 
 char * DSL_CC GetUserConfigFolderA(const char * name) {
 	char buf[MAX_PATH]={0};
