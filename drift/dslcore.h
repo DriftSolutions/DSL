@@ -14,9 +14,6 @@
 #if defined(_DEBUG) && !defined(DEBUG)
 #define DEBUG
 #endif
-#if !defined(__cplusplus) && !defined(NO_CPLUSPLUS)
-#define NO_CPLUSPLUS
-#endif
 #if defined(ENABLE_SSL) && !defined(ENABLE_OPENSSL)
 //compatibility with legacy code
 #define ENABLE_OPENSSL
@@ -48,13 +45,11 @@
 	#error "ERROR: Unable to detect platform!"
 #endif
 
-#if !defined(NO_CPLUSPLUS)
 #include <sstream>
 #include <string>
 #include <vector>
 #include <map>
 using namespace std;
-#endif
 
 /**
  * \defgroup dslcore DSL Core Functions & Data Types
@@ -199,7 +194,7 @@ typedef struct {
 } DSL_LIBRARY_FUNCTIONS;
 
 DSL_API void DSL_CC dsl_register_lib(DSL_LIBRARY_FUNCTIONS funcs);
-#if !defined(NO_CPLUSPLUS)
+
 class DSL_API_CLASS DSL_Library_Registerer {
 public:
 	DSL_Library_Registerer(const DSL_LIBRARY_FUNCTIONS funcs) {
@@ -209,7 +204,6 @@ public:
 	~DSL_Library_Registerer();
 	void EnsureLinked();
 };
-#endif
 
 
 #if !defined(DSL_NO_COMPAT) && !defined(DSL_EXPORTS)

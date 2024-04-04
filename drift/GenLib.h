@@ -21,10 +21,8 @@
 
 DSL_API_CLASS const char * DSL_CC nopathA(const char * filename); ///< Returns just the file portion of the full path and filename
 DSL_API_CLASS const wchar_t * DSL_CC nopathW(const wchar_t * filename); ///< Returns just the file portion of the full path and filename
-#if !defined(NO_CPLUSPLUS)
-	DSL_API_CLASS char * DSL_CC nopathA(char * filename); ///< Returns just the file portion of the full path and filename
-	DSL_API_CLASS wchar_t * DSL_CC nopathW(wchar_t * filename); ///< Returns just the file portion of the full path and filename
-#endif
+DSL_API_CLASS char * DSL_CC nopathA(char * filename); ///< Returns just the file portion of the full path and filename
+DSL_API_CLASS wchar_t * DSL_CC nopathW(wchar_t * filename); ///< Returns just the file portion of the full path and filename
 
 /**
  * This function takes binary data and converts it to a hex string.
@@ -66,9 +64,7 @@ DSL_API void DSL_CC PrintData(FILE * fp, const uint8 * ptr, size_t len); ///< Pr
 
 #if defined(WIN32) || defined(DOXYGEN_SKIP)
 	DSL_API_CLASS const char * DSL_CC stristr(const char * haystack, const char * needle); ///< Case-insensitive strstr. On Linux we define a macro of stristr to strcasestr for the same effect.
-	#if !defined(NO_CPLUSPLUS)
-		DSL_API_CLASS char * DSL_CC stristr(char * haystack, const char * needle); ///< Case-insensitive strstr. On Linux we define a macro of stristr to strcasestr for the same effect.
-	#endif
+	DSL_API_CLASS char * DSL_CC stristr(char * haystack, const char * needle); ///< Case-insensitive strstr. On Linux we define a macro of stristr to strcasestr for the same effect.
 	DSL_API char * DSL_CC strtok_r(char *newstring, const char *delimiters, char ** save_ptr); ///< Windows version of strtok_r
 	time_t filetime_2_time_t(FILETIME ft);
 	DSL_API struct tm * DSL_CC localtime_r(const time_t * tme, struct tm * out); ///< Windows version of thread-safe localtime_r
@@ -112,7 +108,6 @@ DSL_API size_t DSL_CC strlcat(char * dst, const char * src, size_t siz);
 #define TRIM_LEFT	0x01
 #define TRIM_RIGHT	0x02
 #define TRIM_BOTH	(TRIM_LEFT|TRIM_RIGHT)
-#if !defined(NO_CPLUSPLUS) || defined(DOXYGEN_SKIP)
 /**
  * Trims unwanted characters from the beginning and/or end of a string.
  * @param trim The characters to trim. Default: CR, LF, tabs, spaces.
@@ -122,9 +117,6 @@ DSL_API size_t DSL_CC strlcat(char * dst, const char * src, size_t siz);
  * @sa TRIM_RIGHT
  */
 DSL_API char * DSL_CC strtrim(char *buf, const char * trim = "\r\n\t ", uint8 sides = TRIM_BOTH);
-#else
-DSL_API char * DSL_CC strtrim(char *buf, const char * trim, uint8 sides);
-#endif
 
 /**
  * Case-sensitive wildcard string comparison.
@@ -136,16 +128,12 @@ DSL_API int DSL_CC wildcmp(const char *wild, const char *string);
  * @return 0 for no match, other for match
  */
 DSL_API int DSL_CC wildicmp(const char *wild, const char *string);
-#if !defined(NO_CPLUSPLUS) || defined(DOXYGEN_SKIP)
 /**
  * Case-insensitive wildcard string comparison with multiple patterns.
  * @param sep The characters the patterns are delimited with (ala strtok). Default: |
  * @return 0 for no match, other for match
  */
-DSL_API int DSL_CC wildicmp_multi(const char *wild, const char *string, const char *sep="|");
-#else
-DSL_API int DSL_CC wildicmp_multi(const char *wild, const char *string, const char *sep);
-#endif
+DSL_API int DSL_CC wildicmp_multi(const char *wild, const char *string, const char *sep = "|");
 
 DSL_API int64 DSL_CC fseek64(FILE * fp, int64 offset, int whence); ///< Cross-platform 64-bit fseek.
 DSL_API int64 DSL_CC ftell64(FILE * fp); ///< Cross-platform 64-bit ftell.
@@ -163,10 +151,8 @@ DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const uint8 * data
 DSL_API_CLASS int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
 DSL_API_CLASS int DSL_CC str_replaceW(wchar_t *Str, size_t BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement
 
-#if !defined(NO_CPLUSPLUS)
 DSL_API_CLASS string DSL_CC str_replaceA(string str, string FindStr, string ReplStr); ///< Simple string replacement
 DSL_API_CLASS wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr); ///< Simple string replacement
-#endif
 
 DSL_API char * DSL_CC tchar2charA(char * str);
 DSL_API char * DSL_CC tchar2charW(wchar_t * str);
@@ -249,7 +235,6 @@ T scale_ranges(T value, T srcmin, T srcmax, T destmin, T destmax) {
 	return ((in * outdiff) / indiff) + destmin;
 }
 
-#if !defined(NO_CPLUSPLUS) || defined(DOXYGEN_SKIP)
 /**
  * Clamps a given value to the range of vMin to vMax (inclusive)<br>
  * Example: clamp<uint16>(10, 0, 15) to clamp a value of 10 to a range of 0-15.
@@ -293,7 +278,6 @@ public:
 	std::string stdGetTok(size_t first, size_t last);
 	std::string stdGetSingleTok(size_t num);
 };
-#endif
 
 /* Remaining functions past this line were borrowed from PhysicsFS */
 
