@@ -156,6 +156,9 @@ DSL_API int DSL_CC truncate(const char * fn, int64 size); ///< Windows version o
 DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize=UINT32_MAX);
 DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize=UINT32_MAX);
 DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& fileSize, int64 maxSize=UINT32_MAX);//free data with dsl_free()
+DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const vector<uint8>& data, bool append = false);
+DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const string& data, bool append = false);
+DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const uint8 * data, size_t fileSize, bool append = false);
 
 DSL_API_CLASS int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
 DSL_API_CLASS int DSL_CC str_replaceW(wchar_t *Str, size_t BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement

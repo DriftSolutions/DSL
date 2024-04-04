@@ -1004,6 +1004,39 @@ DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, i
 	return ret;
 }
 
+bool DSL_CC file_put_contents(const string& fn, const vector<uint8>& data, bool append) {
+	FILE * fp = fopen(fn.c_str(), append ? "ab" : "wb");
+	if (fp == NULL) {
+		return false;
+	}
+
+	bool ret = (fwrite(data.data(), data.size(), 1, fp) == 1);
+	fclose(fp);
+	return ret;
+}
+
+bool DSL_CC file_put_contents(const string& fn, const string& data, bool append) {
+	FILE * fp = fopen(fn.c_str(), append ? "ab" : "wb");
+	if (fp == NULL) {
+		return false;
+	}
+
+	bool ret = (fwrite(data.c_str(), data.length(), 1, fp) == 1);
+	fclose(fp);
+	return ret;
+}
+
+bool DSL_CC file_put_contents(const string& fn, const uint8 * data, size_t fileSize, bool append) {
+	FILE * fp = fopen(fn.c_str(), append ? "ab" : "wb");
+	if (fp == NULL) {
+		return false;
+	}
+
+	bool ret = (fwrite(data, fileSize, 1, fp) == 1);
+	fclose(fp);
+	return ret;
+}
+
 /* Remaining functions past this line were borrowed from PhysicsFS */
 
 DSL_API uint16 DSL_CC ByteSwap16(uint16 X) {
