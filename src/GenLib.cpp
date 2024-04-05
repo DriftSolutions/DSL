@@ -1037,6 +1037,55 @@ bool DSL_CC file_put_contents(const string& fn, const uint8 * data, size_t fileS
 	return ret;
 }
 
+int64 DSL_CC copy_file(const string& src, const string& dest, bool allow_overwrite) {
+#ifdef WIN32
+	int64 ret = filesize(src.c_str());
+	if (ret >= 0 && CopyFile(src.c_str(), dest.c_str(), !allow_overwrite)) {
+		return ret;
+	}
+	return -1;
+#else
+	int fdi = open(src.c_str(), O_RDONLY);
+	if (fdi == -1) {
+		return -1;
+	}
+
+	int flags = O_WRONLY | O_CREAT;
+	if (allow_overwrite) {
+		flags |= O_TRUNC;
+	} else {
+		flags |= O_EXCL;
+	}
+	int fdo = open(dest.c_str(), flags);
+	if (fdo == -1) {
+		close(fdi);
+		return -1;
+	}
+
+	int64 ret = 0;
+	#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 27))
+	ret = copy_file_range(fdi, NULL, fdo, NULL, SIZE_MAX, 0);
+	#else
+	uint8 buf[32768];
+	int n;
+	while ((n = read(fdi, buf, sizeof(buf))) > 0) {
+		if (write(fdo, buf, n) != n) {
+			n = -1;
+			break;
+		}
+		ret += n;
+	}
+	if (n < 0) {
+		ret = -1;
+	}
+	#endif
+
+	close(fdo);
+	close(fdi);
+	return ret;
+#endif
+}
+
 /* Remaining functions past this line were borrowed from PhysicsFS */
 
 DSL_API uint16 DSL_CC ByteSwap16(uint16 X) {

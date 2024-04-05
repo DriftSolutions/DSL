@@ -138,15 +138,21 @@ DSL_API int DSL_CC wildicmp_multi(const char *wild, const char *string, const ch
 DSL_API int64 DSL_CC fseek64(FILE * fp, int64 offset, int whence); ///< Cross-platform 64-bit fseek.
 DSL_API int64 DSL_CC ftell64(FILE * fp); ///< Cross-platform 64-bit ftell.
 DSL_API int64 DSL_CC filesize(const char * fn); ///< Get the size in bytes of a file.
-#if defined(WIN32) || defined(DOXYGEN_SKIP)
+#if defined(WIN32)
 DSL_API int DSL_CC truncate(const char * fn, int64 size); ///< Windows version of truncate()
 #endif
 DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize=UINT32_MAX);
 DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize=UINT32_MAX);
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& fileSize, int64 maxSize=UINT32_MAX);//free data with dsl_free()
+DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& fileSize, int64 maxSize=UINT32_MAX); ///<free data with dsl_free()
 DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const vector<uint8>& data, bool append = false);
 DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const string& data, bool append = false);
 DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const uint8 * data, size_t fileSize, bool append = false);
+/**
+ * Copy a file from src to dest
+ * @param allow_overwrite Don't overwrite dest if it exists
+ * @return The number of bytes copied (which can be 0 for a 0 length file), -1 on error.
+ */
+DSL_API int64 DSL_CC copy_file(const string& src, const string& dest, bool allow_overwrite = false);
 
 DSL_API_CLASS int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
 DSL_API_CLASS int DSL_CC str_replaceW(wchar_t *Str, size_t BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement
