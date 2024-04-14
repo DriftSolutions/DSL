@@ -11,30 +11,12 @@
 #include <drift/dslcore.h>
 #include <drift/download.h>
 
-void DSL_Download_Core::privZero() {
-	callback = NULL;
-	u_ptr = NULL;
-	error = TD_NO_ERROR;
-}
-
-DSL_Download_Core::DSL_Download_Core() {
-	this->privZero();
-}
-
-DSL_Download_Core::DSL_Download_Core(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
-	this->privZero();
-}
-
-DSL_Download_Core::DSL_Download_Core(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
-	this->privZero();
-}
-
 DSL_Download_Core::~DSL_Download_Core() {
 }
 
 DSL_Download_Errors DSL_Download_Core::GetError() { return this->error; }
 
-char DSL_Download_Error_Strings[TD_NUM_ERRORS][56] = {
+static const char * DSL_Download_Error_Strings[TD_NUM_ERRORS] = {
 	"No Error",
 
 	"File Access Error",
@@ -61,24 +43,28 @@ const char * DSL_Download_Core::GetErrorString() {
 	return DSL_Download_Error_Strings[this->error];
 }
 
-bool DSL_Download_Core::Download(const char * SaveAs) {
-	if (this->error != TD_NO_ERROR) { return false; }
+bool DSL_Download_Core::Download(const string& SaveAs) {
+	if (this->error != TD_NO_ERROR || SaveAs.empty()) { return false; }
 
-	DSL_FILE * fp = RW_OpenFile(SaveAs, "wb");
+	DSL_FILE * fp = RW_OpenFile(SaveAs.c_str(), "wb");
 	if (fp == NULL) {
 		this->error = TD_FILE_ACCESS;
 		return false;
 	}
-	bool ret = this->Download(fp);
+	bool ret = Download(fp);
 	fp->close(fp);
 	return ret;
 }
 
 bool DSL_Download_Core::Download(FILE * fWriteTo) {
-	if (this->error != TD_NO_ERROR) { return false; }
+	if (this->error != TD_NO_ERROR || fWriteTo == NULL) { return false; }
 
 	DSL_FILE * fp = RW_ConvertFile(fWriteTo, false);
-	bool ret = this->Download(fp);
+	if (fp == NULL) {
+		this->error = TD_FILE_ACCESS;
+		return false;
+	}
+	bool ret = Download(fp);
 	fp->close(fp);
 	return ret;
 }

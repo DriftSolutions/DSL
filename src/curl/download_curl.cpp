@@ -37,13 +37,6 @@ DSL_LIBRARY_FUNCTIONS dsl_curl_funcs = {
 };
 DSL_Library_Registerer dsl_curl_autoreg(dsl_curl_funcs);
 
-void DSL_Download_Curl::privZero() {
-	callback = NULL;
-	error = TD_NO_ERROR;
-	cHandle = NULL;
-	memset(&curlcb, 0, sizeof(curlcb));
-}
-
 size_t tdCurlWrite(void *ptr, size_t size, size_t nmemb, void *stream) {
 	DSL_FILE * fp = (DSL_FILE *)stream;
 	return fp->write(ptr, size * nmemb, fp) / size;
@@ -51,126 +44,97 @@ size_t tdCurlWrite(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 int tdCurlCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
 	DSL_Download_CurlCallback * cb = (DSL_Download_CurlCallback *)clientp;
-	return cb->callback(dlnow, dltotal, cb->user_ptr) ? 0:1;
+	return cb->callback((uint64)dlnow, (uint64)dltotal, cb->user_ptr) ? 0:1;
 }
 
-bool DSL_Download_Curl::pCommonInit(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
-	callback = callback;
-	u_ptr = user_ptr;
+DSL_Download_Curl::DSL_Download_Curl(const string& url, DSL_Download_Callback callback, const string& user, const string& pass, void * user_ptr) {
+	memset(&curlcb, 0, sizeof(curlcb));
 
 	if (!curl_has_init) {
 		//libCURL is not initialized
 		error = TD_ERROR_INITIALIZING_LIB;
-		return false;
+		return;
 	}
-	/*
-	tdcMutex.Lock();
-	if (hasCurlInit != 1) {
-		error = TD_ERROR_INITIALIZING_LIB;
-		tdcMutex.Release();
-		return false;
-	}
-	tdcMutex.Release();
-	*/
 
 	cHandle = curl_easy_init();
 	if (cHandle == NULL) {
 		error = TD_ERROR_CREATING_SOCKET;
-		return false;
-	}
-	if (url == NULL) {
-		error = TD_INVALID_URL;
-		return false;
+		return;
 	}
 
 	//printf("RAW CURL GET: %s\n", url);
-	curl_easy_setopt(cHandle, CURLOPT_URL, url);
+	
+	curl_easy_setopt(cHandle, CURLOPT_CONNECTTIMEOUT, 10);
 	curl_easy_setopt(cHandle, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, 3);
 	curl_easy_setopt(cHandle, CURLOPT_USERAGENT, "DSL HTTP Downloader Class (Mozilla)");
 	curl_easy_setopt(cHandle, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(cHandle, CURLOPT_WRITEFUNCTION, tdCurlWrite);
-	if (callback) {
-		curlcb.callback = callback;
-		curlcb.user_ptr = u_ptr;
-		curl_easy_setopt(cHandle, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(cHandle, CURLOPT_PROGRESSFUNCTION, tdCurlCallback);
-		curl_easy_setopt(cHandle, CURLOPT_PROGRESSDATA, &curlcb);
 
-	} else {
-		curl_easy_setopt(cHandle, CURLOPT_NOPROGRESS, 1);
+	SetCallback(callback, user_ptr);
+	SetURL(url);
+	if (user.length() || pass.length()) {
+		SetUserPass(user, pass);
 	}
-	if (user || pass) {
-		size_t len = 2;
-		if (user) { len += strlen(user); }
-		if (pass) { len += strlen(pass); }
-		char * tmp = (char *)dsl_malloc(len);
-		memset(tmp, 0, len);
-		if (user) { strcat(tmp, user); }
-		strcat(tmp, ":");
-		if (pass) { strcat(tmp, pass); }
-		curl_easy_setopt(cHandle, CURLOPT_USERPWD, tmp);
-		dsl_free(tmp);
-	}
-
-	return true;
 }
 
-DSL_Download_Curl::DSL_Download_Curl() {
-	privZero();
-	pCommonInit();
-}
-
-DSL_Download_Curl::DSL_Download_Curl(const char * url, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
-	privZero();
-	pCommonInit(url, callback, user, pass, user_ptr);
-}
-
-char DSL_Download_Type_String[3][6] = {
-	"http",
-	"https",
-	"ftp"
-};
-
-DSL_Download_Curl::DSL_Download_Curl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback, const char * user, const char * pass, void * user_ptr) {
-	privZero();
-	if (type != TD_HTTP && type != TD_HTTPS && type != TD_FTP) {
-		this->error = TD_INVALID_PROTOCOL;
-		return;
+void DSL_Download_Curl::SetUserPass(const string& user, const string& pass) {
+	if (cHandle != NULL) {
+		if (user.length() && pass.length()) {
+			curl_easy_setopt(cHandle, CURLOPT_USERPWD, mprintf("%s:%s", user.c_str(), pass.c_str()).c_str());
+		} else {
+			curl_easy_setopt(cHandle, CURLOPT_USERPWD, (char *)NULL);
+		}
 	}
-	char url[1024];
-	memset(url, 0, sizeof(url));
-	snprintf(url, sizeof(url)-1, "%s://%s:%d%s", DSL_Download_Type_String[type], host, port, path);
-	pCommonInit(url, callback, user, pass, user_ptr);
 }
 
 DSL_Download_Curl::~DSL_Download_Curl() {
-	if (cHandle) {
+	if (cHandle != NULL) {
 		curl_easy_cleanup(cHandle);
 		cHandle = NULL;
 	}
 }
 
 //DSL_Download_Errors DSL_Download::GetError() { return this->error; }
+bool DSL_Download_Curl::SetURL(const string& url) {
+	if (cHandle) {
+		curl_easy_setopt(cHandle, CURLOPT_URL, url.c_str());
+		return true;
+	}
+	return false;
+}
 
-void DSL_Download_Curl::SetTimeout(unsigned long millisec) {
-	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_CONNECTTIMEOUT_MS, millisec); }
+void DSL_Download_Curl::SetCallback(DSL_Download_Callback callback, void * user_ptr) {
+	if (cHandle) {
+		memset(&curlcb, 0, sizeof(curlcb));
+		if (callback != NULL) {
+			curlcb.callback = callback;
+			curlcb.user_ptr = user_ptr;
+			curl_easy_setopt(cHandle, CURLOPT_NOPROGRESS, 0);
+			curl_easy_setopt(cHandle, CURLOPT_PROGRESSFUNCTION, tdCurlCallback);
+			curl_easy_setopt(cHandle, CURLOPT_PROGRESSDATA, &curlcb);
+		} else {
+			curl_easy_setopt(cHandle, CURLOPT_NOPROGRESS, 1);
+			curl_easy_setopt(cHandle, CURLOPT_PROGRESSFUNCTION, NULL);
+			curl_easy_setopt(cHandle, CURLOPT_PROGRESSDATA, NULL);
+		}
+	}
+}
+
+void DSL_Download_Curl::SetTimeout(uint32 millisec) {
+	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_TIMEOUT_MS, (unsigned long)millisec); }
 }
 
 void DSL_Download_Curl::FollowRedirects(bool follow) {
 	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, follow ? 3:0); }
 }
 
-void DSL_Download_Curl::ErrorOnRedirects(bool error) {
-	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, error ? 0:3); }
+void DSL_Download_Curl::SetUserAgent(const string& ua) {
+	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_USERAGENT, ua.c_str()); }
 }
 
-void DSL_Download_Curl::SetUserAgent(const char * ua) {
-	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_USERAGENT, ua); }
-}
-
-void DSL_Download_Curl::SetProxy(const char * proxy) {
-	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_PROXY, proxy); }
+void DSL_Download_Curl::SetProxy(const string& proxy) {
+	if (cHandle) { curl_easy_setopt(cHandle, CURLOPT_PROXY, proxy.c_str()); }
 }
 
 CURLcode DSL_Download_Curl::SetOptStr(CURLoption option, const char * p) {
@@ -193,24 +157,21 @@ CURLcode DSL_Download_Curl::SetOptOff(CURLoption option, curl_off_t p) {
 	return CURLE_FAILED_INIT;
 }
 
-bool DSL_Download_Curl::Download(const char * SaveAs) {
-	return DSL_Download_Core::Download(SaveAs);
-}
-
-bool DSL_Download_Curl::Download(FILE * fWriteTo) {
-	return DSL_Download_Core::Download(fWriteTo);
-}
-
 bool DSL_Download_Curl::Download(DSL_FILE * fWriteTo) {
-	if (this->error != TD_NO_ERROR || cHandle == NULL) { return false; }
+	if (this->error != TD_NO_ERROR) { return false; }
+	if (cHandle == NULL) {
+		this->error = TD_ERROR_INITIALIZING_LIB;
+		return false;
+	}
 
 	curl_easy_setopt(cHandle, CURLOPT_WRITEDATA, fWriteTo);
 
 	CURLcode ret = curl_easy_perform(cHandle);
 	switch (ret) {
-#if defined(CURLE_REMOTE_FILE_NOT_FOUND)
+		case CURLE_OK:
+			error = TD_NO_ERROR;
+			break;
 		case CURLE_REMOTE_FILE_NOT_FOUND:
-#endif
 		case CURLE_TFTP_NOTFOUND:
 			error = TD_FILE_NOT_FOUND;
 			break;
@@ -242,8 +203,8 @@ bool DSL_Download_Curl::Download(DSL_FILE * fWriteTo) {
 	return (ret == CURLE_OK) ? true:false;
 }
 
-string curl_escapestring(string str) {
-	char * tmp = curl_escape(str.c_str(), str.length());
+string curl_escapestring(const string& str) {
+	char * tmp = curl_escape(str.c_str(), (int)str.length());
 	string ret = tmp;
 	curl_free(tmp);
 	return ret;

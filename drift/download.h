@@ -30,20 +30,11 @@
  */
 typedef bool (*DSL_Download_Callback)(uint64 got, uint64 fullsize, void * user_ptr);
 
-/** \enum DSL_Download_Type
- * The type of download to perform.
- */
-enum DSL_Download_Type {
-	TD_HTTP, ///< HTTP
-	TD_HTTPS, ///< HTTPS (needs ENABLE_CURL defined)
-	TD_FTP ///< FTP
-};
-
 #define DSL_SHOULDRETRY(x) ((x < 5) & (x > 0))
 /** \enum DSL_Download_Errors
  * Download error codes
  */
-enum DSL_Download_Errors {
+enum DSL_Download_Errors : uint8 {
 	TD_NO_ERROR,
 
 	TD_FILE_ACCESS,
@@ -70,30 +61,32 @@ enum DSL_Download_Errors {
  */
 class DSL_API_CLASS DSL_Download_Core {
 protected:
-	DSL_Download_Callback callback;
-	void * u_ptr; ///< Pointer set by you and will be sent to your callback function for your own use
-	DSL_Download_Errors error;
-	virtual void privZero();
+	DSL_Download_Errors error = TD_INVALID_PROTOCOL;
 public:
 #ifndef DOXYGEN_SKIP
-	DSL_Download_Core();
-	DSL_Download_Core(const char * url, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
-	DSL_Download_Core(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
 	virtual ~DSL_Download_Core();
 #endif
 
-	virtual bool Download(const char * SaveAs); ///< Begin download saving to file SaveAs
+	virtual bool SetURL(const string& url) = 0;
+	virtual void SetCallback(DSL_Download_Callback callback, void * user_ptr = NULL) = 0;
+	virtual void SetUserPass(const string& user, const string& pass) = 0;
+
+	virtual bool Download(const string& SaveAs); ///< Begin download saving to file SaveAs
 	virtual bool Download(FILE * fWriteTo); ///< Begin download saving to FILE stream
 	/**
 	 * Begin download saving to DSL_FILE stream.
 	 * @sa DSL_FILE
 	 */
 	virtual bool Download(DSL_FILE * fWriteTo) = 0;
+	/**
+	 * Begin download saving to a DSL_BUFFER.
+	 * @sa DSL_BUFFER
+	virtual bool Download(DSL_BUFFER * fWriteTo) = 0;
+	 */
 
-	virtual void SetTimeout(unsigned long millisec) = 0;
-	virtual void SetUserAgent(const char * ua) = 0;
+	virtual void SetTimeout(uint32 millisec) = 0;
+	virtual void SetUserAgent(const string& ua) = 0;
 	virtual void FollowRedirects(bool follow) = 0;
-	virtual void ErrorOnRedirects(bool error) = 0;
 
 	virtual DSL_Download_Errors GetError();
 	virtual const char * GetErrorString();
@@ -101,35 +94,35 @@ public:
 
 class DSL_API_CLASS DSL_Download_NoCurl: public DSL_Download_Core {
 private:
-	char host[128],path[512],user_agent[512];
-	int port;
-	bool followRedirects, errorOnRedirects;
-	unsigned long timeo;
-	DSL_Download_Type mode;
+	string host, path, user_agent;
+	uint16 port = 0;
+	bool followRedirects = false;
+	uint32 timeo = 0;
 	//DSL_Download_Errors error;
-	char user[128],pass[128];
-	virtual void privZero();
-	bool privDownloadHTTP(DSL_FILE * fWriteTo);
-	bool privDownloadFTP(DSL_FILE * fWriteTo);
-	DSL_Sockets3_Base * socks;
+	string user, pass;
+	DSL_Sockets3_Base * socks = NULL;
+	DSL_Download_Callback callback = NULL;
+	void * u_ptr = NULL; ///< Pointer set by you and will be sent to your callback function for your own use
 public:
-	DSL_Download_NoCurl();
-	DSL_Download_NoCurl(const char * url, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
-	DSL_Download_NoCurl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
+	DSL_Download_NoCurl(const string& url = "", DSL_Download_Callback callback = NULL, const string& user = "", const string& pass = "", void * user_ptr = NULL);
 	virtual ~DSL_Download_NoCurl();
 
-	virtual bool Download(const char * SaveAs); ///< Begin download saving to file SaveAs
-	virtual bool Download(FILE * fWriteTo); ///< Begin download saving to FILE stream
+	virtual bool SetURL(const string& url);
+	virtual bool GetURL(string& str);
+	virtual void SetCallback(DSL_Download_Callback callback, void * user_ptr = NULL);
+	virtual void SetUserPass(const string& user, const string& pass);
+
 	/**
 	 * Begin download saving to DSL_FILE stream.
 	 * @sa DSL_FILE
 	 */
 	virtual bool Download(DSL_FILE * fWriteTo);
+	virtual bool Download(FILE * fWriteTo) { return DSL_Download_Core::Download(fWriteTo); }
+	virtual bool Download(const string& fSaveAs) { return DSL_Download_Core::Download(fSaveAs); }
 
-	virtual void SetTimeout(unsigned long millisec);
-	virtual void SetUserAgent(const char * ua);
-	virtual void FollowRedirects(bool follow);
-	virtual void ErrorOnRedirects(bool error);
+	virtual void SetTimeout(uint32 millisec);
+	virtual void SetUserAgent(const string& ua);
+	virtual void FollowRedirects(bool follow = true);
 
 	//virtual DSL_Download_Errors GetError();
 	//virtual const char * GetErrorString();
@@ -159,37 +152,35 @@ struct DSL_Download_CurlCallback {
 
 class DSL_CURL_API_CLASS DSL_Download_Curl: public DSL_Download_Core {
 private:
-	virtual void privZero();
-	CURL * cHandle;
+	CURL * cHandle = NULL;
 	DSL_Download_CurlCallback curlcb;
-	bool pCommonInit(const char * url=NULL, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
-
 public:
-	DSL_Download_Curl();
-	DSL_Download_Curl(const char * url, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
-	DSL_Download_Curl(DSL_Download_Type type, const char * host, int port, const char * path, DSL_Download_Callback callback=NULL, const char * user=NULL, const char * pass=NULL, void * user_ptr=NULL);
+	DSL_Download_Curl(const string& url = "", DSL_Download_Callback callback = NULL, const string& user = "", const string& pass = "", void * user_ptr = NULL);
 	virtual ~DSL_Download_Curl();
 
-	virtual bool Download(const char * SaveAs); ///< Begin download saving to file SaveAs
-	virtual bool Download(FILE * fWriteTo); ///< Begin download saving to FILE stream
+	virtual bool SetURL(const string& url);
+	virtual void SetCallback(DSL_Download_Callback callback, void * user_ptr = NULL);
+	virtual void SetUserPass(const string& user, const string& pass);
+
 	/**
 	 * Begin download saving to DSL_FILE stream.
 	 * @sa DSL_FILE
 	 */
 	virtual bool Download(DSL_FILE * fWriteTo);
+	virtual bool Download(FILE * fWriteTo) { return DSL_Download_Core::Download(fWriteTo); }
+	virtual bool Download(const string& fSaveAs) { return DSL_Download_Core::Download(fSaveAs); }
 
-	virtual void SetTimeout(unsigned long millisec);
-	virtual void SetUserAgent(const char * ua);
-	virtual void FollowRedirects(bool follow);
-	virtual void ErrorOnRedirects(bool error);
-	virtual void SetProxy(const char * proxy); // See https://curl.se/libcurl/c/CURLOPT_PROXY.html
+	virtual void SetTimeout(uint32 millisec);
+	virtual void SetUserAgent(const string& ua);
+	virtual void FollowRedirects(bool follow = true);
+	virtual void SetProxy(const string& proxy); // See https://curl.se/libcurl/c/CURLOPT_PROXY.html
 	virtual CURLcode SetOptStr(CURLoption option, const char * p);
 	virtual CURLcode SetOptVoid(CURLoption option, void * p);
 	virtual CURLcode SetOptLong(CURLoption option, long p);
 	virtual CURLcode SetOptOff(CURLoption option, curl_off_t p);
 };
 
-DSL_CURL_API_CLASS string curl_escapestring(string str);
+DSL_CURL_API_CLASS string curl_escapestring(const string& str);
 
 #define DSL_Download DSL_Download_Curl
 #else
