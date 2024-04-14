@@ -306,6 +306,7 @@ DSL_API char * DSL_CC strtrim(char *buf, const char * trim, uint8 sides) {
 			if (*p == trim[i]) {
 				*p = 0;
 				p--;
+				if (p < buf) { break; }
 				i=-1;
 			}
 		}
@@ -632,8 +633,9 @@ int DSL_CC str_replaceW(wchar_t * Str, size_t BufSize, wchar_t *FindStr, wchar_t
 }
 #endif
 
-string DSL_CC str_replaceA(string str, string FindStr, string ReplStr) {
+string DSL_CC str_replaceA(const string& src, const string& FindStr, const string& ReplStr) {
 	size_t pos;
+	string str = src;
 	while ((pos = str.find(FindStr)) != str.npos) {
 		str.replace(pos, FindStr.length(), ReplStr);
 	}
@@ -641,8 +643,9 @@ string DSL_CC str_replaceA(string str, string FindStr, string ReplStr) {
 }
 
 #if !defined(FREEBSD)
-wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr) {
+wstring DSL_CC str_replaceW(const wstring& src, const wstring& FindStr, const wstring& ReplStr) {
 	size_t pos;
+	wstring str = src;
 	while ((pos = str.find(FindStr)) != str.npos) {
 		str.replace(pos, FindStr.length(), ReplStr);
 	}
@@ -785,21 +788,24 @@ char * DSL_CC GetUserDocumentsFolderA(const char * name) {
 }
 
 #if !defined(WIN32)
-static timeval tv_start = {0,0};
-int genlib_gettickcount_i = gettimeofday(&tv_start, NULL);
-//static timeval tv_start = {0,0};
+DSL_API uint32 DSL_CC GetTickCount() {
+	return (uint32)GetTickCount64();
+}
 
-uint32 GetTickCount() {
-	if (!tv_start.tv_sec) {
+DSL_API uint64 DSL_CC GetTickCount64() {
+	static timeval tv_start = {0,0};
+	if (tv_start.tv_sec == 0) {
 		gettimeofday (&tv_start, NULL);
 		tv_start.tv_usec = 0;
+		return 0;
 	}
 	timeval tv;
-	gettimeofday (&tv, NULL);
-	unsigned long ret = (tv.tv_sec - tv_start.tv_sec) * 1000;
-	ret += (tv.tv_usec / 1000);
+	gettimeofday(&tv, NULL);
+	uint64 ret = uint64(tv.tv_sec - tv_start.tv_sec) * 1000;
+	ret += uint64(tv.tv_usec / 1000);
 	return ret;
 }
+
 #endif
 
 DSL_API char * DSL_CC tcstombsA(const char * str) {

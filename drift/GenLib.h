@@ -72,6 +72,7 @@ DSL_API void DSL_CC PrintData(FILE * fp, const uint8 * ptr, size_t len); ///< Pr
 #else
 	DSL_API char * DSL_CC strlwr(char * str); ///< Linux version of strlwr
 	DSL_API uint32 DSL_CC GetTickCount(); ///< Linux version of GetTickCount
+	DSL_API uint64 DSL_CC GetTickCount64(); ///< Linux version of GetTickCount64
 #endif
 
 DSL_API bool DSL_CC dsl_mkdir_r(const char * p, int mode); ///< Cross-platform recursive mkdir()
@@ -157,8 +158,8 @@ DSL_API int64 DSL_CC copy_file(const string& src, const string& dest, bool allow
 DSL_API_CLASS int DSL_CC str_replaceA(char *Str, size_t BufSize, const char *FindStr, const char *ReplStr); ///< Simple string replacement
 DSL_API_CLASS int DSL_CC str_replaceW(wchar_t *Str, size_t BufSize, const wchar_t * FindStr, const wchar_t * ReplStr); ///< Simple string replacement
 
-DSL_API_CLASS string DSL_CC str_replaceA(string str, string FindStr, string ReplStr); ///< Simple string replacement
-DSL_API_CLASS wstring DSL_CC str_replaceW(wstring str, wstring FindStr, wstring ReplStr); ///< Simple string replacement
+DSL_API_CLASS string DSL_CC str_replaceA(const string& str, const string& FindStr, const string& ReplStr); ///< Simple string replacement
+DSL_API_CLASS wstring DSL_CC str_replaceW(const wstring& str, const wstring& FindStr, const wstring& ReplStr); ///< Simple string replacement
 
 DSL_API char * DSL_CC tchar2charA(char * str);
 DSL_API char * DSL_CC tchar2charW(wchar_t * str);
