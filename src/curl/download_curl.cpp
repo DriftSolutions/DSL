@@ -63,13 +63,14 @@ DSL_Download_Curl::DSL_Download_Curl(const string& url, DSL_Download_Callback ca
 	}
 
 	//printf("RAW CURL GET: %s\n", url);
-	
+
 	curl_easy_setopt(cHandle, CURLOPT_CONNECTTIMEOUT, 10);
 	curl_easy_setopt(cHandle, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(cHandle, CURLOPT_MAXREDIRS, 3);
 	curl_easy_setopt(cHandle, CURLOPT_USERAGENT, "DSL HTTP Downloader Class (Mozilla)");
 	curl_easy_setopt(cHandle, CURLOPT_FAILONERROR, 1);
 	curl_easy_setopt(cHandle, CURLOPT_WRITEFUNCTION, tdCurlWrite);
+	curl_easy_setopt(cHandle, CURLOPT_ERRORBUFFER, errstr);
 
 	SetCallback(callback, user_ptr);
 	SetURL(url);
@@ -93,6 +94,13 @@ DSL_Download_Curl::~DSL_Download_Curl() {
 		curl_easy_cleanup(cHandle);
 		cHandle = NULL;
 	}
+}
+
+const char * DSL_Download_Curl::GetErrorString() {
+	if (errstr[0]) {
+		return errstr;
+	}
+	return DSL_Download_Base::GetErrorString();
 }
 
 //DSL_Download_Errors DSL_Download::GetError() { return this->error; }

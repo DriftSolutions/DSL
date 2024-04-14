@@ -30,7 +30,6 @@
  */
 typedef bool (*DSL_Download_Callback)(uint64 got, uint64 fullsize, void * user_ptr);
 
-#define DSL_SHOULDRETRY(x) ((x < 5) & (x > 0))
 /** \enum DSL_Download_Errors
  * Download error codes
  */
@@ -54,17 +53,17 @@ enum DSL_Download_Errors : uint8 {
 	TD_NUM_ERRORS
 };
 
-/** \class DSL_Download_Core
+/** \class DSL_Download_Base
  * This base class shouldn't be used directly.
  * @sa DSL_Download_Curl
  * @sa DSL_Download_NoCurl
  */
-class DSL_API_CLASS DSL_Download_Core {
+class DSL_API_CLASS DSL_Download_Base {
 protected:
 	DSL_Download_Errors error = TD_INVALID_PROTOCOL;
 public:
 #ifndef DOXYGEN_SKIP
-	virtual ~DSL_Download_Core();
+	virtual ~DSL_Download_Base();
 #endif
 
 	virtual bool SetURL(const string& url) = 0;
@@ -92,13 +91,12 @@ public:
 	virtual const char * GetErrorString();
 };
 
-class DSL_API_CLASS DSL_Download_NoCurl: public DSL_Download_Core {
+class DSL_API_CLASS DSL_Download_NoCurl: public DSL_Download_Base {
 private:
 	string host, path, user_agent;
 	uint16 port = 0;
 	bool followRedirects = false;
 	uint32 timeo = 0;
-	//DSL_Download_Errors error;
 	string user, pass;
 	DSL_Sockets3_Base * socks = NULL;
 	DSL_Download_Callback callback = NULL;
@@ -117,15 +115,12 @@ public:
 	 * @sa DSL_FILE
 	 */
 	virtual bool Download(DSL_FILE * fWriteTo);
-	virtual bool Download(FILE * fWriteTo) { return DSL_Download_Core::Download(fWriteTo); }
-	virtual bool Download(const string& fSaveAs) { return DSL_Download_Core::Download(fSaveAs); }
+	virtual bool Download(FILE * fWriteTo) { return DSL_Download_Base::Download(fWriteTo); }
+	virtual bool Download(const string& fSaveAs) { return DSL_Download_Base::Download(fSaveAs); }
 
 	virtual void SetTimeout(uint32 millisec);
 	virtual void SetUserAgent(const string& ua);
 	virtual void FollowRedirects(bool follow = true);
-
-	//virtual DSL_Download_Errors GetError();
-	//virtual const char * GetErrorString();
 };
 
 #if defined(ENABLE_CURL) || defined(DOXYGEN_SKIP)
@@ -150,10 +145,11 @@ struct DSL_Download_CurlCallback {
 };
 #endif
 
-class DSL_CURL_API_CLASS DSL_Download_Curl: public DSL_Download_Core {
+class DSL_CURL_API_CLASS DSL_Download_Curl: public DSL_Download_Base {
 private:
 	CURL * cHandle = NULL;
 	DSL_Download_CurlCallback curlcb;
+	char errstr[CURL_ERROR_SIZE] = {0};
 public:
 	DSL_Download_Curl(const string& url = "", DSL_Download_Callback callback = NULL, const string& user = "", const string& pass = "", void * user_ptr = NULL);
 	virtual ~DSL_Download_Curl();
@@ -167,17 +163,19 @@ public:
 	 * @sa DSL_FILE
 	 */
 	virtual bool Download(DSL_FILE * fWriteTo);
-	virtual bool Download(FILE * fWriteTo) { return DSL_Download_Core::Download(fWriteTo); }
-	virtual bool Download(const string& fSaveAs) { return DSL_Download_Core::Download(fSaveAs); }
+	virtual bool Download(FILE * fWriteTo) { return DSL_Download_Base::Download(fWriteTo); }
+	virtual bool Download(const string& fSaveAs) { return DSL_Download_Base::Download(fSaveAs); }
 
 	virtual void SetTimeout(uint32 millisec);
 	virtual void SetUserAgent(const string& ua);
 	virtual void FollowRedirects(bool follow = true);
-	virtual void SetProxy(const string& proxy); // See https://curl.se/libcurl/c/CURLOPT_PROXY.html
+	virtual void SetProxy(const string& proxy); /// See https://curl.se/libcurl/c/CURLOPT_PROXY.html
 	virtual CURLcode SetOptStr(CURLoption option, const char * p);
 	virtual CURLcode SetOptVoid(CURLoption option, void * p);
 	virtual CURLcode SetOptLong(CURLoption option, long p);
 	virtual CURLcode SetOptOff(CURLoption option, curl_off_t p);
+
+	virtual const char * GetErrorString(); /// Return cURL-specific error message when possible, falling back to the defaults from DSL_Download_Base
 };
 
 DSL_CURL_API_CLASS string curl_escapestring(const string& str);

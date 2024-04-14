@@ -11,10 +11,10 @@
 #include <drift/dslcore.h>
 #include <drift/download.h>
 
-DSL_Download_Core::~DSL_Download_Core() {
+DSL_Download_Base::~DSL_Download_Base() {
 }
 
-DSL_Download_Errors DSL_Download_Core::GetError() { return this->error; }
+DSL_Download_Errors DSL_Download_Base::GetError() { return this->error; }
 
 static const char * DSL_Download_Error_Strings[TD_NUM_ERRORS] = {
 	"No Error",
@@ -35,7 +35,7 @@ static const char * DSL_Download_Error_Strings[TD_NUM_ERRORS] = {
 	"Authorization Needed or Bad Username/Password"
 };
 
-const char * DSL_Download_Core::GetErrorString() {
+const char * DSL_Download_Base::GetErrorString() {
 	if (this->error >= TD_NUM_ERRORS) {
 		static char unkerr[] = "Unkown Error";
 		return unkerr;
@@ -43,7 +43,7 @@ const char * DSL_Download_Core::GetErrorString() {
 	return DSL_Download_Error_Strings[this->error];
 }
 
-bool DSL_Download_Core::Download(const string& SaveAs) {
+bool DSL_Download_Base::Download(const string& SaveAs) {
 	if (this->error != TD_NO_ERROR || SaveAs.empty()) { return false; }
 
 	DSL_FILE * fp = RW_OpenFile(SaveAs.c_str(), "wb");
@@ -56,7 +56,7 @@ bool DSL_Download_Core::Download(const string& SaveAs) {
 	return ret;
 }
 
-bool DSL_Download_Core::Download(FILE * fWriteTo) {
+bool DSL_Download_Base::Download(FILE * fWriteTo) {
 	if (this->error != TD_NO_ERROR || fWriteTo == NULL) { return false; }
 
 	DSL_FILE * fp = RW_ConvertFile(fWriteTo, false);
