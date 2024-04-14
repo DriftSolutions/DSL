@@ -142,9 +142,29 @@ DSL_API int64 DSL_CC filesize(const char * fn); ///< Get the size in bytes of a 
 #if defined(WIN32)
 DSL_API int DSL_CC truncate(const char * fn, int64 size); ///< Windows version of truncate()
 #endif
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize=UINT32_MAX);
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize=UINT32_MAX);
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& fileSize, int64 maxSize=UINT32_MAX); ///<free data with dsl_free()
+
+/**
+ * Read a file into memory
+ * @param fn The filename to read
+ * @param data The buffer to read in to
+ * @param maxSize The maximum size of file to read, if the file is larger than this we will return false and read nothing
+ */
+DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize=INT32_MAX);
+/**
+ * Read a file into memory
+ * @param fn The filename to read
+ * @param data The buffer to read in to
+ * @param maxSize The maximum size of file to read, if the file is larger than this we will return false and read nothing
+ */
+DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize=INT32_MAX);
+/**
+ * Read a file into memory
+ * @param fn The filename to read
+ * @param data Pointer to a pointer for a uint8 buffer we will allocate if the function returns true. Free with @dsl_free
+ * @param fileSize Reference to an int64 to receive the size of the data read
+ * @param maxSize The maximum size of file to read, if the file is larger than this we will return false and read nothing
+ */
+DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& fileSize, int64 maxSize=INT32_MAX); ///<free data with dsl_free()
 DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const vector<uint8>& data, bool append = false);
 DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const string& data, bool append = false);
 DSL_API_CLASS bool DSL_CC file_put_contents(const string& fn, const uint8 * data, size_t fileSize, bool append = false);

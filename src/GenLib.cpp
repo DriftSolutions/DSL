@@ -969,7 +969,7 @@ inline bool _file_get_contents_begin(const string& fn, int64 maxSize, int64& len
 	return true;
 }
 
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize) {
+DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, vector<uint8>& data, int64 maxSize) {
 	FILE * fp;
 	int64 len;
 	if (!_file_get_contents_begin(fn, maxSize, len, &fp)) {
@@ -982,7 +982,7 @@ DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, vector<uint8>& d
 	return ret;
 }
 
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize) {
+DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, string& data, int64 maxSize) {
 	FILE * fp;
 	int64 len;
 	if (!_file_get_contents_begin(fn, maxSize, len, &fp)) {
@@ -995,7 +995,7 @@ DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, string& data, in
 	return ret;
 }
 
-DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& len, int64 maxSize) {
+DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, uint8 ** data, int64& len, int64 maxSize) {
 	FILE * fp;
 	if (!_file_get_contents_begin(fn, maxSize, len, &fp)) {
 		return false;
@@ -1006,6 +1006,10 @@ DSL_API_CLASS size_t DSL_CC file_get_contents(const string& fn, uint8 ** data, i
 		return false;
 	}
 	bool ret = (fread(*data, len, 1, fp) == 1);
+	if (!ret) {
+		dsl_free(*data);
+		*data = NULL;
+	}
 	fclose(fp);
 	return ret;
 }
