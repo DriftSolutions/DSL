@@ -37,23 +37,21 @@ bool file_eof(DSL_FILE * fp) {
 }
 
 void file_close(DSL_FILE * fp) {
-	FILE * o_fp = fp->fp;
 	bool do_close = true;
 	if (fp->p_extra) {
 		TP_RWOPT * opt = (TP_RWOPT *)fp->p_extra;
 		do_close = opt->autoclose;
-		delete opt;
+		dsl_free(opt);
 	}
-	delete fp;
-	if (do_close) { fclose(o_fp); }
+	if (do_close) { fclose(fp->fp); }
+	dsl_free(fp);
 }
 
 DSL_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
-	FILE * fp = fopen(fn,mode);
-	if (!fp) { return NULL; }
+	FILE * fp = fopen(fn, mode);
+	if (fp == NULL) { return NULL; }
 
-	DSL_FILE * ret = new DSL_FILE;
-	memset(ret, 0, sizeof(DSL_FILE));
+	DSL_FILE * ret = dsl_znew(DSL_FILE);
 
 	ret->fp = fp;
 	ret->read = file_read;
@@ -68,8 +66,7 @@ DSL_FILE * DSL_CC RW_OpenFile(const char * fn, const char * mode) {
 };
 
 DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
-	DSL_FILE * ret = new DSL_FILE;
-	memset(ret, 0, sizeof(DSL_FILE));
+	DSL_FILE * ret = dsl_znew(DSL_FILE);
 
 	ret->fp = fp;
 	ret->read = file_read;
@@ -80,8 +77,7 @@ DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
 	ret->eof = file_eof;
 	ret->close = file_close;
 
-	TP_RWOPT * opt = new TP_RWOPT;
-	memset(opt,0,sizeof(TP_RWOPT));
+	TP_RWOPT * opt = dsl_znew(TP_RWOPT);
 	opt->autoclose = autoclose;
 	ret->p_extra = opt;
 
@@ -89,6 +85,7 @@ DSL_FILE * DSL_CC RW_ConvertFile(FILE * fp, bool autoclose) {
 };
 
 struct TP_MEMHANDLE {
+	DSL_FILE _handle;
 	uint8 * mem;
 	bool bDelete;
 	int64 offset;
@@ -96,7 +93,7 @@ struct TP_MEMHANDLE {
 };
 
 int64 mem_read(void * buf, int64 size, DSL_FILE * fp) {
-	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
+	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp;
 	if (size + mem->offset > mem->size) {
 		size = mem->size - mem->offset;
 	}
@@ -109,7 +106,7 @@ int64 mem_read(void * buf, int64 size, DSL_FILE * fp) {
 }
 
 int64 mem_write(void * buf, int64 size, DSL_FILE * fp) {
-	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
+	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp;
 
 	if (size + mem->offset > mem->size) {
 		size = mem->size - mem->offset;
@@ -122,7 +119,7 @@ int64 mem_write(void * buf, int64 size, DSL_FILE * fp) {
 }
 
 bool mem_seek(DSL_FILE * fp, int64 pos, int mode) {
-	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
+	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp;
 	switch(mode) {
 		case SEEK_SET:
 			mem->offset = pos;
@@ -147,21 +144,20 @@ bool mem_seek(DSL_FILE * fp, int64 pos, int mode) {
 }
 
 void mem_close(DSL_FILE * fp) {
-	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
+	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp;
 	if (mem->bDelete) {
-		delete mem->mem;
+		dsl_free(mem->mem);
 	}
-	delete mem;
-	delete fp;
+	dsl_free(fp);
 }
 
 int64 mem_tell(DSL_FILE * fp) {
-	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
+	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp;
 	return mem->offset;
 }
 
 bool mem_eof(DSL_FILE * fp) {
-	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp->handle;
+	TP_MEMHANDLE * mem = (TP_MEMHANDLE *)fp;
 	return (mem->offset >= mem->size);
 }
 
@@ -170,17 +166,14 @@ bool mem_flush(DSL_FILE * fp) {
 }
 
 DSL_FILE * DSL_CC RW_OpenMemory(int64 size) {
-	DSL_FILE * ret = new DSL_FILE;
-	memset(ret,0,sizeof(DSL_FILE));
-	TP_MEMHANDLE * mem = new TP_MEMHANDLE;
-	memset(mem,0,sizeof(TP_MEMHANDLE));
+	TP_MEMHANDLE * mem = dsl_znew(TP_MEMHANDLE);
+	DSL_FILE * ret = (DSL_FILE *)&mem->_handle;
 
-	mem->mem = new uint8[size];
+	mem->mem = (uint8 *)dsl_malloc(size);
 	mem->bDelete = true;
 	memset(mem->mem,0,size);
 	mem->size = size;
 
-	ret->handle = mem;
 	ret->read = mem_read;
 	ret->write = mem_write;
 	ret->seek = mem_seek;
@@ -193,15 +186,12 @@ DSL_FILE * DSL_CC RW_OpenMemory(int64 size) {
 }
 
 DSL_FILE * DSL_CC RW_ConvertMemory(uint8 * buf, int64 size) {
-	DSL_FILE * ret = new DSL_FILE;
-	memset(ret,0,sizeof(DSL_FILE));
-	TP_MEMHANDLE * mem = new TP_MEMHANDLE;
-	memset(mem,0,sizeof(TP_MEMHANDLE));
+	TP_MEMHANDLE * mem = dsl_znew(TP_MEMHANDLE);
+	DSL_FILE * ret = (DSL_FILE *)&mem->_handle;
 
 	mem->mem = buf;
 	mem->size = size;
 
-	ret->handle = mem;
 	ret->read = mem_read;
 	ret->write = mem_write;
 	ret->seek = mem_seek;
@@ -214,13 +204,14 @@ DSL_FILE * DSL_CC RW_ConvertMemory(uint8 * buf, int64 size) {
 }
 
 struct TP_BUFHANDLE {
+	DSL_FILE _handle;
 	DSL_BUFFER * buf;
 	bool bDelete;
 	int64 offset;
 };
 
 int64 buf_read(void * buf, int64 size, DSL_FILE * fp) {
-	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp;
 	if (size + mem->offset > mem->buf->len) {
 		size = mem->buf->len - mem->offset;
 	}
@@ -233,7 +224,7 @@ int64 buf_read(void * buf, int64 size, DSL_FILE * fp) {
 }
 
 int64 buf_write(void * buf, int64 size, DSL_FILE * fp) {
-	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp;
 
 	if (size <= 0) { return 0; }
 
@@ -248,7 +239,7 @@ int64 buf_write(void * buf, int64 size, DSL_FILE * fp) {
 }
 
 bool buf_seek(DSL_FILE * fp, int64 pos, int mode) {
-	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp;
 	switch (mode) {
 		case SEEK_SET:
 			mem->offset = pos;
@@ -273,22 +264,21 @@ bool buf_seek(DSL_FILE * fp, int64 pos, int mode) {
 }
 
 void buf_close(DSL_FILE * fp) {
-	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp;
 	if (mem->bDelete) {
 		buffer_free(mem->buf);
-		delete mem->buf;
+		dsl_free(mem->buf);
 	}
-	delete mem;
-	delete fp;
+	dsl_free(fp);
 }
 
 int64 buf_tell(DSL_FILE * fp) {
-	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp;
 	return mem->offset;
 }
 
 bool buf_eof(DSL_FILE * fp) {
-	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp->handle;
+	TP_BUFHANDLE * mem = (TP_BUFHANDLE *)fp;
 	return (mem->offset >= mem->buf->len);
 }
 
@@ -297,14 +287,10 @@ bool buf_flush(DSL_FILE * fp) {
 }
 
 DSL_FILE * DSL_CC RW_OpenBuffer(DSL_BUFFER ** pbuf) {
-	DSL_FILE * ret = new DSL_FILE;
-	memset(ret, 0, sizeof(DSL_FILE));
+	TP_BUFHANDLE * mem = dsl_znew(TP_BUFHANDLE);
+	DSL_FILE * ret = (DSL_FILE *)&mem->_handle;
 
-	TP_BUFHANDLE * mem = new TP_BUFHANDLE;
-	memset(mem, 0, sizeof(TP_BUFHANDLE));
-
-	DSL_BUFFER * buf = new DSL_BUFFER;
-	memset(buf, 0, sizeof(DSL_BUFFER));
+	DSL_BUFFER * buf = dsl_znew(DSL_BUFFER);
 	buffer_init(buf);
 
 	mem->buf = buf;
@@ -313,7 +299,6 @@ DSL_FILE * DSL_CC RW_OpenBuffer(DSL_BUFFER ** pbuf) {
 	}
 	mem->bDelete = true;
 
-	ret->handle = mem;
 	ret->read = buf_read;
 	ret->write = buf_write;
 	ret->seek = buf_seek;
@@ -326,10 +311,8 @@ DSL_FILE * DSL_CC RW_OpenBuffer(DSL_BUFFER ** pbuf) {
 }
 
 DSL_FILE * DSL_CC RW_ConvertBuffer(DSL_BUFFER * buf, int64 offset) {
-	DSL_FILE * ret = new DSL_FILE;
-	memset(ret, 0, sizeof(DSL_FILE));
-	TP_BUFHANDLE * mem = new TP_BUFHANDLE;
-	memset(mem, 0, sizeof(TP_BUFHANDLE));
+	TP_BUFHANDLE * mem = dsl_znew(TP_BUFHANDLE);
+	DSL_FILE * ret = (DSL_FILE *)&mem->_handle;
 
 	mem->buf = buf;
 	if (offset < 0) {
@@ -338,7 +321,6 @@ DSL_FILE * DSL_CC RW_ConvertBuffer(DSL_BUFFER * buf, int64 offset) {
 		mem->offset = offset;
 	}
 
-	ret->handle = mem;
 	ret->read = buf_read;
 	ret->write = buf_write;
 	ret->seek = buf_seek;

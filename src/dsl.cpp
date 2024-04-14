@@ -59,6 +59,8 @@ bool DSL_CC dsl_init() {
 		printf("DSL: Error initializing Winsock!\n");
 		return false;
 	}
+#else
+	GetTickCount64(); //seeds the start time
 #endif
 
 	for (auto x = dsl_lib_funcs.begin(); x != dsl_lib_funcs.end(); x++) {
