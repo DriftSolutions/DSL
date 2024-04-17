@@ -173,9 +173,17 @@ DSL_API char * DSL_CC dsl_vmprintf(const char * fmt, va_list va);
  */
 DSL_API wchar_t * DSL_CC dsl_wmprintf(const wchar_t * fmt, ...);
 /**
- * Frees memory allocated by dsl_malloc/dsl_realloc and various other dsl_* functions.
+ * Frees memory allocated by dsl_malloc/dsl_realloc and various other DSL functions.
  */
 DSL_API void DSL_CC dsl_free(void * ptr);
+/**
+ * Frees memory allocated by dsl_malloc/dsl_realloc and various other DSL functions and sets the pointer to NULL.
+ * Example:
+ *	uint8 * data = (uint8 *)dsl_malloc(8);
+ *	dsl_freep(&data);
+ * @param ptr A pointer to a pointer of the data to free. It is safe to pass *ptr = NULL
+ */
+DSL_API void DSL_CC dsl_freep(void ** ptr);
 /**
  * Call dsl_free on a pointer if it's not NULL
  */

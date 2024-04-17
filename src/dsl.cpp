@@ -228,70 +228,6 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only) {
 	return false;
 }
 
-#undef malloc
-#undef realloc
-#undef strdup
-#undef wcsdup
-#undef free
-
-void * DSL_CC dsl_malloc(size_t lSize) { return malloc(lSize); }
-void * DSL_CC dsl_zmalloc(size_t lSize) { return calloc(1, lSize); }
-void * DSL_CC dsl_realloc(void * ptr, size_t lSize) { return realloc(ptr, lSize); }
-char * DSL_CC dsl_strdup(const char * ptr) { return strdup(ptr); }
-wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr) { return wcsdup(ptr); }
-void DSL_CC dsl_free(void * ptr) { free(ptr); }
-char * DSL_CC dsl_mprintf(const char * fmt, ...) {
-	va_list va;
-	va_start(va, fmt);
-	char * ret = dsl_vmprintf(fmt, va);
-	va_end(va);
-	return ret;
-}
-string mprintf(const string fmt, ...) {
-	va_list va;
-	va_start(va, fmt);
-	char * tmp = dsl_vmprintf(fmt.c_str(), va);
-	va_end(va);
-	string ret = tmp;
-	dsl_free(tmp);
-	return ret;
-}
-
-char * DSL_CC dsl_vmprintf(const char * fmt, va_list va) {
-#if defined(WIN32)
-	int len = vscprintf(fmt, va);
-	//va_end(va);
-	//va_start(fmt, va);
-	char * ret = (char *)dsl_malloc(len+1);
-	vsprintf(ret, fmt, va);
-#else
-	char * tmp = NULL, *ret = NULL;
-	if (vasprintf(&tmp, fmt, va) != -1 && tmp) {
-		ret = dsl_strdup(tmp);
-		free(tmp);
-	} else {
-		ret = dsl_strdup("vasprintf error");
-	}
-#endif
-	return ret;
-}
-
-wchar_t * DSL_CC dsl_wmprintf(const wchar_t * fmt, ...) {
-	va_list va;
-	va_start(va, fmt);
-#if defined(WIN32)
-	int len = vscwprintf(fmt, va);
-	//va_end(va);
-	//va_start(fmt, va);
-	wchar_t * ret = (wchar_t *)dsl_malloc((len+1)*sizeof(wchar_t));
-	wvsprintfW(ret, fmt, va);
-#else
-	wchar_t * ret = NULL;
-#endif
-	va_end(va);
-	return ret;
-}
-
 #if defined(WIN32) || defined(GCC_RDRAND)
 // On Linux this uses malloc somewhere so have to move it down here so it's not throwing #error
 #include <immintrin.h>
@@ -347,3 +283,69 @@ bool DSL_CC dsl_rdrand(uint8 * buf, size_t len) {
 }
 
 #endif // defined(WIN32) || defined(GCC_RDRAND)
+
+char * DSL_CC dsl_mprintf(const char * fmt, ...) {
+	va_list va;
+	va_start(va, fmt);
+	char * ret = dsl_vmprintf(fmt, va);
+	va_end(va);
+	return ret;
+}
+string mprintf(const string fmt, ...) {
+	va_list va;
+	va_start(va, fmt);
+	char * tmp = dsl_vmprintf(fmt.c_str(), va);
+	va_end(va);
+	string ret = tmp;
+	dsl_free(tmp);
+	return ret;
+}
+
+char * DSL_CC dsl_vmprintf(const char * fmt, va_list va) {
+#if defined(WIN32)
+	int len = vscprintf(fmt, va) + 1;
+#else
+	int len = vsnprintf(NULL, 0, fmt, va) + 1;
+#endif
+	if (len < 1) {
+		return dsl_strdup("vsnprintf error");
+	}
+	char * ret = (char *)dsl_malloc(len);
+	if (vsnprintf(ret, len, fmt, va) < 0) {
+		return dsl_strdup("vsnprintf error");
+	}
+	return ret;
+}
+
+wchar_t * DSL_CC dsl_wmprintf(const wchar_t * fmt, ...) {
+	va_list va;
+	va_start(va, fmt);
+#if defined(WIN32)
+	int len = vscwprintf(fmt, va);
+	wchar_t * ret = (wchar_t *)dsl_malloc((len+1)*sizeof(wchar_t));
+	wvsprintfW(ret, fmt, va);
+#else
+	wchar_t * ret = NULL;
+#endif
+	va_end(va);
+	return ret;
+}
+
+#undef malloc
+#undef realloc
+#undef strdup
+#undef wcsdup
+#undef free
+
+void * DSL_CC dsl_malloc(size_t lSize) { return malloc(lSize); }
+void * DSL_CC dsl_zmalloc(size_t lSize) { return calloc(1, lSize); }
+void * DSL_CC dsl_realloc(void * ptr, size_t lSize) { return realloc(ptr, lSize); }
+char * DSL_CC dsl_strdup(const char * ptr) { return strdup(ptr); }
+wchar_t * DSL_CC dsl_wcsdup(const wchar_t * ptr) { return wcsdup(ptr); }
+void DSL_CC dsl_free(void * ptr) { free(ptr); }
+void DSL_CC dsl_freep(void ** ptr) {
+	if (*ptr != NULL) {
+		free(*ptr);
+		*ptr = NULL;
+	}
+}

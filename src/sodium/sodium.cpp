@@ -19,8 +19,7 @@ HASH_CTX * dsl_sodium_hash_init(const char * name) {
 	crypto_generichash_state * ctx = (crypto_generichash_state *)sodium_malloc(crypto_generichash_statebytes());
 	if (ctx == NULL) { return NULL; }
 	crypto_generichash_init(ctx, NULL, 0, is512 ? 64 : 32);
-	HASH_CTX * ret = dsl_new(HASH_CTX);
-	memset(ret, 0, sizeof(HASH_CTX));
+	HASH_CTX * ret = dsl_znew(HASH_CTX);
 	ret->pptr1 = (void *)ctx;
 	ret->hashSize = is512 ? 64 : 32;
 	ret->blockSize = 1;
@@ -35,11 +34,13 @@ void dsl_sodium_hash_update(HASH_CTX *ctx, const uint8 *data, size_t len) {
 bool dsl_sodium_hash_finish(HASH_CTX *ctx, uint8 * out, size_t outlen) {
 	crypto_generichash_state * pctx = (crypto_generichash_state *)ctx->pptr1;
 
-	crypto_generichash_final(pctx, out, min(ctx->hashSize, outlen));
-
+	bool ret = false;
+	if (outlen >= ctx->hashSize) {
+		ret = (crypto_generichash_final(pctx, out, ctx->hashSize) == 0);
+	}
 	sodium_free(pctx);
 	dsl_free(ctx);
-	return true;
+	return ret;
 }
 
 const HASH_PROVIDER sodium_hash_provider = {
