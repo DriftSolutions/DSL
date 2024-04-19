@@ -97,23 +97,25 @@ struct uc_less {
 #endif
 
 class DSL_API_CLASS ConfigSection {
-private:
+protected:
 	typedef map<string, ConfigValue *, uc_less> valueList;
 	typedef map<string, ConfigSection *, uc_less> sectionList;
 
-	valueList values;
-	sectionList sections; // sub-sections
+	valueList _values;
+	sectionList _sections; // sub-sections
 
-	bool loadFromString(const char ** config, size_t& line, const char * fn);
+	virtual bool loadFromString(const char ** config, size_t& line, const char * fn);
 
-	void writeSection(stringstream& sstr, int level, bool single = false) const;
+	virtual void writeSection(stringstream& sstr, int level, bool single = false) const;
 	void printSection(size_t level) const;
 	/*
 			void FreeSection(ConfigSection * Scan);
 		void WriteBinarySection(FILE * fp, ConfigSection * sec);
 	*/
 public:
-	string name; 
+	string name;
+	const sectionList& sections = _sections;
+	const valueList& values = _values;
 
 	void Clear();
 	void PrintConfigTree() const;
@@ -132,9 +134,18 @@ public:
 	void SetValue(const string& name, const ConfigValue& val);
 
 	// advanced commands
-	ConfigSection * FindOrAddSection(const string& name);
+	virtual ConfigSection * FindOrAddSection(const string& name);
 
 	~ConfigSection();
+};
+
+class DSL_API_CLASS ConfigINI: public ConfigSection {
+protected:
+	ConfigINI * parent = NULL;
+	virtual bool loadFromString(const char ** config, size_t& line, const char * fn);
+	virtual void writeSection(stringstream& sstr, int level, bool single = false) const;
+public:
+	virtual ConfigINI * FindOrAddSection(const string& name);
 };
 
 #endif // __UNIVERSAL_CONFIG2_H__

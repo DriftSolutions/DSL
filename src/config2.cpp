@@ -38,11 +38,11 @@ void ConfigSection::Clear() {
 	for (auto& x : sections) {
 		delete x.second;
 	}
-	sections.clear();
+	_sections.clear();
 	for (auto& x : values) {
 		delete x.second;
 	}
-	values.clear();
+	_values.clear();
 }
 
 ConfigSection * ConfigSection::GetSection(const string& name) {
@@ -90,7 +90,7 @@ void ConfigSection::SetValue(const string& name, const ConfigValue& val) {
 	if (x != values.end()) {
 		*x->second = val;
 	} else {
-		values[name] = new ConfigValue(val);
+		_values[name] = new ConfigValue(val);
 	}
 }
 
@@ -176,7 +176,7 @@ ConfigSection * ConfigSection::FindOrAddSection(const string& name) {
 
 	auto * s = new ConfigSection();
 	s->name = name;
-	sections[name] = s;
+	_sections[name] = s;
 	return s;
 }
 
@@ -290,7 +290,7 @@ bool ConfigSection::loadFromString(const char ** pconfig, size_t& line, const ch
 			} else {
 				auto tmpv = new ConfigValue();
 				tmpv->ParseString(value);
-				values[buf] = tmpv;
+				_values[buf] = tmpv;
 			}
 			continue;
 		}
