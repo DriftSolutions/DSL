@@ -136,6 +136,13 @@ template <typename T> T dsl_get_random(T min, T max) {
 	return (ret % range) + min;
 }
 
+#if defined(WIN32) || defined(GCC_RDRAND) || defined(DOXYGEN_SKIP)
+/**
+ * Gets a random number using the RDRAND instruction on supported CPUs. You should normally use @dsl_fill_random_buffer which will use better methods falling back to RDRAND if needed.
+ */
+bool DSL_CC dsl_rdrand(uint8 * buf, size_t len);
+#endif
+
 DSL_API void * DSL_CC dsl_malloc(size_t lSize);
 /**
  * Returns dynamically allocated memory that is zeroed for you.
