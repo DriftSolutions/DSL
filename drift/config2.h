@@ -11,6 +11,14 @@
 #ifndef __UNIVERSAL_CONFIG2_H__
 #define __UNIVERSAL_CONFIG2_H__
 
+/**
+ * \defgroup config2 Configuration Reader/Writer V2
+ */
+
+/** \addtogroup config2
+ * @{
+ */
+
 /*
 enum DS_VALUE_TYPE {
 	DS_TYPE_LONG,
@@ -145,5 +153,7 @@ public:
 
 	~ConfigSection();
 };
+
+/**@}*/
 
 #endif // __UNIVERSAL_CONFIG2_H__

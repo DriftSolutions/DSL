@@ -27,6 +27,14 @@
 	#define DSL_MYSQL_API_CLASS DSL_API_VIS
 #endif
 
+/**
+ * \defgroup mysql MySQL Database Wrapper
+ */
+
+/** \addtogroup mysql
+ * @{
+ */
+
 class DSL_MYSQL_API_CLASS DB_MySQL: public SQLConx {
 public:
 	DB_MySQL();
@@ -41,7 +49,7 @@ public:
 	unsigned int GetError();
 
 	bool NoResultQuery(const string& query);
-	MYSQL_RES *Query(const string& query);	
+	MYSQL_RES *Query(const string& query);
 	uint64_t NumRows(MYSQL_RES *result);
 	bool FetchRow(MYSQL_RES *result, SC_Row& retRow);
 	bool FreeResult(MYSQL_RES *result);
@@ -64,5 +72,7 @@ private:
 	uint16_t port;
 	uint32_t query_count = 0;
 };
+
+/**@}*/
 
 #endif // _INCLUDE_SQLCONX_H_

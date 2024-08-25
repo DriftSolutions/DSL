@@ -13,6 +13,14 @@
 
 #include <drift/Buffer.h>
 
+/**
+ * \defgroup serialize Data Serializer
+ */
+
+/** \addtogroup serialize
+ * @{
+ */
+
 class DSL_API_CLASS DSL_Serializable {
 private:
 	bool _serialize_int(DSL_BUFFER * buf, void * val, uint8_t size, bool deserialize);
@@ -135,5 +143,7 @@ DSL_API bool DSL_CC dsl_deserialize_varchar(DSL_BUFFER * buf, uint8_t * val, uin
 /* This fixed version encodes the whole data buffer of size you specify at a fixed size */
 DSL_API bool DSL_CC dsl_serialize_fixed(DSL_BUFFER * buf, const uint8_t * val, uint32_t lSize);
 DSL_API bool DSL_CC dsl_deserialize_fixed(DSL_BUFFER * buf, uint8_t * val, uint32_t lSize);
+
+/**@}*/
 
 #endif // __DSL_SERIALIZE_H__

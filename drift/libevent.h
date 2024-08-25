@@ -28,6 +28,14 @@
 	#define DSL_LIBEVENT_API_CLASS DSL_API_VIS
 #endif
 
+/**
+ * \defgroup libevent libevent Wrapper
+ */
+
+/** \addtogroup libevent
+ * @{
+ */
+
 struct DSL_SOCKET_LIBEVENT;
 
 typedef void (*dsl_sockets_event_callback) (DSL_SOCKET_LIBEVENT * sock, short flags);
@@ -73,5 +81,7 @@ class DSL_LIBEVENT_API_CLASS DSL_Sockets_Events {
 		// use EnableRecv/DisableRecv to enable/disable timer
 		void FreeTimer(DSL_SOCKET_LIBEVENT * timer);
 };
+
+/**@}*/
 
 #endif // __DRIFT_LIBEVENT_H__

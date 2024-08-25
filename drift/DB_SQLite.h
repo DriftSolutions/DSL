@@ -27,6 +27,14 @@
 	#define DSL_SQLITE_API_CLASS DSL_API_VIS
 #endif
 
+/**
+ * \defgroup sqlite SQLite Database Wrapper
+ */
+
+/** \addtogroup sqlite
+ * @{
+ */
+
 class DSL_SQLITE_API_CLASS SQLite_Result {
 public:
 	size_t ind = 0;
@@ -69,5 +77,7 @@ private:
 	sqlite3 * handle;
 	uint32_t query_count = 0;
 };
+
+/**@}*/
 
 #endif //_INCLUDE_SQLITECONX_H_
