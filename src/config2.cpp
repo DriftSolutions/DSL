@@ -175,18 +175,34 @@ ConfigSection * ConfigSection::FindOrAddSection(const string& name) {
 	}
 
 	auto * s = new ConfigSection();
-	s->name = name;
+	s->_name = name;
+	s->parent = this;
 	_sections[name] = s;
 	return s;
 }
 
-bool ConfigSection::LoadFromString(const string& config, const string& fn) {
+bool ConfigSection::LoadFromString(const string& config, const string& fn, DSL_CONFIG_FORMAT f) {
 	const char * p = config.c_str();
 	size_t line = 0;
-	return loadFromString(&p, line, fn.c_str());
+	if (f == DCF_AUTO) {
+		f = getSerializerModeFromFN(fn);
+	}
+	if (f == DCF_INI) {
+		return loadFromStringINI(&p, line, fn.c_str());
+	} else {
+		return loadFromStringConf(&p, line, fn.c_str());
+	}
 }
 
-bool ConfigSection::loadFromString(const char ** pconfig, size_t& line, const char * fn) {
+DSL_CONFIG_FORMAT ConfigSection::getSerializerModeFromFN(const string& fn) const {
+	auto ext = strrchr(fn.c_str(), '.');
+	if (ext != NULL && !stricmp(ext, ".ini")) {
+		return DCF_INI;
+	}
+	return DCF_CONF;
+}
+
+bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, const char * fn) {
 	bool long_comment = false;
 	char buf[256] = { 0 };
 
@@ -239,7 +255,7 @@ bool ConfigSection::loadFromString(const char ** pconfig, size_t& line, const ch
 					if (file_get_contents(p, data)) {
 						const char * tmpc = data.c_str();
 						size_t tmpln = 0;
-						if (!loadFromString(&tmpc, tmpln, p)) {
+						if (!loadFromStringConf(&tmpc, tmpln, p)) {
 							printf("ERROR: Error loading #included file '%s'\n", p);
 							break;
 						}
@@ -266,7 +282,7 @@ bool ConfigSection::loadFromString(const char ** pconfig, size_t& line, const ch
 		if (!strcmp(p, " {")) { // open a new section
 			p[0] = 0;
 			auto sub = FindOrAddSection(buf);
-			if (!sub->loadFromString(&config, line, fn)) {
+			if (!sub->loadFromStringConf(&config, line, fn)) {
 				break;
 			}
 			continue;
@@ -304,7 +320,7 @@ bool ConfigSection::loadFromString(const char ** pconfig, size_t& line, const ch
 }
 
 
-bool ConfigSection::LoadFromFile(FILE * fp, const string& fn) {
+bool ConfigSection::LoadFromFile(FILE * fp, const string& fn, DSL_CONFIG_FORMAT f) {
 	if (fp == NULL) { return false; }
 
 	fseek64(fp, 0, SEEK_END);
@@ -316,21 +332,21 @@ bool ConfigSection::LoadFromFile(FILE * fp, const string& fn) {
 	char * tmp = (char *)dsl_malloc(len + 1);
 	if (fread(tmp, len, 1, fp) == 1) {
 		tmp[len] = 0;
-		ret = LoadFromString(tmp, fn);
+		ret = LoadFromString(tmp, fn, f);
 	}
 	dsl_free(tmp);
 	return ret;
 }
 
-bool ConfigSection::LoadFromFile(const string& filename) {
+bool ConfigSection::LoadFromFile(const string& filename, DSL_CONFIG_FORMAT f) {
 	FILE * fp = fopen(filename.c_str(), "rb");
 	if (fp == NULL) { return false; }
-	bool ret = LoadFromFile(fp, filename);
+	bool ret = LoadFromFile(fp, filename, f);
 	fclose(fp);
 	return ret;
 }
 
-void ConfigSection::writeSection(stringstream& sstr, int level, bool single) const {
+void ConfigSection::writeSectionConf(stringstream& sstr, int level, bool single) const {
 	char * pref = (char *)dsl_malloc(level+1);
 	for(int i=0; i<level; i++) { pref[i] = '\t'; }
 	pref[level]=0;
@@ -339,7 +355,7 @@ void ConfigSection::writeSection(stringstream& sstr, int level, bool single) con
 
 	if (!single) {
 		for (auto& x : sections) {
-			x.second->writeSection(sstr, level + 1);
+			x.second->writeSectionConf(sstr, level + 1);
 		}
 	}
 
@@ -351,27 +367,34 @@ void ConfigSection::writeSection(stringstream& sstr, int level, bool single) con
 	dsl_free(pref);
 }
 
-bool ConfigSection::WriteToFile(const string& filename) const {
+bool ConfigSection::WriteToFile(const string& filename, DSL_CONFIG_FORMAT f) const {
 	FILE * fp = fopen(filename.c_str(), "wb");
 	if (fp == NULL) { return false; }
-	bool ret = WriteToFile(fp);
+	bool ret = WriteToFile(fp, filename, f);
 	fclose(fp);
 	return ret;
 }
 
-bool ConfigSection::WriteToFile(FILE * fp) const {
-	if (!fp) { return false; }
-	string str = WriteToString();
+bool ConfigSection::WriteToFile(FILE * fp, const string& filename, DSL_CONFIG_FORMAT f) const {
+	if (fp == NULL) { return false; }
+	if (f == DCF_AUTO) {
+		f = getSerializerModeFromFN(filename);
+	}
+	string str = WriteToString(f);
 	if (str.length() && fwrite(str.c_str(), str.length(), 1, fp) == 1) {
 		return true;
 	}
 	return false;
 }
 
-string ConfigSection::WriteToString() const {
+string ConfigSection::WriteToString(DSL_CONFIG_FORMAT f) const {
 	stringstream sstr;
 	for (auto& x : sections) {
-		x.second->writeSection(sstr, 0);
+		if (f == DCF_INI) {
+			x.second->writeSectionINI(sstr, 0);
+		} else {
+			x.second->writeSectionConf(sstr, 0);
+		}
 	}
 	//writeSection(sstr, 0, single);
 	return sstr.str();

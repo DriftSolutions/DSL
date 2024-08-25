@@ -96,36 +96,43 @@ struct uc_less {
 }; // end of uc_less
 #endif
 
+enum DSL_CONFIG_FORMAT {
+	DCF_AUTO, // use INI format if filename ends in .ini, CONF format otherwise
+	DCF_CONF,
+	DCF_INI
+};
+
 class DSL_API_CLASS ConfigSection {
 protected:
+	ConfigSection * parent = NULL;
 	typedef map<string, ConfigValue *, uc_less> valueList;
 	typedef map<string, ConfigSection *, uc_less> sectionList;
 
+	string _name;
 	valueList _values;
 	sectionList _sections; // sub-sections
 
-	virtual bool loadFromString(const char ** config, size_t& line, const char * fn);
+	DSL_CONFIG_FORMAT getSerializerModeFromFN(const string& filename) const;
 
-	virtual void writeSection(stringstream& sstr, int level, bool single = false) const;
+	virtual bool loadFromStringConf(const char ** config, size_t& line, const char * fn);
+	virtual void writeSectionConf(stringstream& sstr, int level, bool single = false) const;
+	virtual bool loadFromStringINI(const char ** config, size_t& line, const char * fn);
+	virtual void writeSectionINI(stringstream& sstr, int level, bool single = false) const;
 	void printSection(size_t level) const;
-	/*
-			void FreeSection(ConfigSection * Scan);
-		void WriteBinarySection(FILE * fp, ConfigSection * sec);
-	*/
 public:
-	string name;
+	const string& name = _name;
 	const sectionList& sections = _sections;
 	const valueList& values = _values;
 
 	void Clear();
 	void PrintConfigTree() const;
 
-	bool LoadFromString(const string& config, const string& filename);
-	bool LoadFromFile(const string& filename);
-	bool LoadFromFile(FILE * fp, const string& filename);
-	string WriteToString() const;
-	bool WriteToFile(const string& filename) const;
-	bool WriteToFile(FILE * fp) const;
+	bool LoadFromString(const string& config, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO);
+	bool LoadFromFile(const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO);
+	bool LoadFromFile(FILE * fp, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO);
+	string WriteToString(DSL_CONFIG_FORMAT f) const;
+	bool WriteToFile(const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO) const;
+	bool WriteToFile(FILE * fp, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO) const;
 
 	ConfigSection * GetSection(const string& name);
 	const ConfigValue * GetValue(const string& name) const;
@@ -137,15 +144,6 @@ public:
 	virtual ConfigSection * FindOrAddSection(const string& name);
 
 	~ConfigSection();
-};
-
-class DSL_API_CLASS ConfigINI: public ConfigSection {
-protected:
-	ConfigINI * parent = NULL;
-	virtual bool loadFromString(const char ** config, size_t& line, const char * fn);
-	virtual void writeSection(stringstream& sstr, int level, bool single = false) const;
-public:
-	virtual ConfigINI * FindOrAddSection(const string& name);
 };
 
 #endif // __UNIVERSAL_CONFIG2_H__

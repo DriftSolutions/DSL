@@ -7,7 +7,7 @@
 /**
  * Read in an INI file into a ConfigSection
  */
-bool ConfigINI::loadFromString(const char ** pconfig, size_t& line, const char * fn) {
+bool ConfigSection::loadFromStringINI(const char ** pconfig, size_t& line, const char * fn) {
 	bool long_comment = false;
 	char buf[256] = { 0 };
 
@@ -60,7 +60,7 @@ bool ConfigINI::loadFromString(const char ** pconfig, size_t& line, const char *
 					if (file_get_contents(p, data)) {
 						const char * tmpc = data.c_str();
 						size_t tmpln = 0;
-						if (!loadFromString(&tmpc, tmpln, p)) {
+						if (!loadFromStringINI(&tmpc, tmpln, p)) {
 							printf("ERROR: Error loading #included file '%s'\n", p);
 							break;
 						}
@@ -85,17 +85,18 @@ bool ConfigINI::loadFromString(const char ** pconfig, size_t& line, const char *
 
 		if (buf[0] == '[' && buf[strlen(buf)-1] == ']') { // open a new section
 			buf[strlen(buf) - 1] = 0;
-			ConfigINI * sub;
+			const char * new_name = &buf[1];
+			ConfigSection * sub;
 			if (parent != NULL) {
-				sub = parent->FindOrAddSection(&buf[1]);
+				sub = parent->FindOrAddSection(new_name);
 			} else {
-				sub = FindOrAddSection(&buf[1]);
+				sub = FindOrAddSection(new_name);
 			}
 			if (sub == NULL) {
 				printf("ERROR: Error finding or creating section '%s'\n", &buf[1]);
 				break;
 			}
-			if (!sub->loadFromString(&config, line, fn)) {
+			if (!sub->loadFromStringINI(&config, line, fn)) {
 				break;
 			}
 			continue;
@@ -128,7 +129,7 @@ bool ConfigINI::loadFromString(const char ** pconfig, size_t& line, const char *
 	return true;
 }
 
-void ConfigINI::writeSection(stringstream& sstr, int level, bool single) const {
+void ConfigSection::writeSectionINI(stringstream& sstr, int level, bool single) const {
 	sstr << "[" << name << "]\n";
 
 	for (auto& x : values) {
@@ -136,21 +137,10 @@ void ConfigINI::writeSection(stringstream& sstr, int level, bool single) const {
 	};
 
 	sstr << "\n";
-}
 
-ConfigINI * ConfigINI::FindOrAddSection(const string& name) {
-	auto sec = GetSection(name);
-	if (sec != NULL) {
-		ConfigINI * ret = dynamic_cast<ConfigINI *>(sec);
-		if (ret != NULL) {
-			return ret;
+	if (!single) {
+		for (auto& x : sections) {
+			x.second->writeSectionINI(sstr, level + 1);
 		}
-		return NULL;
 	}
-
-	auto * s = new ConfigINI();
-	s->name = name;
-	s->parent = this;
-	_sections[name] = s;
-	return s;
 }
