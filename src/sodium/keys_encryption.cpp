@@ -13,16 +13,6 @@
 #include <drift/GenLib.h>
 #include <drift/sodium.h>
 
-/**
-DS_EncNonce: Nonce class for encryption and decryption
-
-The way we are using the nonce for the P2P network is to seed it with the 1st ENC_NONCE_SIZE_BYTES bytes of a hash of the 2 peers public keys.
-Then we just generate 8 bytes of randomness at the beginning of the nonce and send only those 8 bytes to eachother instead of the whole larger buffer.
-**/
-DS_EncNonce::DS_EncNonce() {
-	SetNull();
-}
-
 void DS_EncNonce::SetNull() {
 	memset(data, 0, sizeof(data));
 }
@@ -35,21 +25,8 @@ bool DS_EncNonce::IsValid() const {
 }
 
 void DS_EncNonce::Generate() {
+	SetNull();
 	randombytes_buf(data, ENC_NONCE_SIZE_BYTES);
-}
-
-ENC_NONCE_INT_TYPE DS_EncNonce::GetIncrement() {
-	ENC_NONCE_INT_TYPE ret = 0;
-	memcpy(&ret, data, sizeof(ENC_NONCE_INT_TYPE));
-	return ret;
-}
-
-void DS_EncNonce::SetIncrement(ENC_NONCE_INT_TYPE x) {
-	memcpy(data, &x, sizeof(ENC_NONCE_INT_TYPE));
-}
-
-void DS_EncNonce::Increment() {
-	randombytes_buf(data, sizeof(ENC_NONCE_INT_TYPE));
 }
 
 bool DS_EncNonce::SetFromHexString(string str) {
@@ -71,11 +48,6 @@ bool DS_EncNonce::SetFromBinaryData(const uint8_t * pdata, size_t len) {
 	return false;
 }
 
-/**
-DS_EncSharedKey: Shared Encryption key for Encryption/Decryption
-
-A shared key is generated from your private key and the other peer's public key. This is to save CPU time versus calculating the shared key on each packet using DS_EncPrivKey
-*/
 DS_EncSharedKey::DS_EncSharedKey() {
 	SetNull();
 	checkLocking(true);
@@ -152,10 +124,6 @@ void DS_EncPrivKey::checkLocking(bool fForce) {
 	}
 }
 
-/**
-DS_EncPubKey
-*/
-
 DS_EncPubKey::DS_EncPubKey() {
 	SetNull();
 }
@@ -188,10 +156,6 @@ bool DS_EncPubKey::SetFromBinaryData(const uint8_t * pdata, size_t len) {
 	SetNull();
 	return false;
 }
-
-/**
-DS_EncPriKey: Encryption private key and encryption interface
-*/
 
 void DS_EncPrivKey::updatePubKey() {
 	uint8_t tmp[ENC_PUBKEY_SIZE_BYTES];
