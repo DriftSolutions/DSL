@@ -79,8 +79,8 @@ DSL_API bool DSL_CC dsl_mkdir_r(const char * p, int mode); ///< Cross-platform r
 DSL_API bool DSL_CC strempty(const char * p); ///< Returns true if a string is empty (p == NULL || *p == 0)
 DSL_API int64 DSL_CC dsl_clamp(int64 value, int64 vMin, int64 vMax); ///< Clamps a given value to the range of vMin to vMax (inclusive)
 
-DSL_API_CLASS char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize); ///< Escapes an argument for passing to shell functions, only escapes quotes atm so keep that in mind.
-DSL_API_CLASS string DSL_CC escapeshellarg(const string& str); ///< Escapes an argument for passing to shell functions, only escapes quotes atm so keep that in mind.
+DSL_API_CLASS char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize); ///< Escapes an argument for passing to shell functions, basically the same as PHP's escapeshellarg. Returns NULL if the escaped string wouldn't fit into out.
+DSL_API_CLASS string DSL_CC escapeshellarg(const string& str); ///< Escapes an argument for passing to shell functions, basically the same as PHP's escapeshellarg.
 
 #if defined(OPENBSD) || defined(FREEBSD)
 #define HAVE_STRLCPY

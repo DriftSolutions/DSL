@@ -297,7 +297,10 @@ char * DSL_CC dsl_vmprintf(const char * fmt, va_list va) {
 #if defined(WIN32)
 	int len = vscprintf(fmt, va) + 1;
 #else
-	int len = vsnprintf(NULL, 0, fmt, va) + 1;
+	va_list va_tmp;
+	va_copy(va_tmp, va);
+	int len = vsnprintf(NULL, 0, fmt, va_tmp) + 1;
+	va_end(va_tmp);
 #endif
 	if (len < 1) {
 		return dsl_strdup("vsnprintf error");

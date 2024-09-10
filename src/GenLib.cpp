@@ -553,39 +553,59 @@ int DSL_CC truncate(const char * fn, int64 size) {
 #endif
 
 char * DSL_CC escapeshellarg(const char * p, char * out, size_t outSize) {
-	memset(out, 0, outSize);
-
-	outSize -= 3; // sub for potential final escaped char, final ", and null term
-
-	strlcpy(out, "\"", outSize);
-	char *x = out + 1;
-	size_t len = 1;
-	while (*p && len < outSize) {
-		if (*p == '"') {
-			*x = '\\';
-			x++;
-			len++;
-		}
-		*x = *p;
-		p++;
-		x++;
-		len++;
+	string esc = escapeshellarg(p);
+	if (esc.length() >= outSize) {
+		return NULL;
 	}
-	strlcat(out, "\"", outSize);
+	strlcpy(out, esc.c_str(), outSize);
 	return out;
 }
 
 string DSL_CC escapeshellarg(const string& str) {
+	#ifdef WIN32
 	string ret = "\"";
+	#else
+	string ret = "'";
+	#endif
+
+	ret.reserve(str.length());
+
 	const char *p = str.c_str();
 	while (*p != 0) {
-		if (*p == '"') {
-			ret += '\\';
+		#ifdef WIN32
+		if (*p == '"' || *p == '!' || *p == '%') {
+			ret += ' ';
+			p++;
+			continue;
 		}
+		#else
+		if (*p == '\'') {
+			ret += "'\\'";
+			p++;
+			continue;
+		}
+		#endif
 		ret += *p;
 		p++;
 	}
+
+	#ifdef WIN32
+	if (ret.length() > 1 && ret[ret.length() - 1] == '\\') {
+		// If the string ends in a \, make sure there are an even number of \'es at the end.
+		int ind = int(ret.length()) - 1;
+		size_t count = 0;
+		while (ind >= 0 && ret[ind] == '\\') {
+			ind--;
+			count++;
+		}
+		if (count % 2 != 0) {
+			ret += '\\';
+		}
+	}
 	ret += "\"";
+	#else
+	ret += "'";
+	#endif
 	return ret;
 }
 
