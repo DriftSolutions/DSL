@@ -283,10 +283,10 @@ char * DSL_CC dsl_mprintf(const char * fmt, ...) {
 	va_end(va);
 	return ret;
 }
-string mprintf(const string fmt, ...) {
+string mprintf(const char * fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
-	char * tmp = dsl_vmprintf(fmt.c_str(), va);
+	char * tmp = dsl_vmprintf(fmt, va);
 	va_end(va);
 	string ret = tmp;
 	dsl_free(tmp);

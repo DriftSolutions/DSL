@@ -168,7 +168,7 @@ DSL_API char * DSL_CC dsl_mprintf(const char * fmt, ...);
 /**
  * Returns a string using printf formatting.
  */
-DSL_API_CLASS string mprintf(const string fmt, ...);
+DSL_API_CLASS string mprintf(const char * fmt, ...);
 /**
  * Returns a dynamically allocated string using printf formatting, free with dsl_free.
  * @sa dsl_free
