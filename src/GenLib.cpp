@@ -573,7 +573,9 @@ string DSL_CC escapeshellarg(const string& str) {
 	const char *p = str.c_str();
 	while (*p != 0) {
 		#ifdef WIN32
-		if (*p == '"' || *p == '!' || *p == '%') {
+		if (*p == '%') {
+			ret += '%'; // double %
+		} else if (*p == '"' || *p == '!') {
 			ret += ' ';
 			p++;
 			continue;
