@@ -10,7 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/Mutex.h>
-#include <drift/Threading.h>
+#include <drift/threading.h>
 #include <drift/GenLib.h>
 #if defined(DSL_THREADING_USE_C11)
 #define DSL_LIST_TYPE unordered_set

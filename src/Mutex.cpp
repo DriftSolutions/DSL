@@ -10,7 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/Mutex.h>
-#include <drift/Threading.h>
+#include <drift/threading.h>
 
 /*
 DSL_MutexLocker::DSL_MutexLocker(DSL_Mutex_Base * mutex) {

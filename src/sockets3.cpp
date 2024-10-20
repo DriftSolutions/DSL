@@ -10,7 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/sockets3.h>
-#include <drift/Threading.h>
+#include <drift/threading.h>
 #include <drift/GenLib.h>
 
 /*

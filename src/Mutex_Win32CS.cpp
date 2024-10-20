@@ -13,7 +13,7 @@
 #if defined(WIN32)
 
 #include <drift/Mutex.h>
-#include <drift/Threading.h>
+#include <drift/threading.h>
 #include <assert.h>
 
 DSL_Mutex_Win32CS::DSL_Mutex_Win32CS(int timeout) {

@@ -12,7 +12,7 @@
 #include <drift/download.h>
 #include <drift/base64.h>
 #include <drift/GenLib.h>
-#include <drift/Threading.h>
+#include <drift/threading.h>
 
 DSL_Download_NoCurl::DSL_Download_NoCurl(const string& url, DSL_Download_Callback callback, const string& user, const string& pass, void * user_ptr) {
 	user_agent = "DSL HTTP Downloader Class (Mozilla)";
