@@ -189,7 +189,7 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 		virtual int SetNoDelay(DSL_SOCKET * sock, bool no_delay=true);
 		virtual int SetKeepAlive(DSL_SOCKET * sock, bool ka=true);
 		virtual int SetBroadcast(DSL_SOCKET * sock, bool broadcast=true);
-		virtual bool DisableUDPConnReset(DSL_SOCKET * sock, bool noconnreset);
+		virtual bool DisableUDPConnReset(DSL_SOCKET * sock, bool noconnreset=true);
 
 		virtual std::string GetHostIP(const char * host, int type=SOCK_STREAM, int proto=IPPROTO_TCP);
 };
