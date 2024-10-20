@@ -89,26 +89,7 @@ protected:
 	#define serv2(x,y) if (!serialize_vector2<y>(buf, x, deserialize)) { return false; }
 
 	/* Serialize a vector of std::string's */
-	bool serialize_vector_string(DSL_BUFFER * buf, vector<string>& vec, bool deserialize) {
-		if (deserialize) {
-			uint32 num;
-			ser(&num);
-			vec.clear();
-			string tmp;
-			for (uint32 i = 0; i < num; i++) {
-				ser(&tmp);
-				vec.push_back(tmp);
-			}
-		} else {
-			uint32 num = (uint32)vec.size();
-			ser(&num);
-			for (auto x = vec.begin(); x != vec.end(); x++) {
-				ser(&(*x));
-			}
-		}
-		return true;
-	}
-	#define servstr(x,y) if (!serialize_vector_string(buf, x, deserialize)) { return false; }
+	#define servstr(x,y) if (!dsl_serialize_vector_string(buf, x, deserialize)) { return false; }
 
 	virtual bool Serialize(DSL_BUFFER * buf, bool deserialize) = 0;
 public:
@@ -143,6 +124,7 @@ DSL_API bool DSL_CC dsl_deserialize_varchar(DSL_BUFFER * buf, uint8_t * val, uin
 /* This fixed version encodes the whole data buffer of size you specify at a fixed size */
 DSL_API bool DSL_CC dsl_serialize_fixed(DSL_BUFFER * buf, const uint8_t * val, uint32_t lSize);
 DSL_API bool DSL_CC dsl_deserialize_fixed(DSL_BUFFER * buf, uint8_t * val, uint32_t lSize);
+DSL_API bool DSL_CC dsl_serialize_vector_string(DSL_BUFFER * buf, vector<string>& vec, bool deserialize);
 
 /**@}*/
 

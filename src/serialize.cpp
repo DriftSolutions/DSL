@@ -291,3 +291,23 @@ bool DSL_CC dsl_deserialize_fixed(DSL_BUFFER * buf, uint8_t * val, uint32_t lSiz
 	}
 	return true;
 }
+
+bool DSL_CC dsl_serialize_vector_string(DSL_BUFFER * buf, vector<string>& vec, bool deserialize) {
+	if (deserialize) {
+		uint32 num;
+		if (!dsl_deserialize_int(buf, &num, sizeof(num))) {	return false; }
+		vec.clear();
+		string tmp;
+		for (uint32 i = 0; i < num; i++) {
+			if (!dsl_deserialize_string(buf, &tmp)) { return false; }
+			vec.push_back(tmp);
+		}
+	} else {
+		uint32 num = (uint32)vec.size();
+		if (!dsl_serialize_int(buf, &num, sizeof(num))) { return false; }
+		for (auto x = vec.begin(); x != vec.end(); x++) {
+			if (!dsl_serialize_string(buf, &(*x))) { return false; }
+		}
+	}
+	return true;
+}
