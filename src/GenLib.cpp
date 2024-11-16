@@ -126,10 +126,8 @@ std::string StrTokenizer::stdGetSingleTok(size_t num) {
 	return stdGetTok(num, num);
 };
 
+/* Derived from original code by CodesInChaos */
 char * DSL_CC bin2hex(const uint8_t * data, size_t datalen, char * out, size_t outsize) {
-	unsigned short i;
-	unsigned char j;
-
 	if (outsize < (datalen * 2) + 1) {
 		if (outsize > 0) {
 			out[0] = 0;
@@ -137,25 +135,23 @@ char * DSL_CC bin2hex(const uint8_t * data, size_t datalen, char * out, size_t o
 		return NULL;
 	}
 
-	//uint8 * data = (uint8 *)dsl_malloc(datalen);
-	//memcpy(data, tdata, datalen);
+	size_t       i = (size_t)0U;
+	unsigned int x;
+	int          b;
+	int          c;
 
-	for (i = 0; i < datalen; i++) {
-		j = (data[i] >> 4) & 0xf;
-		if (j <= 9) {
-			out[i * 2] = (j + '0');
-		} else {
-			out[i * 2] = (j + 'a' - 10);
-		}
-		j = data[i] & 0xf;
-		if (j <= 9) {
-			out[i * 2 + 1] = (j + '0');
-		} else {
-			out[i * 2 + 1] = (j + 'a' - 10);
-		}
-	};
-	out[datalen * 2] = 0;
-	//dsl_free(data);
+	while (i < datalen) {
+		c = data[i] & 0xf;
+		b = data[i] >> 4;
+		x = (unsigned char)(87U + c + (((c - 10U) >> 8) & ~38U)) << 8 |
+			(unsigned char)(87U + b + (((b - 10U) >> 8) & ~38U));
+		out[i * 2U] = (char)x;
+		x >>= 8;
+		out[i * 2U + 1U] = (char)x;
+		i++;
+	}
+	out[i * 2U] = 0U;
+
 	return out;
 }
 
