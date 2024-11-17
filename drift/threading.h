@@ -11,7 +11,7 @@
 #ifndef _DSL_THREADING_H_
 #define _DSL_THREADING_H_
 
-#if defined(__cplusplus) && ((defined(_MSC_VER) && _MSC_VER >= 1800 && __cplusplus >= 199711L) || __cplusplus >= 201103L)
+#ifdef DSL_IS_CPP11_OR_NEWER
 #define DSL_THREADING_USE_C11
 #endif
 

@@ -69,7 +69,7 @@ public:
 
 // case-independent (ci) string less_than
 // returns true if s1 < s2
-#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+#ifdef DSL_IS_CPP11_OR_NEWER
 struct uc_less {
 	// case-independent (ci) compare_less binary function
 	struct nocase_compare {

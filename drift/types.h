@@ -39,6 +39,41 @@
 	typedef uint8_t uint8;
 #endif
 
+#if defined(__cplusplus)
+#if defined(_MSVC_LANG)
+#define DSL_CPP_VERSION _MSVC_LANG
+#else
+#define DSL_CPP_VERSION __cplusplus
+#endif
+#define DSL_IS_CPP_AT_LEAST(x) (DSL_CPP_VERSION >= x)
+	
+#if DSL_CPP_VERSION == 201103L
+#define DSL_IS_CPP11
+#endif
+#if DSL_CPP_VERSION == 201402L
+#define DSL_IS_CPP14
+#endif
+#if DSL_CPP_VERSION == 201703L
+#define DSL_IS_CPP17
+#endif
+#if DSL_CPP_VERSION == 202002L
+#define DSL_IS_CPP20
+#endif
+
+#if DSL_IS_CPP_AT_LEAST(201103L)
+#define DSL_IS_CPP11_OR_NEWER
+#endif
+#if DSL_IS_CPP_AT_LEAST(201402L)
+#define DSL_IS_CPP14_OR_NEWER
+#endif
+#if DSL_IS_CPP_AT_LEAST(201703L)
+#define DSL_IS_CPP17_OR_NEWER
+#endif
+#if DSL_IS_CPP_AT_LEAST(202002L)
+#define DSL_IS_CPP20_OR_NEWER
+#endif
+#endif // defined(__cplusplus)
+
 #define I64FMT "%" PRId64 ""
 #define U64FMT "%" PRIu64 ""
 

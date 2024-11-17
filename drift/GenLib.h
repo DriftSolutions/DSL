@@ -266,7 +266,7 @@ T scale_ranges(T value, T srcmin, T srcmax, T destmin, T destmax) {
  * Clamps a given value to the range of vMin to vMax (inclusive)<br>
  * Example: clamp<uint16>(10, 0, 15) to clamp a value of 10 to a range of 0-15.
  */
-#if defined(__cplusplus) && __cplusplus < 201703L
+#ifndef DSL_IS_CPP17_OR_NEWER
 template <typename T>
 T clamp(T v, T vMin, T vMax) {
 	if (v < vMin) { return vMin; }
