@@ -9,6 +9,7 @@
 //@AUTOHEADER@END@
 
 #include <inttypes.h>
+#include <stdint.h>
 
 /** \addtogroup dslcore
  * @{
@@ -18,26 +19,14 @@
 #define bool unsigned char
 #endif
 
-#if (defined(_MSC_VER) && _MSC_VER < 1600)
-	typedef signed __int64 int64;
-	typedef unsigned __int64 uint64;
-	typedef signed __int32 int32;
-	typedef unsigned __int32 uint32;
-	typedef signed __int16 int16;
-	typedef unsigned __int16 uint16;
-	typedef signed __int8 int8;
-	typedef unsigned __int8 uint8;
-#else
-	#include <stdint.h>
-	typedef int64_t int64;
-	typedef uint64_t uint64;
-	typedef int32_t int32;
-	typedef uint32_t uint32;
-	typedef int16_t int16;
-	typedef uint16_t uint16;
-	typedef int8_t int8;
-	typedef uint8_t uint8;
-#endif
+typedef int64_t int64;
+typedef uint64_t uint64;
+typedef int32_t int32;
+typedef uint32_t uint32;
+typedef int16_t int16;
+typedef uint16_t uint16;
+typedef int8_t int8;
+typedef uint8_t uint8;
 
 #if defined(__cplusplus)
 #if defined(_MSVC_LANG)
