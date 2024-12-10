@@ -10,7 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/GenLib.h>
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 #include <drift/hash.h>
 #include <drift/hmac.h>
 

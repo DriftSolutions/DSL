@@ -26,13 +26,13 @@
 #include <drift/rwops.h>
 #include <drift/config.h>
 #include <drift/config2.h>
-#include <drift/Mutex.h>
-#include <drift/Buffer.h>
+#include <drift/mutex.h>
+#include <drift/buffer.h>
 #include <drift/sockets3.h>
 #include <drift/download.h>
-#include <drift/Threading.h>
+#include <drift/threading.h>
 #include <drift/SyncedInt.h>
-#include <drift/Directory.h>
+#include <drift/directory.h>
 #include <drift/serialize.h>
 
 #include <drift/DB_Common.h>

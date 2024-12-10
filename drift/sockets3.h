@@ -11,7 +11,7 @@
 #ifndef __DSL_SOCKETS3_H__
 #define __DSL_SOCKETS3_H__
 
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 #include <set>
 
 /**

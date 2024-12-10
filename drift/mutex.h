@@ -11,7 +11,7 @@
 #ifndef _INCLUDE_MUTEX_H_
 #define _INCLUDE_MUTEX_H_
 
-#include <drift/Threading.h>
+#include <drift/threading.h>
 
 /**
  * \defgroup mutex Mutexes/Critical Sections

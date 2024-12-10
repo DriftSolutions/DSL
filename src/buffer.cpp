@@ -9,7 +9,7 @@
 //@AUTOHEADER@END@
 
 #include <drift/dslcore.h>
-#include <drift/Buffer.h>
+#include <drift/buffer.h>
 #include <assert.h>
 
 #pragma warning(disable: 4244)
@@ -94,11 +94,17 @@ bool DSL_CC buffer_prepend(DSL_BUFFER * buf, const char * ptr, int64 len) {
 	if (len <= 0) { return true; }
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 
+#if 0
+	buf->vec->insert(buf->vec->begin(), ptr, ptr + len);
+	buf->data = (char *)buf->vec->data();
+	buf->len += len;
+#else
 	buf->vec->resize(buf->len + len);
 	buf->data = (char *)buf->vec->data();
 	memmove(buf->data + len, buf->data, buf->len);
 	memcpy(buf->data, ptr, len);
 	buf->len += len;
+#endif
 
 	if (buf->hMutex) { buf->hMutex->Release(); }
 	return true;

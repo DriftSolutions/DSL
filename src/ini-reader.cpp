@@ -10,7 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/ini-reader.h>
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 #include <drift/GenLib.h>
 
 DSL_Mutex  * iniMutex()

@@ -11,7 +11,7 @@
 #include <drift/dslcore.h>
 #include <drift/GenLib.h>
 #include <drift/hash.h>
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 
 typedef vector<const HASH_PROVIDER*> hashProviderList;
 hashProviderList * dslHashProviders() {

@@ -10,7 +10,7 @@
 
 #include <drift/dslcore.h>
 #include <drift/WhereIs.h>
-#include <drift/Directory.h>
+#include <drift/directory.h>
 #include <drift/GenLib.h>
 
 void WhereIs_Search(WHEREIS_RESULTS * ret, const char * sDir, const char * fn) {

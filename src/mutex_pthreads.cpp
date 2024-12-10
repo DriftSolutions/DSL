@@ -12,7 +12,7 @@
 
 #if !defined(WIN32)
 
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 #include <drift/threading.h>
 #include <assert.h>
 

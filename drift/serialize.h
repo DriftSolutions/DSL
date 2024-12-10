@@ -11,7 +11,7 @@
 #ifndef __DSL_SERIALIZE_H__
 #define __DSL_SERIALIZE_H__
 
-#include <drift/Buffer.h>
+#include <drift/buffer.h>
 
 /**
  * \defgroup serialize Data Serializer

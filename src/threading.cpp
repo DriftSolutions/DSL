@@ -9,7 +9,7 @@
 //@AUTOHEADER@END@
 
 #include <drift/dslcore.h>
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 #include <drift/threading.h>
 #include <drift/GenLib.h>
 #if defined(DSL_THREADING_USE_C11)

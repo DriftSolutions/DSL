@@ -11,7 +11,7 @@
 #ifndef __RWOPS_H__
 #define __RWOPS_H__
 
-#include <drift/Buffer.h>
+#include <drift/buffer.h>
 
 /**
  * \defgroup rwops Abstract File/Memory Reading/Writing

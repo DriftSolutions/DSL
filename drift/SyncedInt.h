@@ -11,7 +11,7 @@
 #ifndef _INCLUDE_SYNCEDINT_H_
 #define _INCLUDE_SYNCEDINT_H_
 
-#include <drift/Mutex.h>
+#include <drift/mutex.h>
 
 /**
  * \defgroup atomic Atomic Integer Class

@@ -9,7 +9,7 @@
 //@AUTOHEADER@END@
 
 #include <drift/dslcore.h>
-#include <drift/Directory.h>
+#include <drift/directory.h>
 #include <drift/GenLib.h>
 
 Directory::Directory() {
