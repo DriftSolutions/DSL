@@ -39,7 +39,11 @@ DSL_Library_Registerer dsl_curl_autoreg(dsl_curl_funcs);
 
 size_t tdCurlWrite(void *ptr, size_t size, size_t nmemb, void *stream) {
 	DSL_FILE * fp = (DSL_FILE *)stream;
-	return fp->write(ptr, size * nmemb, fp) / size;
+	int64 ret = fp->write(ptr, size * nmemb, fp);
+	if (ret <= 0) {
+		return 0;
+	}
+	return size_t(ret) / size;
 }
 
 int tdCurlCallback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
@@ -81,7 +85,7 @@ DSL_Download_Curl::DSL_Download_Curl(const string& url, DSL_Download_Callback ca
 
 void DSL_Download_Curl::SetUserPass(const string& user, const string& pass) {
 	if (cHandle != NULL) {
-		if (user.length() && pass.length()) {
+		if (user.length() || pass.length()) {
 			curl_easy_setopt(cHandle, CURLOPT_USERPWD, mprintf("%s:%s", user.c_str(), pass.c_str()).c_str());
 		} else {
 			curl_easy_setopt(cHandle, CURLOPT_USERPWD, (char *)NULL);
@@ -106,8 +110,7 @@ const char * DSL_Download_Curl::GetErrorString() {
 //DSL_Download_Errors DSL_Download::GetError() { return this->error; }
 bool DSL_Download_Curl::SetURL(const string& url) {
 	if (cHandle) {
-		curl_easy_setopt(cHandle, CURLOPT_URL, url.c_str());
-		return true;
+		return (curl_easy_setopt(cHandle, CURLOPT_URL, url.c_str()) == CURLE_OK);
 	}
 	return false;
 }
@@ -211,11 +214,33 @@ bool DSL_Download_Curl::Download(DSL_FILE * fWriteTo) {
 	return (ret == CURLE_OK) ? true:false;
 }
 
-string curl_escapestring(const string& str) {
-	char * tmp = curl_escape(str.c_str(), (int)str.length());
-	string ret = tmp;
-	curl_free(tmp);
+string curl_escapestring(const string& str, CURL * cHandle) {
+	string ret;
+#if LIBCURL_VERSION_MAJOR > 7 || (LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 82)
+	// cHandle is ignored in newer versions
+	char * tmp = curl_easy_escape(cHandle, str.c_str(), (int)str.length());
+#else
+	char * tmp = (cHandle != NULL) ? curl_easy_escape(cHandle, str.c_str(), (int)str.length()) : curl_escape(str.c_str(), (int)str.length());
+#endif
+	if (tmp != NULL) {
+		ret = tmp;
+		curl_free(tmp);
+	}
 	return ret;
+}
+
+string curl_http_build_query(const map<string, string>& values, CURL * cHandle) {
+	stringstream url;
+	bool first = true;
+	for (auto& x : values) {
+		if (first) {
+			first = false;
+		} else {
+			url << "&";
+		}
+		url << curl_escapestring(x.first, cHandle) << "=" << curl_escapestring(x.second, cHandle);
+	}
+	return url.str();
 }
 
 #endif

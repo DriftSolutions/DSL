@@ -61,4 +61,16 @@ public:
 	virtual const char * GetErrorString(); /// Return cURL-specific error message when possible, falling back to the defaults from DSL_Download_Base
 };
 
-DSL_CURL_API_CLASS string curl_escapestring(const string& str);
+/**
+ * Escapes a string for use in URLs (urlencoding.)
+ * When using libcurl >= 7.82.0 (March 5 2022), cHandle is ignored by libcurl but we give it to them anyway.
+ * In libcurl versions older than that, we use curl_easy_escape() if cHandle != NULL, falling back to curl_escape() otherwise.
+ */
+DSL_CURL_API_CLASS string curl_escapestring(const string& str, CURL * cHandle = NULL);
+
+/**
+ * Builds a key=value query string with keys and values urlencoded.
+ * When using libcurl >= 7.82.0 (March 5 2022), cHandle is ignored by libcurl but we give it to them anyway.
+ * In libcurl versions older than that, we use curl_easy_escape() if cHandle != NULL, falling back to curl_escape() otherwise.
+ */
+DSL_CURL_API_CLASS string curl_http_build_query(const map<string, string>& values, CURL * cHandle = NULL);
