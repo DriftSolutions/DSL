@@ -39,7 +39,7 @@ public:
 
 	void Generate(); ///< Generate a new random nonce
 
-	bool SetFromHexString(string str);
+	bool SetFromHexString(const string& str);
 	bool SetFromBinaryData(const uint8_t * pdata, size_t len);
 
 	bool operator == (const DS_EncNonce &b) const {
@@ -127,7 +127,7 @@ public:
 	void SetNull();
 	bool IsValid() const;
 
-	bool SetFromHexString(string str);
+	bool SetFromHexString(const string& str);
 	bool SetFromBinaryData(const uint8_t * pdata, size_t len);
 
 	bool operator == (const DS_EncPubKey &b) const {
@@ -172,7 +172,7 @@ public:
 	bool Decrypt(const DS_EncPubKey& sender_key, const DS_EncNonce& nonce, DSL_BUFFER * buf);
 	bool Generate();
 
-	bool SetFromHexString(string str);
+	bool SetFromHexString(const string& str);
 	bool SetFromBinaryData(const uint8_t * pdata, size_t len);
 	bool SetBothFromBinaryData(const uint8_t * sdata, size_t slen, const uint8_t * pdata, size_t plen);
 

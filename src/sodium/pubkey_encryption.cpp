@@ -29,7 +29,7 @@ void DS_EncNonce::Generate() {
 	randombytes_buf(data, ENC_NONCE_SIZE_BYTES);
 }
 
-bool DS_EncNonce::SetFromHexString(string str) {
+bool DS_EncNonce::SetFromHexString(const string& str) {
 	if (str.length() == ENC_NONCE_SIZE_BYTES * 2 && strspn(str.c_str(), "abcdef0123456789") == str.length()) {
 		//strncpy(key_str, str.c_str(), sizeof(key_str));
 		hex2bin(str.c_str(), data, ENC_NONCE_SIZE_BYTES);
@@ -139,7 +139,7 @@ bool DS_EncPubKey::IsValid() const {
 	return true;
 }
 
-bool DS_EncPubKey::SetFromHexString(string str) {
+bool DS_EncPubKey::SetFromHexString(const string& str) {
 	if (str.length() == ENC_PUBKEY_SIZE_BYTES * 2 && strspn(str.c_str(), "abcdef0123456789") == str.length()) {
 		hex2bin(str.c_str(), key, ENC_PUBKEY_SIZE_BYTES);
 		return IsValid();
@@ -232,7 +232,7 @@ bool DS_EncPrivKey::Generate() {
 	return false;
 }
 
-bool DS_EncPrivKey::SetFromHexString(string str) {
+bool DS_EncPrivKey::SetFromHexString(const string& str) {
 	if (str.length() == ENC_PRIVKEY_SIZE_BYTES * 2 && strspn(str.c_str(), "abcdef0123456789") == str.length()) {
 		checkLocking();
 		hex2bin(str.c_str(), key, ENC_PRIVKEY_SIZE_BYTES);

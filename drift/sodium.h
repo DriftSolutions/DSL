@@ -31,7 +31,8 @@
 extern bool fSodiumInit;
 
 #include <drift/sodium/hash.h>
-#include <drift/sodium/keys_signing.h>
-#include <drift/sodium/keys_encryption.h>
+#include <drift/sodium/signing.h>
+#include <drift/sodium/pubkey_encryption.h>
+#include <drift/sodium/box_encryption.h>
 
 #endif // __DSL_SODIUM_H__
