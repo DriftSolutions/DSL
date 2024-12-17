@@ -232,6 +232,14 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only) {
 
 COMPILE_TIME_ASSERT(sizeof(unsigned int) == 4);
 
+#if defined(WIN64) || defined(__x86_64__)
+#ifdef WIN32
+#define DSL_RDRAND64_TYPE uint64_t
+#else
+#define DSL_RDRAND64_TYPE long long unsigned int
+#endif
+#endif
+
 bool DSL_CC dsl_rdrand(uint8 * buf, size_t len) {
 	if (!InstructionSet::RDRAND()) {
 		return false;
@@ -242,10 +250,10 @@ bool DSL_CC dsl_rdrand(uint8 * buf, size_t len) {
 
 	while (left > 0 && tries < 10) {
 #if defined(WIN64) || defined(__x86_64__)
-		if (left >= 8) {
-			if (_rdrand64_step((uint64_t *)p)) {
-				p += sizeof(uint64_t);
-				left -= sizeof(uint64_t);
+		if (left >= sizeof(DSL_RDRAND64_TYPE)) {
+			if (_rdrand64_step((DSL_RDRAND64_TYPE *)p)) {
+				p += sizeof(DSL_RDRAND64_TYPE);
+				left -= sizeof(DSL_RDRAND64_TYPE);
 			} else {
 				tries++;
 			}
