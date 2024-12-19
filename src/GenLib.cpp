@@ -704,7 +704,7 @@ char * DSL_CC GetUserConfigFolderA(const char * name) {
 	sstrcat(buf, name);
 	struct stat st;
 	if (stat(buf, &st) != 0) {
-		dsl_mkdir(buf, 0700);
+		dsl_mkdir_r(buf, 0700);
 	}
 	strcat(buf, PATH_SEPS);
 	return dsl_strdup(buf);
@@ -799,7 +799,7 @@ char * DSL_CC GetUserDocumentsFolderA(const char * name) {
 	sstrcat(buf, name);
 	struct stat st;
 	if (stat(buf, &st) != 0) {
-		dsl_mkdir(buf, 0700);
+		dsl_mkdir_r(buf, 0700);
 	}
 	strcat(buf, PATH_SEPS);
 	return dsl_strdup(buf);
