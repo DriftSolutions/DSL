@@ -61,6 +61,18 @@ DSL_API void DSL_CC DSL_PrintRunningThreads();
 DSL_API void DSL_CC DSL_PrintRunningThreadsWithID(int id);
 DSL_API bool DSL_CC DSL_KillThread(DSL_THREAD_INFO * tt);
 
+class DSL_API_CLASS DSL_AsyncTask {
+public:
+	bool done = false;
+
+	virtual void Run() = 0;
+};
+
+/**
+ * Starts a task in a new thread, you can check on the status by checking if done == true. At that point you can do whatever with the result and delete the task handle.
+ */
+DSL_API void DSL_CC DSL_StartAsyncTask(DSL_AsyncTask * task, const char * thread_name = NULL);
+
 #define DSL_DEFINE_THREAD(x) THREADTYPE x(void * lpData)
 
 #if defined(WIN32)

@@ -203,6 +203,18 @@ uint32 DSL_CC DSL_NumThreadsWithID(int id) {
 	return ret;
 }
 
+DSL_DEFINE_THREAD(AsyncTaskThread) {
+	DSL_THREAD_START
+	DSL_AsyncTask * h = (DSL_AsyncTask *)tt->parm;
+	h->Run();
+	h->done = true;
+	DSL_THREAD_END
+}
+
+void DSL_CC DSL_StartAsyncTask(DSL_AsyncTask * h, const char * thread_name) {
+	DSL_StartThread(AsyncTaskThread, h, (thread_name != NULL) ? thread_name : "Async Task");
+}
+
 void DSL_CC safe_sleep(int sleepfor, bool inmilli) {
 #if defined(DSL_THREADING_USE_C11)
 	this_thread::sleep_for(inmilli ? chrono::milliseconds(sleepfor) : chrono::seconds(sleepfor));
