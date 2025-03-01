@@ -82,7 +82,7 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 	friend class DSL_Sockets_Events;
 
 	protected:
-		DSL_Mutex_Base * hMutex = NULL;
+		DSL_Mutex * hMutex = NULL;
 
 		char bError[512];
 		int bErrNo;
@@ -109,7 +109,7 @@ class DSL_API_CLASS DSL_Sockets3_Base {
 #endif
 
 	public:
-		DSL_Sockets3_Base(DSL_Mutex_Base * mutex = NULL);
+		DSL_Sockets3_Base(DSL_Mutex * mutex = NULL);
 		virtual ~DSL_Sockets3_Base();
 
 		virtual bool IsSupported(unsigned int flag); ///< This lets you know if a feature is supported

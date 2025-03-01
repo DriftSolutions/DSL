@@ -45,7 +45,7 @@ void DSL_Sockets3_Base::Silent(bool bSilent) {
 	silent = bSilent;
 }
 
-DSL_Sockets3_Base::DSL_Sockets3_Base(DSL_Mutex_Base * mutex) {
+DSL_Sockets3_Base::DSL_Sockets3_Base(DSL_Mutex * mutex) {
 	dsl_init();
 	if (mutex != NULL) {
 		free_mutex = false;

@@ -51,6 +51,8 @@ typedef uint8_t uint8;
 
 #if DSL_IS_CPP_AT_LEAST(201103L)
 #define DSL_IS_CPP11_OR_NEWER
+#else
+#error "DSL requires at least C++11 support!"
 #endif
 #if DSL_IS_CPP_AT_LEAST(201402L)
 #define DSL_IS_CPP14_OR_NEWER
