@@ -46,10 +46,7 @@ DSL_Library_Registerer dsl_sqlite_autoreg(dsl_sqlite_funcs);
 
 DB_SQLite::DB_SQLite() {
 	sql_printf = printf;
-	query_count = 0;
-	handle = NULL;
 }
-
 
 DB_SQLite::~DB_SQLite() {
 	Close();
@@ -91,11 +88,16 @@ bool DB_SQLite::OpenV2(const string& fn, int flags, const string& vfs) {
 	return true;
 }
 
-uint32_t DB_SQLite::InsertID() {
-	return uint32_t(sqlite3_last_insert_rowid(handle));
+uint32 DB_SQLite::InsertID() {
+	sqlite3_int64 ret = sqlite3_last_insert_rowid(handle);
+	if (ret > UINT32_MAX) {
+		// overflows a 32-bit unsigned int
+		return 0;
+	}
+	return uint32_t(ret);
 }
 
-int64_t DB_SQLite::InsertID64() {
+int64 DB_SQLite::InsertID64() {
 	return sqlite3_last_insert_rowid(handle);
 }
 
@@ -103,12 +105,21 @@ int DB_SQLite::AffectedRows() {
 	return sqlite3_changes(handle);
 }
 
-uint32_t DB_SQLite::GetQueryCount() {
+#if SQLITE_VERSION_NUMBER >= 3037000
+int64 DB_SQLite::AffectedRows64() {
+	return sqlite3_changes64(handle);
+}
+#endif
+
+uint32 DB_SQLite::GetQueryCount() {
 	return query_count;
 }
 
 string DB_SQLite::GetErrorString() {
-	if (handle == NULL) { return "Unknown error"; }
+	if (handle == NULL) {
+		static const char errmsg[] = "Database not opened";
+		return errmsg;
+	}
 	return sqlite3_errmsg(handle);
 }
 
@@ -117,10 +128,28 @@ int DB_SQLite::GetError() {
 	return sqlite3_errcode(handle);
 }
 
-int db_sqlite3_cb(void * ptr, int ncols, char ** values, char ** cols) {
+struct SQLITE_ROW_CB {
+	DB_SQLite_Query_Row_Callback cb;
+	void * user_ptr;
+};
+
+int db_sqlite3_row_cb(void * ptr, int ncols, char ** values, char ** cols) {
+	SQLITE_ROW_CB * cb = (SQLITE_ROW_CB *)ptr;
+	SC_Row row;
+	for (int i = 0; i < ncols; i++) {
+		row.Values[cols[i]] = (values[i] != NULL) ? values[i] : "NULL";
+	}
+	return !cb->cb(row, cb->user_ptr);
+}
+
+bool DB_SQLite::Query(const string& query, DB_SQLite_Query_Row_Callback cb, void * uptr) {
+	SQLITE_ROW_CB row_cb = { cb, uptr };
+	return (Query(query, db_sqlite3_row_cb, &row_cb) == SQLITE_OK);
+}
+
+int db_sqlite3_result_cb(void * ptr, int ncols, char ** values, char ** cols) {
 	SQLite_Result * ret = (SQLite_Result *)ptr;
 	SC_Row row;
-	row.NumFields = ncols;
 	for (int i = 0; i < ncols; i++) {
 		row.Values[cols[i]] = (values[i] != NULL) ? values[i] : "NULL";
 	}
@@ -128,74 +157,162 @@ int db_sqlite3_cb(void * ptr, int ncols, char ** values, char ** cols) {
 	return 0;
 }
 
-bool DB_SQLite::NoResultQuery(const string& query) {
+SQLite_Result * DB_SQLite::Query(const string& query) {
+	SQLite_Result * ret = new SQLite_Result();
+	if (Query(query, db_sqlite3_result_cb, ret) == SQLITE_OK) {
+		return ret;
+	}
+	delete ret;
+	return NULL;
+}
+
+int DB_SQLite::Query(const string& query, DB_SQLite_Query_Callback cb, void * uptr) {
 	if (!handle) {
 		sql_printf("sql error: you don't have an SQLite DB open!\n");
-		return NULL;
+		return SQLITE_ERROR;
+	}
+
+	query_count++;
+	char * errmsg = NULL;
+	int n = sqlite3_exec(handle, query.c_str(), cb, uptr, &errmsg);
+
+	if (n != SQLITE_OK) {
+		if (errmsg) {
+			sql_printf("sql error in query: %s\n", errmsg);
+		} else {
+			sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
+		}
+		if (query.length() <= 4096) {
+			sql_printf("Query: %s\n",query.c_str());
+		} else {
+			sql_printf("Query: <too large to print>\n");
+		}
+	}
+
+	if (errmsg) {
+		sqlite3_free(errmsg);
+	}
+
+	return n;
+}
+
+bool DB_SQLite::NoResultQuery(const string& query, bool silent_errors) {
+	if (!handle) {
+		sql_printf("sql error: you don't have an SQLite DB open!\n");
+		return false;
 	}
 
 	query_count++;
 	char * errmsg = NULL;
 	int n = sqlite3_exec(handle, query.c_str(), NULL, NULL, &errmsg);
-	if (n == SQLITE_OK) {
-		if (errmsg) {
-			sqlite3_free(errmsg);
-		}
-		return true;
-	} else {
+
+	if (n != SQLITE_OK && !silent_errors) {
 		if (errmsg) {
 			sql_printf("sql error in query: %s\n", errmsg);
-			sqlite3_free(errmsg);
 		} else {
 			sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
 		}
 		if (query.length() <= 4096) {
-			sql_printf("Query: %s\n",query.c_str());
+			sql_printf("Query: %s\n", query.c_str());
 		} else {
 			sql_printf("Query: <too large to print>\n");
 		}
 	}
 
-	return false;
+	if (errmsg != NULL) {
+		sqlite3_free(errmsg);
+	}
+
+	return (n == SQLITE_OK);
 }
 
-SQLite_Result * DB_SQLite::Query(const string& query) {
-	if (!handle) {
-		sql_printf("sql error: you don't have an SQLite DB open!\n");
-		return NULL;
-	}
 
-	query_count++;
-	SQLite_Result * ret = new SQLite_Result();
-	char * errmsg = NULL;
-	int n = sqlite3_exec(handle, query.c_str(), db_sqlite3_cb, ret, &errmsg);
-	if (n == SQLITE_OK) {
-		if (errmsg) {
-			sqlite3_free(errmsg);
-		}
-		return ret;
-	} else {
-		if (errmsg) {
-			sql_printf("sql error in query: %s\n", errmsg);
-			sqlite3_free(errmsg);
+bool DB_SQLite::_insert(const string& table, const SC_Row& row, const string& action) {
+	stringstream q;
+	q << action << " INTO " << table << "(";
+	bool first = true;
+	for (auto& x : row.Values) {
+		if (first) {
+			first = false;
 		} else {
-			sql_printf("sql error in query(%u): %s\n", GetError(), GetErrorString().c_str());
+			q << ", ";
 		}
-		if (query.length() <= 4096) {
-			sql_printf("Query: %s\n",query.c_str());
-		} else {
-			sql_printf("Query: <too large to print>\n");
-		}
+		q << "`" << x.first << "`";
 	}
+	q << ") VALUES (";
+	first = true;
+	for (auto& x : row.Values) {
+		if (first) {
+			first = false;
+		} else {
+			q << ", ";
+		}
+		q << "'" << EscapeString(x.second.AsString()) << "'";
+	}
+	q << ")";
+	return NoResultQuery(q.str());
+}
 
-	delete ret;
-	return NULL;
+bool DB_SQLite::Insert(const string& table, const SC_Row& row) {
+	return _insert(table, row, "INSERT");
+}
+
+bool DB_SQLite::InsertIgnore(const string& table, const SC_Row& row) {
+	return _insert(table, row, "INSERT IGNORE");
+}
+
+bool DB_SQLite::InsertOrUpdate(const string& table, const SC_Row& row) {
+	stringstream q;
+	q << "INSERT INTO " << table << "(";
+	bool first = true;
+	for (auto& x : row.Values) {
+		if (first) {
+			first = false;
+		} else {
+			q << ", ";
+		}
+		q << "`" << x.first << "`";
+	}
+	q << ") VALUES (";
+	first = true;
+	for (auto& x : row.Values) {
+		if (first) {
+			first = false;
+		} else {
+			q << ", ";
+		}
+		q << "'" << EscapeString(x.second.AsString()) << "'";
+	}
+	q << ") ON CONFLICT DO UPDATE SET ";
+	first = true;
+	for (auto& x : row.Values) {
+		if (first) {
+			first = false;
+		} else {
+			q << ", ";
+		}
+		q << "`" << x.first << "`='" << EscapeString(x.second.AsString()) << "'";
+	}
+	return NoResultQuery(q.str());
+}
+
+bool DB_SQLite::Replace(const string& table, const SC_Row& row) {
+	return _insert(table, row, "REPLACE");
 }
 
 bool DB_SQLite::FetchRow(SQLite_Result *result, SC_Row& retRow) {
-	retRow.Reset();
 	if (result && result->ind < result->rows.size()) {
 		retRow = result->rows[result->ind++];
+		return true;
+	} else {
+		retRow.Reset();
+	}
+	return false;
+}
+
+bool DB_SQLite::FetchRow(SQLite_Result *result, SC_Row ** retRow) {
+	if (result && result->ind < result->rows.size()) {
+		*retRow = &result->rows[result->ind++];
 		return true;
 	}
 	return false;

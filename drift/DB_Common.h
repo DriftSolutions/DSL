@@ -11,16 +11,18 @@
 #ifndef __DB_COMMON_H__
 #define __DB_COMMON_H__
 
+#include <drift/ds_value.h>
+
 class DSL_API_CLASS SC_Row {
 public:
-	map<string, string> Values;
-	size_t NumFields;
+	map<string, DS_Value> Values;
 
 	SC_Row();
 	~SC_Row();
 	void Reset();
 
 	string Get(const string& fieldname, const string& sDefault = "") const;
+	DS_Value * GetValue(const string& fieldname) const;
 };
 
 class DSL_API_CLASS SQLConxMulti {

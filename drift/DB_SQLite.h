@@ -35,6 +35,9 @@
  * @{
  */
 
+typedef int (*DB_SQLite_Query_Callback)(void * user_ptr, int ncols, char ** values, char ** cols);
+typedef bool (*DB_SQLite_Query_Row_Callback)(const SC_Row& row, void * user_ptr);
+
 class DSL_SQLITE_API_CLASS SQLite_Result {
 public:
 	size_t ind = 0;
@@ -47,23 +50,34 @@ public:
 	~DB_SQLite();
 
 	bool Open(const string& filename);
-	bool OpenV2(const string& filename, int flags, const string& vfs="");
+	bool OpenV2(const string& filename, int flags, const string& vfs = "");
 	bool IsOpen();
 	void Close();
 
 	string GetErrorString();
 	int GetError();
 
-	bool NoResultQuery(const string& query);
-	SQLite_Result * Query(const string& query);
+	int Query(const string& query, DB_SQLite_Query_Callback cb, void * user_ptr = NULL);
+	bool Query(const string& query, DB_SQLite_Query_Row_Callback cb, void * user_ptr = NULL);
+	SQLite_Result * Query(const string& query); // this is only recommended for small result sets since it will load the entire result into memory
 	size_t NumRows(SQLite_Result *result);
-	bool FetchRow(SQLite_Result *result, SC_Row& retRow);
+	bool FetchRow(SQLite_Result *result, SC_Row& retRow); // Copies the current row in to retRow, advances the internal index to the next row
+	bool FetchRow(SQLite_Result *result, SC_Row ** retRow); // Stores a pointer to the current row in to retRow, advances the internal index to the next row
 	bool FreeResult(SQLite_Result *result);
 
-	uint32_t InsertID();
-	int64_t InsertID64();
+	bool NoResultQuery(const string& query, bool silent_errors = false);
+	virtual bool Insert(const string& table, const SC_Row& row);
+	virtual bool InsertIgnore(const string& table, const SC_Row& row);
+	virtual bool InsertOrUpdate(const string& table, const SC_Row& row);
+	virtual bool Replace(const string& table, const SC_Row& row);
+
+	uint32 InsertID();
+	int64 InsertID64();
 	int AffectedRows();
-	uint32_t GetQueryCount();
+#if SQLITE_VERSION_NUMBER >= 3037000
+	int64 AffectedRows64();
+#endif
+	uint32 GetQueryCount();
 
 	string EscapeString(const string& str);
 	string MPrintf(const char * str, ...); // sqlite3 extensions: %q escape, %Q escape and put quotes around entire thing
@@ -74,8 +88,9 @@ public:
 	bool MultiEnd(SQLConxMulti *);
 
 private:
-	sqlite3 * handle;
+	sqlite3 * handle = NULL;
 	uint32_t query_count = 0;
+	bool _insert(const string& table, const SC_Row& row, const string& action);
 };
 
 /**@}*/

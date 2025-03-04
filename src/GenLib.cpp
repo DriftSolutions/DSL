@@ -287,7 +287,7 @@ wchar_t * DSL_CC nopathW(wchar_t *fn) {
 	return fn;
 }
 
-DSL_API char * DSL_CC strtrim(char *buf, const char * trim, uint8 sides) {
+char * DSL_CC strtrim(char *buf, const char * trim, uint8 sides) {
 	size_t i=0;
 	size_t len = strlen(trim);
 	if (sides & TRIM_LEFT) {
@@ -308,6 +308,14 @@ DSL_API char * DSL_CC strtrim(char *buf, const char * trim, uint8 sides) {
 		}
 	}
 	return buf;
+}
+
+string DSL_CC stdstrtrim(const string& buf, const string& trim, uint8 sides) {
+	char * tmp = dsl_strdup(buf.c_str());
+	strtrim(tmp, trim.c_str(), sides);
+	string ret = tmp;
+	dsl_free(tmp);
+	return ret;
 }
 
 #if defined(WIN32)

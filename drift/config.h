@@ -11,15 +11,7 @@
 #ifndef __UNIVERSAL_CONFIG_H__
 #define __UNIVERSAL_CONFIG_H__
 
-enum DS_VALUE_TYPE {
-	DS_TYPE_UNKNOWN,
-	DS_TYPE_BOOL,
-	DS_TYPE_INT,
-	DS_TYPE_FLOAT,
-	DS_TYPE_STRING,
-	DS_TYPE_BINARY,
-	DS_TYPE_LONG = DS_TYPE_INT, // for legacy code
-};
+#include <drift/ds_value.h>
 
 #pragma pack(1)
 struct DS_VALUE {

@@ -11,6 +11,8 @@
 #ifndef __UNIVERSAL_CONFIG2_H__
 #define __UNIVERSAL_CONFIG2_H__
 
+#include <drift/ds_value.h>
+
 /**
  * \defgroup config2 Configuration Reader/Writer V2
  */
@@ -29,43 +31,7 @@ enum DS_VALUE_TYPE {
 */
 
 class ConfigSection;
-
-class DSL_API_CLASS ConfigValue {
-	friend class ConfigSection;
-private:
-	bool isBool(const char * buf, bool * val = NULL);
-	bool isInt(const char * text);
-	bool isFloat(const char * text);
-
-protected:
-	string sString;
-	union {
-		int64 Int;
-		double Float;
-	};
-
-public:
-	ConfigValue();
-	~ConfigValue();
-
-	DS_VALUE_TYPE Type;
-
-	int64 AsInt() const;
-	double AsFloat() const;
-	string AsString() const;
-	bool AsBool() const; /* true if it is an int > 0, double >= 1.00, or the strings "true" or "on" */
-
-	void SetValue(const ConfigValue& val);
-	void SetValue(int64 val);
-	void SetValue(double val);
-	void SetValue(const char * val);
-	void SetValue(const string& val);
-	void SetValue(const uint8_t * val, size_t len);
-	void SetValue(bool val);
-
-	void Reset();
-	void ParseString(const char * value);
-};
+typedef DS_Value ConfigValue;
 
 // case-independent (ci) string less_than
 // returns true if s1 < s2

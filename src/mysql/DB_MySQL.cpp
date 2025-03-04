@@ -15,6 +15,7 @@
 typedef bool my_bool;
 #endif
 #include <sstream>
+#include <set>
 using namespace std;
 
 bool dsl_mysql_init() {
@@ -36,9 +37,6 @@ DSL_Library_Registerer dsl_mysql_autoreg(dsl_mysql_funcs);
 
 DB_MySQL::DB_MySQL() {
 	sql_printf = printf;
-	query_count = 0;
-	sql = NULL;
-	port = 3306;
 }
 
 
@@ -104,7 +102,7 @@ bool DB_MySQL::Connect() {
 	return true;
 }
 
-bool DB_MySQL::Connect(const string& pHost, const string& pUser, const string& pPass, const string& pDBName, uint16_t lPort, const string& pCharset) {
+bool DB_MySQL::Connect(const string& pHost, const string& pUser, const string& pPass, const string& pDBName, uint16 lPort, const string& pCharset) {
 	host = pHost;
 	user = pUser;
 	pass = pPass;
@@ -124,24 +122,36 @@ bool DB_MySQL::Ping() {
 	return (mysql_ping(sql) == 0);
 }
 
-uint32_t DB_MySQL::InsertID() {
-	return uint32_t(mysql_insert_id(sql));
+uint32 DB_MySQL::InsertID() {
+	uint64 ret = InsertID64();
+	if (ret > UINT32_MAX) {
+		// overflows a 32-bit unsigned int
+		return 0;
+	}
+	return uint32(ret);
 }
 
-uint64_t DB_MySQL::InsertID64() {
-	return uint64_t(mysql_insert_id(sql));
+uint64 DB_MySQL::InsertID64() {
+	return uint64(mysql_insert_id(sql));
 }
 
-uint64_t DB_MySQL::AffectedRows() {
-	return uint64_t(mysql_affected_rows(sql));
+uint64 DB_MySQL::AffectedRows() {
+	my_ulonglong ret = mysql_affected_rows(sql);
+	if (ret == (my_ulonglong)-1) {
+		return 0;
+	}
+	return uint64(ret);
 }
 
-uint32_t DB_MySQL::GetQueryCount() {
+uint32 DB_MySQL::GetQueryCount() {
 	return query_count;
 }
 
 string DB_MySQL::GetErrorString() {
-	if (sql == NULL) { return "Unknown error"; }
+	if (sql == NULL) {
+		static const char errmsg[] = "Unknown error";
+		return errmsg;
+	}
 	return mysql_error(sql);
 }
 
@@ -165,7 +175,7 @@ bool DB_MySQL::NoResultQuery(const string& query) {
 		if (query.length() <= 4096) {
 			sql_printf("Query: %s\n", query.c_str());
 		} else {
-			sql_printf("Query: <too large to print>\n");
+			sql_printf("Query (truncated): %s ...\n", query.substr(0, 512).c_str());
 		}
 	}
 	return ret;
@@ -179,40 +189,54 @@ MYSQL_RES *DB_MySQL::Query(const string& query) {
 	return mysql_store_result(sql);
 }
 
-bool DB_MySQL::FetchRow(MYSQL_RES *result, SC_Row& retRow) {
-	MYSQL_ROW row;
-	MYSQL_FIELD *fields;
-	unsigned int num_fields;
-	unsigned int i;
+static const set<enum_field_types> mysql_int_types = {
+	MYSQL_TYPE_TINY, MYSQL_TYPE_SHORT, MYSQL_TYPE_LONG, MYSQL_TYPE_LONGLONG, MYSQL_TYPE_INT24
+};
+static const set<enum_field_types> mysql_float_types = {
+	MYSQL_TYPE_DECIMAL, MYSQL_TYPE_FLOAT, MYSQL_TYPE_DOUBLE, MYSQL_TYPE_NEWDECIMAL
+};
+static const set<enum_field_types> mysql_blob_types = {
+	MYSQL_TYPE_TINY_BLOB, MYSQL_TYPE_MEDIUM_BLOB, MYSQL_TYPE_LONG_BLOB, MYSQL_TYPE_BLOB
+};
 
+bool DB_MySQL::FetchRow(MYSQL_RES *result, SC_Row& retRow) {
 	retRow.Reset();
 
-	num_fields = mysql_num_fields(result);
+	unsigned int num_fields = mysql_num_fields(result);
+	MYSQL_ROW row;
 	if ((row = mysql_fetch_row(result))) {
 		unsigned long * lengths = mysql_fetch_lengths(result);
-		for(i = 0; i < num_fields; i++)	{
-			fields = mysql_fetch_field_direct(result,i);
-
+		for (unsigned int i = 0; i < num_fields; i++)	{
+			MYSQL_FIELD * field = mysql_fetch_field_direct(result,i);
 			if (lengths[i] > 0) {
 				string str;
 				str.assign(row[i], lengths[i]);
-				retRow.Values[fields->name] = str;
+
+				DS_Value val;
+				if (mysql_int_types.find(field->type) != mysql_int_types.end()) {
+					val.SetValue((int64)atoi64(str.c_str()));
+				} if (mysql_float_types.find(field->type) != mysql_float_types.end()) {
+					val.SetValue(atof(str.c_str()));
+				} if (mysql_blob_types.find(field->type) != mysql_blob_types.end()) {
+					val.SetValue((const uint8 *)row[i], lengths[i]);
+				} else {
+					val.SetValue(str);
+				}
+				retRow.Values[field->name] = val;
 			} else {
-				retRow.Values[fields->name] = "";
+				retRow.Values[field->name] = "";
 			}
 		}
 	} else {
 		return false;
 	}
 
-	retRow.NumFields = num_fields;
 	return true;
 }
 
-uint64_t DB_MySQL::NumRows(MYSQL_RES *result) {
+uint64 DB_MySQL::NumRows(MYSQL_RES *result) {
 	if (result == NULL) { return 0; }
-	uint64_t ret = mysql_num_rows(result);
-	return ret;
+	return uint64(mysql_num_rows(result));
 }
 
 bool DB_MySQL::FreeResult(MYSQL_RES *result) {
@@ -268,7 +292,7 @@ bool DB_MySQL::MultiSend(SQLConxMulti * scm) {
 	scm->queries.insert(scm->queries.begin(), "BEGIN;");
 	scm->queries.push_back("COMMIT;");
 
-	uint32_t tcount = 0;
+	uint32 tcount = 0;
 	while (ret && scm->queries.size()) {
 		stringstream q;
 		int cnt=0;

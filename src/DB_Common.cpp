@@ -12,7 +12,6 @@
 #include <drift/DB_Common.h>
 
 SC_Row::SC_Row() {
-	NumFields = 0;
 }
 
 SC_Row::~SC_Row() {
@@ -21,13 +20,12 @@ SC_Row::~SC_Row() {
 
 void SC_Row::Reset() {
 	Values.clear();
-	NumFields = 0;
 }
 
 string SC_Row::Get(const string& fieldname, const string& sDefault) const {
 	auto x = Values.find(fieldname);
 	if (x != Values.end()) {
-		return x->second;
+		return x->second.AsString();
 	}
 	return sDefault;
 }

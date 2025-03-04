@@ -40,7 +40,7 @@ public:
 	DB_MySQL();
 	~DB_MySQL();
 
-	bool Connect(const string& host, const string& user, const string& pass, const string& dbname, uint16_t port=0, const string& charset="");
+	bool Connect(const string& host, const string& user, const string& pass, const string& dbname, uint16 port=0, const string& charset="");
 	bool Connect();
 	void Disconnect();
 	bool Ping();
@@ -50,14 +50,14 @@ public:
 
 	bool NoResultQuery(const string& query);
 	MYSQL_RES *Query(const string& query);
-	uint64_t NumRows(MYSQL_RES *result);
+	uint64 NumRows(MYSQL_RES *result);
 	bool FetchRow(MYSQL_RES *result, SC_Row& retRow);
 	bool FreeResult(MYSQL_RES *result);
 
-	uint32_t InsertID();
-	uint64_t InsertID64();
-	uint64_t AffectedRows();
-	uint32_t GetQueryCount();
+	uint32 InsertID();
+	uint64 InsertID64();
+	uint64 AffectedRows();
+	uint32 GetQueryCount();
 
 	string EscapeString(const string& str);
 	MYSQL * GetHandle();
@@ -67,10 +67,10 @@ public:
 	bool MultiEnd(SQLConxMulti *);
 
 private:
-	MYSQL * sql;
+	MYSQL * sql = NULL;
 	string host, user, pass, dbname, charset;
-	uint16_t port;
-	uint32_t query_count = 0;
+	uint16 port = 0;
+	uint32 query_count = 0;
 };
 
 /**@}*/
