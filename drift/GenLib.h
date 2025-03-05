@@ -118,7 +118,7 @@ DSL_API size_t DSL_CC strlcat(char * dst, const char * src, size_t siz);
  * @sa TRIM_RIGHT
  */
 DSL_API char * DSL_CC strtrim(char *buf, const char * trim = "\r\n\t ", uint8 sides = TRIM_BOTH);
-DSL_API string DSL_CC stdstrtrim(const string& buf, const string& trim = "\r\n\t ", uint8 sides = TRIM_BOTH);
+DSL_API_CLASS string DSL_CC stdstrtrim(const string& buf, const string& trim = "\r\n\t ", uint8 sides = TRIM_BOTH);
 
 /**
  * Case-sensitive wildcard string comparison.

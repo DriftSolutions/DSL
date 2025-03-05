@@ -49,6 +49,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
+#include <algorithm>
 using namespace std;
 
 /**

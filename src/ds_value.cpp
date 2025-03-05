@@ -1,5 +1,6 @@
 #include <drift/dslcore.h>
 #include <drift/ds_value.h>
+#include <cmath>
 
 DS_Value::DS_Value() {
 	Int = 0;
