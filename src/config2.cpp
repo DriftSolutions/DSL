@@ -46,11 +46,26 @@ void ConfigSection::Clear() {
 }
 
 ConfigSection * ConfigSection::GetSection(const string& name) {
+	auto x = sections.lower_bound(name);
+	if (x != sections.end()) {
+		return x->second;
+	}
+/*		
 	auto x = sections.find(name);
 	if (x != sections.end()) {
 		return x->second;
 	}
+	*/
 	return NULL;
+}
+
+bool ConfigSection::GetSections(const string& name, vector<ConfigSection *>& psections) {
+	psections.clear();
+	auto matches = sections.equal_range(name);
+	for (auto i = matches.first; i != matches.second; ++i) {
+		psections.push_back(i->second);
+	}
+	return (psections.size() > 0);
 }
 
 bool ConfigSection::HasValue(const string& name) const {
@@ -68,7 +83,7 @@ ConfigValue ConfigSection::GetValue(const string& name) {
 }
 */
 
-const ConfigValue * ConfigSection::GetValue(const string& name) const {
+const ConfigValue * const ConfigSection::GetValue(const string& name) const {
 	auto x = values.find(name);
 	if (x != values.end()) {
 		return x->second;
@@ -94,29 +109,31 @@ void ConfigSection::SetValue(const string& name, const ConfigValue& val) {
 	}
 }
 
-ConfigSection * ConfigSection::FindOrAddSection(const string& name) {
-	ConfigSection * ret = GetSection(name);
-	if (ret != NULL) {		
-		return ret;
+ConfigSection * ConfigSection::FindOrAddSection(const string& name, bool force_new) {
+	if (!force_new) {
+		ConfigSection * ret = GetSection(name);
+		if (ret != NULL) {
+			return ret;
+		}
 	}
 
 	auto * s = new ConfigSection();
 	s->_name = name;
 	s->parent = this;
-	_sections[name] = s;
+	_sections.insert({ name,s });
 	return s;
 }
 
-bool ConfigSection::LoadFromString(const string& config, const string& fn, DSL_CONFIG_FORMAT f) {
+bool ConfigSection::LoadFromString(const string& config, const string& fn, DSL_CONFIG_FORMAT f, bool allow_duplicate_section_names) {
 	const char * p = config.c_str();
 	size_t line = 0;
 	if (f == DCF_AUTO) {
 		f = getSerializerModeFromFN(fn);
 	}
 	if (f == DCF_INI) {
-		return loadFromStringINI(&p, line, fn.c_str());
+		return loadFromStringINI(&p, line, fn.c_str(), allow_duplicate_section_names);
 	} else {
-		return loadFromStringConf(&p, line, fn.c_str());
+		return loadFromStringConf(&p, line, fn.c_str(), allow_duplicate_section_names);
 	}
 }
 
@@ -128,7 +145,7 @@ DSL_CONFIG_FORMAT ConfigSection::getSerializerModeFromFN(const string& fn) const
 	return DCF_CONF;
 }
 
-bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, const char * fn) {
+bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, const char * fn, bool allow_duplicate_section_names) {
 	bool long_comment = false;
 	char buf[256] = { 0 };
 
@@ -181,7 +198,7 @@ bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, cons
 					if (file_get_contents(p, data)) {
 						const char * tmpc = data.c_str();
 						size_t tmpln = 0;
-						if (!loadFromStringConf(&tmpc, tmpln, p)) {
+						if (!loadFromStringConf(&tmpc, tmpln, p, allow_duplicate_section_names)) {
 							printf("ERROR: Error loading #included file '%s'\n", p);
 							break;
 						}
@@ -207,8 +224,8 @@ bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, cons
 		char *p = (char *)&buf + (strlen(buf) - 2); // will be " {" if beginning a section
 		if (!strcmp(p, " {")) { // open a new section
 			p[0] = 0;
-			auto sub = FindOrAddSection(buf);
-			if (!sub->loadFromStringConf(&config, line, fn)) {
+			auto sub = FindOrAddSection(buf, allow_duplicate_section_names);
+			if (!sub->loadFromStringConf(&config, line, fn, allow_duplicate_section_names)) {
 				break;
 			}
 			continue;
@@ -246,7 +263,7 @@ bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, cons
 }
 
 
-bool ConfigSection::LoadFromFile(FILE * fp, const string& fn, DSL_CONFIG_FORMAT f) {
+bool ConfigSection::LoadFromFile(FILE * fp, const string& fn, DSL_CONFIG_FORMAT f, bool allow_duplicate_section_names) {
 	if (fp == NULL) { return false; }
 
 	fseek64(fp, 0, SEEK_END);
@@ -258,16 +275,16 @@ bool ConfigSection::LoadFromFile(FILE * fp, const string& fn, DSL_CONFIG_FORMAT 
 	char * tmp = (char *)dsl_malloc(len + 1);
 	if (fread(tmp, len, 1, fp) == 1) {
 		tmp[len] = 0;
-		ret = LoadFromString(tmp, fn, f);
+		ret = LoadFromString(tmp, fn, f, allow_duplicate_section_names);
 	}
 	dsl_free(tmp);
 	return ret;
 }
 
-bool ConfigSection::LoadFromFile(const string& filename, DSL_CONFIG_FORMAT f) {
+bool ConfigSection::LoadFromFile(const string& filename, DSL_CONFIG_FORMAT f, bool allow_duplicate_section_names) {
 	FILE * fp = fopen(filename.c_str(), "rb");
 	if (fp == NULL) { return false; }
-	bool ret = LoadFromFile(fp, filename, f);
+	bool ret = LoadFromFile(fp, filename, f, allow_duplicate_section_names);
 	fclose(fp);
 	return ret;
 }

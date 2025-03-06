@@ -80,7 +80,7 @@ class DSL_API_CLASS ConfigSection {
 protected:
 	ConfigSection * parent = NULL;
 	typedef map<string, ConfigValue *, uc_less> valueList;
-	typedef map<string, ConfigSection *, uc_less> sectionList;
+	typedef multimap<string, ConfigSection *, uc_less> sectionList;
 
 	string _name;
 	valueList _values;
@@ -88,9 +88,9 @@ protected:
 
 	DSL_CONFIG_FORMAT getSerializerModeFromFN(const string& filename) const;
 
-	virtual bool loadFromStringConf(const char ** config, size_t& line, const char * fn);
+	virtual bool loadFromStringConf(const char ** config, size_t& line, const char * fn, bool allow_duplicate_section_names);
 	virtual void writeSectionConf(stringstream& sstr, int level, bool single = false) const;
-	virtual bool loadFromStringINI(const char ** config, size_t& line, const char * fn);
+	virtual bool loadFromStringINI(const char ** config, size_t& line, const char * fn, bool allow_duplicate_section_names);
 	virtual void writeSectionINI(stringstream& sstr, int level, bool single = false) const;
 	void printSection(size_t level) const;
 public:
@@ -101,21 +101,25 @@ public:
 	void Clear();
 	void PrintConfigTree() const;
 
-	bool LoadFromString(const string& config, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO);
-	bool LoadFromFile(const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO);
-	bool LoadFromFile(FILE * fp, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO);
+	/**
+	* By default sections with the same names will be merged in to one combined section, setting allow_duplicate_section_names = true will load them as independent entries.
+	*/
+	bool LoadFromString(const string& config, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO, bool allow_duplicate_section_names = false);
+	bool LoadFromFile(const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO, bool allow_duplicate_section_names = false);
+	bool LoadFromFile(FILE * fp, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO, bool allow_duplicate_section_names = false);
 	string WriteToString(DSL_CONFIG_FORMAT f) const;
 	bool WriteToFile(const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO) const;
 	bool WriteToFile(FILE * fp, const string& filename, DSL_CONFIG_FORMAT f = DCF_AUTO) const;
 
 	ConfigSection * GetSection(const string& name);
-	const ConfigValue * GetValue(const string& name) const;
+	bool GetSections(const string& name, vector<ConfigSection *>& sections);
+	const ConfigValue * const GetValue(const string& name) const;
 	bool GetValue(const string& name, ConfigValue& value) const;
 	bool HasValue(const string& name) const;
 	void SetValue(const string& name, const ConfigValue& val);
 
 	// advanced commands
-	virtual ConfigSection * FindOrAddSection(const string& name);
+	virtual ConfigSection * FindOrAddSection(const string& name, bool force_new = false);
 
 	~ConfigSection();
 };

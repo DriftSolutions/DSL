@@ -7,7 +7,7 @@
 /**
  * Read in an INI file into a ConfigSection
  */
-bool ConfigSection::loadFromStringINI(const char ** pconfig, size_t& line, const char * fn) {
+bool ConfigSection::loadFromStringINI(const char ** pconfig, size_t& line, const char * fn, bool allow_duplicate_section_names) {
 	bool long_comment = false;
 	char buf[256] = { 0 };
 
@@ -60,7 +60,7 @@ bool ConfigSection::loadFromStringINI(const char ** pconfig, size_t& line, const
 					if (file_get_contents(p, data)) {
 						const char * tmpc = data.c_str();
 						size_t tmpln = 0;
-						if (!loadFromStringINI(&tmpc, tmpln, p)) {
+						if (!loadFromStringINI(&tmpc, tmpln, p, allow_duplicate_section_names)) {
 							printf("ERROR: Error loading #included file '%s'\n", p);
 							break;
 						}
@@ -88,15 +88,15 @@ bool ConfigSection::loadFromStringINI(const char ** pconfig, size_t& line, const
 			const char * new_name = &buf[1];
 			ConfigSection * sub;
 			if (parent != NULL) {
-				sub = parent->FindOrAddSection(new_name);
+				sub = parent->FindOrAddSection(new_name, allow_duplicate_section_names);
 			} else {
-				sub = FindOrAddSection(new_name);
+				sub = FindOrAddSection(new_name, allow_duplicate_section_names);
 			}
 			if (sub == NULL) {
 				printf("ERROR: Error finding or creating section '%s'\n", &buf[1]);
 				break;
 			}
-			if (!sub->loadFromStringINI(&config, line, fn)) {
+			if (!sub->loadFromStringINI(&config, line, fn, allow_duplicate_section_names)) {
 				break;
 			}
 			continue;
