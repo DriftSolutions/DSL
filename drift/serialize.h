@@ -90,6 +90,7 @@ protected:
 
 	/* Serialize a vector of std::string's */
 	#define servstr(x,y) if (!dsl_serialize_vector_string(buf, x, deserialize)) { return false; }
+	#define sersstr(x,y) if (!dsl_serialize_set_string(buf, x, deserialize)) { return false; }
 
 	virtual bool Serialize(DSL_BUFFER * buf, bool deserialize) = 0;
 public:
@@ -125,6 +126,7 @@ DSL_API bool DSL_CC dsl_deserialize_varchar(DSL_BUFFER * buf, uint8_t * val, uin
 DSL_API bool DSL_CC dsl_serialize_fixed(DSL_BUFFER * buf, const uint8_t * val, uint32_t lSize);
 DSL_API bool DSL_CC dsl_deserialize_fixed(DSL_BUFFER * buf, uint8_t * val, uint32_t lSize);
 DSL_API bool DSL_CC dsl_serialize_vector_string(DSL_BUFFER * buf, vector<string>& vec, bool deserialize);
+DSL_API bool DSL_CC dsl_serialize_set_string(DSL_BUFFER * buf, set<string>& vec, bool deserialize);
 
 /**@}*/
 

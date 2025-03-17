@@ -497,7 +497,9 @@ bool DSL_Sockets3_Base::ConnectWithTimeout(DSL_SOCKET * sock, const char * host,
 	while (Scan && tries--) {
 		Connect(sock, Scan->ai_addr, Scan->ai_addrlen);
 #if defined(DEBUG)
-		printf("DSL_Sockets3_Base::ConnectWithTimeout(%s:%d): Trying %s ...\n", host, port, sock->remote_ip);
+		if (!silent) {
+			printf("DSL_Sockets3_Base::ConnectWithTimeout(%s:%d): Trying %s ...\n", host, port, sock->remote_ip);
+		}
 #endif
 		memset(&timeo,0,sizeof(timeo));
 		timeo.tv_sec = (timeout / 1000);

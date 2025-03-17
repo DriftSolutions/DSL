@@ -48,6 +48,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 #include <map>
 #include <memory>
 #include <algorithm>
@@ -135,6 +136,9 @@ template <typename T> T dsl_get_random(T min, T max) {
 	T range = max - min + 1;
 	T ret;
 	dsl_fill_random_buffer((uint8 *)&ret, sizeof(T));
+	if (is_signed<T>() && ret < 0) {
+		ret *= -1;
+	}
 	return (ret % range) + min;
 }
 

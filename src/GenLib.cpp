@@ -25,6 +25,8 @@ time_t filetime_2_time_t(FILETIME ft) {
 	uint64 ret = (tmp.QuadPart - 0x19DB1DED53E8000) / 10000000;
 	return ret;
 }
+#else
+#include <sys/sysinfo.h>
 #endif
 
 StrTokenizer::StrTokenizer(char * str, char separater, bool do_strdup) {
@@ -814,15 +816,33 @@ char * DSL_CC GetUserDocumentsFolderA(const char * name) {
 }
 
 #if !defined(WIN32)
-DSL_API uint32 DSL_CC GetTickCount() {
-	return (uint32)GetTickCount64();
-}
+
+#ifdef CLOCK_MONOTONIC_COARSE
+#define LINUX_GTC_CLOCK CLOCK_MONOTONIC_COARSE
+#else
+#define LINUX_GTC_CLOCK CLOCK_MONOTONIC
+#pragma message( "Warning: using older Linux monotonic clock" )
+#endif
 
 DSL_API uint64 DSL_CC GetTickCount64() {
+	struct timespec ts;
+	if (clock_gettime(LINUX_GTC_CLOCK, &ts) == 0) {
+		return ((1000 * ts.tv_sec) + (ts.tv_nsec / 1000000));
+	}
+	return 0;
+
+	/*
 	static timeval tv_start = {0,0};
 	if (tv_start.tv_sec == 0) {
-		gettimeofday (&tv_start, NULL);
+		gettimeofday(&tv_start, NULL);
 		tv_start.tv_usec = 0;
+
+		struct sysinfo info;
+		if (sysinfo(&info) == 0) {
+			tv_start.tv_sec -= info.uptime;
+			return info.uptime * 1000;
+		}
+
 		return 0;
 	}
 	timeval tv;
@@ -830,6 +850,11 @@ DSL_API uint64 DSL_CC GetTickCount64() {
 	uint64 ret = uint64(tv.tv_sec - tv_start.tv_sec) * 1000;
 	ret += uint64(tv.tv_usec / 1000);
 	return ret;
+	*/
+}
+
+DSL_API uint32 DSL_CC GetTickCount() {
+	return (uint32)GetTickCount64();
 }
 
 #endif

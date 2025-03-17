@@ -46,16 +46,10 @@ void ConfigSection::Clear() {
 }
 
 ConfigSection * ConfigSection::GetSection(const string& name) {
-	auto x = sections.lower_bound(name);
-	if (x != sections.end()) {
-		return x->second;
-	}
-/*		
 	auto x = sections.find(name);
 	if (x != sections.end()) {
 		return x->second;
 	}
-	*/
 	return NULL;
 }
 
@@ -234,7 +228,7 @@ bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, cons
 		if (!strcmp(buf, "};")) { // close section
 			break;
 		}
-		
+
 		char * value = strchr(buf, ' ');
 		if (value == NULL) {
 			continue;
