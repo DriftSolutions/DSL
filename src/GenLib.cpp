@@ -1028,7 +1028,7 @@ DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, vector<uint8>& dat
 	}
 
 	data.resize(len);
-	bool ret = (fread(data.data(), len, 1, fp) == 1);
+	bool ret = (len == 0) ? true : (fread(data.data(), len, 1, fp) == 1);
 	fclose(fp);
 	return ret;
 }
@@ -1041,7 +1041,7 @@ DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, string& data, int6
 	}
 
 	data.resize(len);
-	bool ret = (fread(&data[0], len, 1, fp) == 1);
+	bool ret = (len == 0) ? true : (fread(&data[0], len, 1, fp) == 1);
 	fclose(fp);
 	return ret;
 }
@@ -1052,11 +1052,11 @@ DSL_API_CLASS bool DSL_CC file_get_contents(const string& fn, uint8 ** data, int
 		return false;
 	}
 
-	*data = (uint8 *)dsl_malloc(len);
+	*data = (uint8 *)dsl_malloc(len + 1);
 	if (*data == NULL) {
 		return false;
 	}
-	bool ret = (fread(*data, len, 1, fp) == 1);
+	bool ret = (len == 0) ? true : (fread(*data, len, 1, fp) == 1);
 	if (!ret) {
 		dsl_free(*data);
 		*data = NULL;

@@ -25,6 +25,21 @@ protected:
 	};
 
 public:
+	DS_Value(const int64 b) {
+		SetValue(b);
+	}
+	DS_Value(const double b) {
+		SetValue(b);
+	}
+	DS_Value(const char * b) {
+		SetValue(b);
+	}
+	DS_Value(const string& b) {
+		SetValue(b);
+	}
+	DS_Value(const bool b) {
+		SetValue(b);
+	}
 	DS_Value();
 	virtual ~DS_Value();
 

@@ -71,6 +71,10 @@ bool DSL_Registry::EnumValuesCallbackA(HKEY hKey, const char * SubKey, EV_Callba
 	return true;
 };
 
+bool DSL_Registry::DeleteKeyA(HKEY hKey, const char * SubKey) {
+	return (RegDeleteTreeA(hKey,SubKey) == ERROR_SUCCESS);
+}
+
 bool DSL_Registry::DeleteValueA(HKEY hKey, const char * SubKey, const char * value) {
 	HKEY ko;
 	if (RegOpenKeyExA(hKey,SubKey,0,KEY_READ|KEY_WRITE,&ko) != NO_ERROR) {

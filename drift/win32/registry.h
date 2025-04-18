@@ -41,6 +41,7 @@ public:
 	bool SetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * valname, TR_VALUE * value);
 	bool GetValueW(HKEY hKey, const wchar_t * SubKey, const wchar_t * valname, TR_VALUE * value);
 
+	bool DeleteKeyA(HKEY hKey, const char * SubKey);
 	bool EnumValuesCallbackA(HKEY hKey, const char * SubKey, EV_CallbackA callback);
 	bool DeleteValueA(HKEY hKey, const char * SubKey, const char * value);
 	bool SetValueA(HKEY hKey, const char * SubKey, const char * valname, TR_VALUE * value);

@@ -130,6 +130,15 @@ DSL_API void dsl_cleanup();
 DSL_API bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only = false);
 
 /**
+ * Gets a random number. Uses dsl_fill_random_buffer for random data.
+ */
+template <typename T> T dsl_get_random() {
+	T ret;
+	dsl_fill_random_buffer((uint8 *)&ret, sizeof(T));
+	return ret;
+}
+
+/**
  * Gets a random number between min and max (inclusive.) Uses dsl_fill_random_buffer for random data.
  */
 template <typename T> T dsl_get_random(T min, T max) {
