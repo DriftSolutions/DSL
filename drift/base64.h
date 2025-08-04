@@ -26,18 +26,18 @@
 #endif
 #endif
 
-#define base64_encode_buffer_size(n) ((((4 * (n)) / 3) + 3) & ~3)
+#define base64_encode_buffer_size(A) ((A + 2) / 3 * 4 + 1)
 
 /**
  * Encodes binary data to a base64 string. outBuffer should be at least base64_encode_buffer_size(count) bytes long.
  * @return The length of the encoded string.
  */
-DSL_API int DSL_CC base64_encode(const void *inBuffer, size_t count, char *outBuffer);
+DSL_API size_t DSL_CC base64_encode(const void *inBuffer, size_t count, char *outBuffer);
 /**
  * Decodes a base64 string to binary data.
  * @return The length of the decoded data.
  */
-DSL_API int DSL_CC base64_decode(const char *inBuffer, size_t count, void *outBuffer);
+DSL_API size_t DSL_CC base64_decode(const char *inBuffer, size_t count, void *outBuffer);
 
 /**@}*/
 
