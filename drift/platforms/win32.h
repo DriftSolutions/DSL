@@ -124,8 +124,10 @@
 #include <Ws2tcpip.h>
 //#include <winsock2.h>
 #include <Wspiapi.h>
+#ifndef DSL_MIN_WINDOWS
 #include <windows.h>
 #include <commctrl.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -142,7 +144,9 @@
 #include <io.h>
 #include <fcntl.h>
 #include <direct.h>
+#ifndef DSL_MIN_WINDOWS
 #include <shlobj.h>
+#endif
 
 #if defined(NTDDI_WIN10_RS4)
 #include <afunix.h>
@@ -161,8 +165,10 @@ extern "C" BOOLEAN NTAPI SystemFunction036(PVOID, ULONG);
 
 //libs
 #pragma comment(lib, "ws2_32.lib")
+#ifndef NOUSER
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "advapi32.lib")
+#endif
 
 #if defined(ENABLE_GNUTLS)
 #pragma comment(lib, "libgnutls-30.lib")
