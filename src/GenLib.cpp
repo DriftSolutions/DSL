@@ -375,10 +375,23 @@ char * DSL_CC stristr(char * haystack, const char * needle) {
 #else
 
 char * DSL_CC strlwr(char *str) {
+	if (str == NULL) {
+		return NULL; // Handle null pointer input
+	}
 	for(char * p = str; *p; p++) {
 		*p = tolower((unsigned char)*p);
 	}
 	return str;
+}
+
+char * DSL_CC strupr(char* str) {
+	if (str == NULL) {
+		return NULL; // Handle null pointer input
+	}
+	for (char* p = str; *p; p++) {
+		*p = toupper((unsigned char)*p);
+	}
+	return str; // Return a pointer to the modified string
 }
 
 #endif

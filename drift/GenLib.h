@@ -71,6 +71,7 @@ DSL_API void DSL_CC PrintData(FILE * fp, const uint8 * ptr, size_t len); ///< Pr
 	DSL_API struct tm * DSL_CC gmtime_r(const time_t * tme, struct tm * out); ///< Windows version of thread-safe gmtime_r
 #else
 	DSL_API char * DSL_CC strlwr(char * str); ///< Linux version of strlwr
+	DSL_API char* DSL_CC strupr(char* str); ///< Linux version of strupr
 	DSL_API uint32 DSL_CC GetTickCount(); ///< Linux version of GetTickCount
 	DSL_API uint64 DSL_CC GetTickCount64(); ///< Linux version of GetTickCount64
 #endif
