@@ -75,6 +75,8 @@
 #elif defined(__i386__)
 	#define CPU "x86"
 	#define DSL_HAVE_CPUID
+#elif defined(__aarch64__)
+	#define CPU "ARM64"
 #elif defined(__arm__)
 	#define CPU "ARM"
 #else
