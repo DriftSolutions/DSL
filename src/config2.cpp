@@ -141,7 +141,7 @@ DSL_CONFIG_FORMAT ConfigSection::getSerializerModeFromFN(const string& fn) const
 
 bool ConfigSection::loadFromStringConf(const char ** pconfig, size_t& line, const char * fn, bool allow_duplicate_section_names) {
 	bool long_comment = false;
-	char buf[256] = { 0 };
+	char buf[4096] = { 0 };
 
 	const char * config = *pconfig;
 	while (*config != 0) {
