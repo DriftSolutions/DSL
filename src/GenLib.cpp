@@ -1112,10 +1112,13 @@ bool DSL_CC file_put_contents(const string& fn, const uint8 * data, size_t fileS
 }
 
 int64 DSL_CC copy_file(const string& src, const string& dest, bool allow_overwrite) {
+	int64 file_size = filesize(src.c_str());
+	if (file_size < 0) {
+		return -1;
+	}
 #ifdef WIN32
-	int64 ret = filesize(src.c_str());
-	if (ret >= 0 && CopyFile(src.c_str(), dest.c_str(), !allow_overwrite)) {
-		return ret;
+	if (CopyFile(src.c_str(), dest.c_str(), !allow_overwrite)) {
+		return file_size;
 	}
 	return -1;
 #else
@@ -1130,29 +1133,38 @@ int64 DSL_CC copy_file(const string& src, const string& dest, bool allow_overwri
 	} else {
 		flags |= O_EXCL;
 	}
-	int fdo = open(dest.c_str(), flags);
+	int fdo = open(dest.c_str(), flags, 0777);
 	if (fdo == -1) {
 		close(fdi);
 		return -1;
 	}
 
 	int64 ret = 0;
-	#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 27))
-	ret = copy_file_range(fdi, NULL, fdo, NULL, SIZE_MAX, 0);
-	#else
-	uint8 buf[32768];
-	int n;
-	while ((n = read(fdi, buf, sizeof(buf))) > 0) {
-		if (write(fdo, buf, n) != n) {
-			n = -1;
-			break;
+	if (file_size > 0) {
+		#if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 27))
+		ret = copy_file_range(fdi, NULL, fdo, NULL, SIZE_MAX, 0);
+		printf("Copied %lld bytes...\n", ret);
+		if (ret == file_size) {
+			close(fdo);
+			close(fdi);
+			return ret;
 		}
-		ret += n;
+		lseek(fdi, 0, SEEK_SET);
+		lseek(fdo, 0, SEEK_SET);
+		#endif
+		uint8 buf[32768];
+		int n;
+		while ((n = read(fdi, buf, sizeof(buf))) > 0) {
+			if (write(fdo, buf, n) != n) {
+				n = -1;
+				break;
+			}
+			ret += n;
+		}
+		if (n < 0) {
+			ret = -1;
+		}
 	}
-	if (n < 0) {
-		ret = -1;
-	}
-	#endif
 
 	close(fdo);
 	close(fdi);

@@ -179,12 +179,15 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only) {
 	}
 	tries = 0;
 #endif
-	while (left > 0 && tries++ < 10) {
-		FILE * fp = fopen("/dev/urandom", "rb");
+	static FILE * fp = NULL;
+	if (fp == NULL) {
+		fp = fopen("/dev/urandom", "rb");
 		if (fp == NULL) {
 			fp = fopen("/dev/random", "rb");
 		}
-		if (fp != NULL) {
+	}
+	if (fp != NULL) {
+		while (left > 0 && tries++ < 10) {
 			while (left > 0) {
 				size_t n = fread(p, 1, left, fp);
 				if (n > 0) {
@@ -194,7 +197,6 @@ bool DSL_CC dsl_fill_random_buffer(uint8 * buf, size_t len, bool secure_only) {
 					break;
 				}
 			}
-			fclose(fp);
 		}
 	}
 	if (left == 0) {
