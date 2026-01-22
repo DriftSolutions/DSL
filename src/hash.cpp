@@ -47,7 +47,7 @@ void DSL_CC dsl_get_hash_providers(vector<const HASH_PROVIDER *>& p) {
 }
 
 HASH_CTX * DSL_CC hash_init(const char * name) {
-	//AutoMutexPtr(dslMutex());
+	AutoMutexPtr(dslMutex());
 	hashProviderList* hash_providers = dslHashProviders();
 	for (auto x = hash_providers->begin(); x != hash_providers->end(); x++) {
 		HASH_CTX * ret = (*x)->hash_init(name);

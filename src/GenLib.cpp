@@ -594,14 +594,16 @@ string DSL_CC escapeshellarg(const string& str) {
 		#ifdef WIN32
 		if (*p == '%') {
 			ret += '%'; // double %
-		} else if (*p == '"' || *p == '!') {
+		} else if (*p == '!') {
+			ret += '^';
+		} else if (*p == '"') {
 			ret += ' ';
 			p++;
 			continue;
 		}
 		#else
 		if (*p == '\'') {
-			ret += "'\\'";
+			ret += "'\\''";
 			p++;
 			continue;
 		}
