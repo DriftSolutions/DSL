@@ -178,7 +178,6 @@ void DSL_CC buffer_remove_front(DSL_BUFFER * buf, int64 len) {
 	} else {
 		buf->len -= len;
 		memmove(buf->data, buf->data + len, buf->len);
-		buf->data = (char *)dsl_realloc(buf->data, buf->len);
 	}
 	if (buf->hMutex) { buf->hMutex->Release(); }
 }
@@ -189,7 +188,6 @@ void DSL_CC buffer_remove_end(DSL_BUFFER * buf, int64 len) {
 		buffer_clear(buf);
 	} else {
 		buf->len -= len;
-		buf->data = (char *)dsl_realloc(buf->data, buf->len);
 	}
 	if (buf->hMutex) { buf->hMutex->Release(); }
 }
