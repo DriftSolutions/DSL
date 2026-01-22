@@ -126,6 +126,14 @@ bool DSL_CC buffer_append(DSL_BUFFER * buf, const char * ptr, int64 len) {
 
 #else
 
+static void buffer_grow(DSL_BUFFER * buf, int64 needed) {
+	if (needed <= buf->capacity) { return; }
+	int64 newcap = buf->capacity ? buf->capacity : 64;
+	while (newcap < needed) { newcap *= 2; }
+	buf->data = (char *)dsl_realloc(buf->data, newcap);
+	buf->capacity = newcap;
+}
+
 void DSL_CC buffer_init(DSL_BUFFER * buf, bool useMutex) {
 	memset(buf, 0, sizeof(DSL_BUFFER));
 	if (useMutex) { buf->hMutex = new DSL_Mutex(); }
@@ -151,21 +159,22 @@ void DSL_CC buffer_clear(DSL_BUFFER * buf) {
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 	dsl_freenn(buf->data);
 	buf->len = 0;
+	buf->capacity = 0;
 	buf->data = NULL;
 	if (buf->hMutex) { buf->hMutex->Release(); }
 }
 
 void DSL_CC buffer_set(DSL_BUFFER * buf, const char * ptr, int64 len) {
 	if (buf->hMutex) { buf->hMutex->Lock(); }
-	buf->data = (char *)dsl_realloc(buf->data, len);
-	buf->len = len;
+	buffer_grow(buf, len);
 	memcpy(buf->data, ptr, len);
+	buf->len = len;
 	if (buf->hMutex) { buf->hMutex->Release(); }
 }
 
 void DSL_CC buffer_resize(DSL_BUFFER * buf, int64 len) {
 	if (buf->hMutex) { buf->hMutex->Lock(); }
-	buf->data = (char *)dsl_realloc(buf->data, len);
+	buffer_grow(buf, len);
 	buf->len = len;
 	if (buf->hMutex) { buf->hMutex->Release(); }
 }
@@ -174,7 +183,7 @@ void DSL_CC buffer_remove_front(DSL_BUFFER * buf, int64 len) {
 	if (len <= 0) { return; }
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 	if (len >= buf->len) {
-		buffer_clear(buf);
+		buf->len = 0;
 	} else {
 		buf->len -= len;
 		memmove(buf->data, buf->data + len, buf->len);
@@ -185,7 +194,7 @@ void DSL_CC buffer_remove_end(DSL_BUFFER * buf, int64 len) {
 	if (len <= 0) { return; }
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 	if (len >= buf->len) {
-		buffer_clear(buf);
+		buf->len = 0;
 	} else {
 		buf->len -= len;
 	}
@@ -195,7 +204,7 @@ bool DSL_CC buffer_prepend(DSL_BUFFER * buf, const char * ptr, int64 len) {
 	if (len <= 0) { return true; }
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 
-	buf->data = (char *)dsl_realloc(buf->data, buf->len + len);
+	buffer_grow(buf, buf->len + len);
 	memmove(buf->data + len, buf->data, buf->len);
 	memcpy(buf->data, ptr, len);
 	buf->len += len;
@@ -207,7 +216,7 @@ bool DSL_CC buffer_append(DSL_BUFFER * buf, const char * ptr, int64 len) {
 	if (len <= 0) { return true; }
 	if (buf->hMutex) { buf->hMutex->Lock(); }
 
-	buf->data = (char *)dsl_realloc(buf->data, buf->len + len);
+	buffer_grow(buf, buf->len + len);
 	memcpy(buf->data + buf->len, ptr, len);
 	buf->len += len;
 

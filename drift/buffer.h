@@ -13,8 +13,7 @@
 
 #include <drift/mutex.h>
 
-#define DSL_BUFFER_USE_VECTOR
-/* Other CRT's untested at this point but under MSVC 2022 vector is 18-25% faster in tests */
+//#define DSL_BUFFER_USE_VECTOR
 
 /**
  * \defgroup buffer Data Buffer
@@ -36,6 +35,8 @@ struct DSL_BUFFER {
 	int64 len;
 #ifdef DSL_BUFFER_USE_VECTOR
 	vector<uint8> * vec;
+#else
+	int64 capacity;
 #endif
 };
 
