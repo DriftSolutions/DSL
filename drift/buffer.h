@@ -61,39 +61,4 @@ template <typename T> bool buffer_append_int(DSL_BUFFER * buf, T y) { return buf
 
 /**@}*/
 
-class DSL_API_CLASS DSL_Buffer {
-private:
-	DSL_Mutex hMutex;
-	char * data;
-	uint32 len;
-public:
-	DSL_Buffer();
-	~DSL_Buffer();
-
-	void Clear();
-	void RemoveFromEnd(uint32 len);
-	void RemoveFromBeginning(uint32 len);
-	char * Get();
-	uint32 GetLen();
-	bool Get(char * buf, uint32 * size);//the call will set size to the current length of data
-										//and will return true if the buffer was big enough and the copy was successful
-										//otherwise will return false and copy up to size into your buffer
-	bool Get(char * buf, uint32 size);	//the call will fill the buffer with your data up to size
-										//and will return true if the buffer was big enough and the copy was successful
-										//otherwise will return false and copy up to size into your buffer
-
-	void Set(const char * buf, uint32 len=0xFFFFFFFF);
-	void Append(const char * buf, uint32 len=0xFFFFFFFF);
-	void Prepend(const char * buf, uint32 len=0xFFFFFFFF);
-
-	void Append_int8(int8 val);
-	void Append_uint8(uint8 val);
-	void Append_int16(int16 val);
-	void Append_uint16(uint16 val);
-	void Append_int32(int32 val);
-	void Append_uint32(uint32 val);
-	void Append_int64(int64 val);
-	void Append_uint64(uint64 val);
-};
-
 #endif // __DSL_BUFFER_H__

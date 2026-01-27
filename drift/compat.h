@@ -30,7 +30,6 @@
 #define TS3_SSL_METHOD_TLS1_0 DS3_SSL_METHOD_TLS1_0
 #define TS3_SSL_METHOD_DEFAULT DS3_SSL_METHOD_DEFAULT
 
-#define Titus_Buffer DSL_Buffer
 #define Titus_Mutex DSL_Mutex
 #define Titus_TimedMutex DSL_TimedMutex
 #define Titus_Registry DSL_Registry
