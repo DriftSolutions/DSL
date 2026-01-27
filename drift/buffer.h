@@ -13,8 +13,6 @@
 
 #include <drift/mutex.h>
 
-//#define DSL_BUFFER_USE_VECTOR
-
 /**
  * \defgroup buffer Data Buffer
  */
@@ -33,18 +31,14 @@ struct DSL_BUFFER {
 		uint8 * udata;
 	};
 	int64 len;
-#ifdef DSL_BUFFER_USE_VECTOR
-	vector<uint8> * vec;
-#else
 	int64 capacity;
-#endif
 };
 
 DSL_API void DSL_CC buffer_init(DSL_BUFFER * buf, bool useMutex = false); ///< Initialize the buffer, optionally with a mutex protecting it. If you don't use the mutex you need to either synchronize access yourself or only use it from a single thread.
 DSL_API void DSL_CC buffer_free(DSL_BUFFER * buf); ///< Free the buffer when you are done with it.
 DSL_API_CLASS string buffer_as_string(DSL_BUFFER * buf); ///< Gets the buffer as a string
 
-DSL_API void DSL_CC buffer_clear(DSL_BUFFER * buf); ///< Sets the buffer length to 0 and clears the data. It is still ready to be used unlike buffer_free.
+DSL_API void DSL_CC buffer_clear(DSL_BUFFER * buf, bool force_free = false); ///< Sets the buffer length to 0 and clears the data. It is still ready to be used unlike buffer_free. By default the underlying memory isn't actually freed so it's ready to reuse without new allocations (same as STL vectors), set force_free = true to actually free it.
 DSL_API void DSL_CC buffer_set(DSL_BUFFER * buf, const char * ptr, int64 len); ///< Sets the buffer to the specified data, discarding anything existing.
 DSL_API void DSL_CC buffer_resize(DSL_BUFFER * buf, int64 len); ///< Resize the buffer, if the length is longer then the existing data the added byte values are undefined.
 
