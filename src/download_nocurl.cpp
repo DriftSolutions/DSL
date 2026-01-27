@@ -142,7 +142,7 @@ bool DSL_Download_NoCurl::Download(DSL_FILE * fWriteTo) {
 
 	stringstream req;
 	req << "GET " << path << " HTTP/1.0\r\n";
-	req << "Host: " << host << " : " << port << "\r\n";
+	req << "Host: " << host << ":" << port << "\r\n";
 	req << "User-Agent: " << user_agent << "\r\n";
 	req << "Connection: close\r\n";
 
